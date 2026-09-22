@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {scheduled,occurs,dayStats,streak,elapsed,addDays,weekKeys} from '../src/domain.js';
+test('local dates cross month/year without UTC shifts',()=>{assert.equal(addDays('2026-12-31',1),'2027-01-01');assert.deepEqual(weekKeys('2026-09-27'),['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-26','2026-09-27']);});
+test('scheduled days and explicit rests do not break a streak',()=>{const h={id:'h',days:[1,2,3,4,5],startDate:'2026-09-17'};const logs=[{habitId:'h',date:'2026-09-17',status:'done'},{habitId:'h',date:'2026-09-18',status:'done'},{habitId:'h',date:'2026-09-21',status:'skip'},{habitId:'h',date:'2026-09-22',status:'done'}];assert.equal(streak(h,logs,'2026-09-22'),3);assert.equal(scheduled(h,'2026-09-20'),false);assert.equal(scheduled(h,'2026-09-16'),false);assert.equal(dayStats([h],logs,'2026-09-21').percent,0);});
+test('recurrence obeys start/end and never silently shifts the 31st',()=>{const e={date:'2026-01-31',repeat:'monthly',until:'2026-05-31'};assert.equal(occurs(e,'2026-02-28'),false);assert.equal(occurs(e,'2026-03-31'),true);assert.equal(occurs(e,'2026-06-30'),false);assert.equal(occurs({date:'2026-09-22',repeat:'weekly'},'2026-09-29'),true);assert.equal(occurs({date:'2026-09-22',repeat:'weekly'},'2026-09-15'),false);});
+test('elapsed time survives pauses and does not depend on interval ticks',()=>{assert.equal(elapsed({running:true,startedAt:1000,elapsed:10000},61000),70);assert.equal(elapsed({running:false,elapsed:65000},900000),65);});
