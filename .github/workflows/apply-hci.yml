@@ -5,6 +5,7 @@ on:
     paths:
       - scripts/apply_hci_consolidation.py
       - .github/workflows/apply-hci.yml
+      - tests/**
 permissions:
   contents: write
 jobs:
