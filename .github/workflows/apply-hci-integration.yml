@@ -5,7 +5,7 @@ on:
     branches:
       - hci-coherencia-2026-09-23
     paths:
-      - '.patches/hci-coherencia.patch'
+      - '.patches/hci-*.part'
       - '.github/workflows/apply-hci-integration.yml'
 
 permissions:
@@ -34,8 +34,9 @@ jobs:
           grep -q "biblioteca_can_manage" src/biblioteca-main.js
       - name: Apply HCI coherence patch
         run: |
-          git apply --check .patches/hci-coherencia.patch
-          git apply .patches/hci-coherencia.patch
+          cat .patches/hci-00.part .patches/hci-01.part .patches/hci-02.part > /tmp/hci.patch
+          git apply --check /tmp/hci.patch
+          git apply /tmp/hci.patch
       - name: Install dependencies
         run: npm ci
       - name: Run tests
