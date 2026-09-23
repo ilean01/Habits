@@ -1,9 +1,17 @@
-import {dayKey} from './domain.js';
+import {dayKey,addDays} from './domain.js';
 import * as db from './store.js';
 export const waterTotal=(records,date)=>Math.round(records.filter(r=>r.hydration&&r.date===date).reduce((n,r)=>n+(Number(r.milliliters)||0),0))/1000;
+export function waterStats(records,endDate=dayKey(),days=7){
+ const keys=Array.from({length:days},(_,i)=>addDays(endDate,i-(days-1)));
+ const liters=keys.map(date=>waterTotal(records,date));
+ const total=Math.round(liters.reduce((n,v)=>n+v,0)*100)/100;
+ const average=Math.round((total/days)*100)/100;
+ const daysWithWater=liters.filter(v=>v>0).length;
+ return {keys,liters,total,average,daysWithWater};
+}
 export function wellbeingView({esc,btn}) {
- const date=dayKey(),entries=db.records('log').filter(r=>r.hydration&&r.date===date);
- return `<section class="panel"><h2>Agua, de a poquito</h2><p><strong>${waterTotal(entries,date).toLocaleString('es-PY')} litros</strong> registrados hoy</p><div class="button-row">${[250,500,1000].map(n=>btn(`+ ${n/1000} L`,'water-add',`data-ml="${n}"`,'button outline')).join('')}${btn('Otra cantidad','water-custom','','button outline')}</div>${entries.map(r=>`<div class="button-row"><small>${esc(new Date(r.at).toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'}))} · ${r.milliliters/1000} L</small>${btn('Quitar','water-remove',`data-id="${esc(r.id)}"`,'text-button')}</div>`).join('')}<p class="muted small">Cada toma se guarda por separado. Podés corregirla sin borrar las demás.</p></section><section class="panel"><h2>Mi entrenamiento</h2><p>Guardá una foto y una nota para recordar cómo te sentiste.</p>${btn('Fotos del entrenamiento','workout-photos','','button outline')}</section>`;
+ const date=dayKey(),all=db.records('log').filter(r=>r.hydration),entries=all.filter(r=>r.date===date),stats=waterStats(all,date,7);
+ return `<section class="panel water-panel"><h2>Agua, de a poquito</h2><p><strong>${waterTotal(entries,date).toLocaleString('es-PY')} litros</strong> registrados hoy</p><div class="water-summary"><span><b>${stats.average.toLocaleString('es-PY')} L</b><small>promedio diario · 7 días</small></span><span><b>${stats.total.toLocaleString('es-PY')} L</b><small>total últimos 7 días</small></span><span><b>${stats.daysWithWater}/7</b><small>días con registro</small></span></div><div class="button-row">${[250,500,1000].map(n=>btn(`+ ${n/1000} L`,'water-add',`data-ml="${n}"`,'button outline')).join('')}${btn('Otra cantidad','water-custom','','button outline')}</div>${entries.map(r=>`<div class="button-row"><small>${esc(new Date(r.at).toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'}))} · ${r.milliliters/1000} L</small>${btn('Quitar','water-remove',`data-id="${esc(r.id)}"`,'text-button')}</div>`).join('')}<p class="muted small">Cada toma se guarda por separado. El promedio cuenta los últimos 7 días completos, incluso los días sin registro.</p></section><section class="panel"><h2>Mi entrenamiento</h2><p>Guardá una foto y una nota para recordar cómo te sentiste.</p>${btn('Fotos del entrenamiento','workout-photos','','button outline')}</section>`;
 }
 export async function wellbeingAction(a,el,{showModal,input,textarea,btn,esc,toast,modal,render}) {
  if(!a.startsWith('water-')&&!a.startsWith('workout-'))return false;
