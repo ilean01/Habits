@@ -1,0 +1,136 @@
+name: Apply unified day calculation
+on:
+  push:
+    branches: [unificar-calculo-dia]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: unificar-calculo-dia
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Unify day logic
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p=Path(path); s=p.read_text()
+              n=s.count(old)
+              if n!=1:
+                  raise SystemExit(f'{path}: expected 1 occurrence, found {n}: {old[:90]!r}')
+              p.write_text(s.replace(old,new,1))
+
+          def replace_all(path, old, new, expected):
+              p=Path(path); s=p.read_text(); n=s.count(old)
+              if n!=expected:
+                  raise SystemExit(f'{path}: expected {expected} occurrences, found {n}: {old[:90]!r}')
+              p.write_text(s.replace(old,new))
+
+          # domain.js: one source of truth for which habits count on a date.
+          replace_once('src/domain.js',
+            "import {isHydrationHabit,hydrationTargetMl} from './selectors.js';",
+            "import {isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from './selectors.js';")
+          replace_once('src/domain.js',
+            "export function weeklyProgress(h,logs,date=dayKey()){",
+            "export function effectiveHabitsForDate(habits,date,mode='habitual'){\n return habits.filter(h=>scheduled(h,date)&&dayModeAllowsHabit(h,mode));\n}\nexport function weeklyProgress(h,logs,date=dayKey()){")
+          replace_once('src/domain.js',
+            "export function dayStats(habits,logs,date){\n const scheduledToday=habits.filter(h=>scheduled(h,date));",
+            "export function dayStats(habits,logs,date,mode='habitual'){\n const scheduledToday=effectiveHabitsForDate(habits,date,mode);")
+          replace_once('src/domain.js',
+            "export function streak(h,logs,today){",
+            "export function streak(h,logs,today,modeForDate=()=> 'habitual'){")
+          replace_once('src/domain.js',
+            "  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;\n  const s=habitStatus(h,logs,key);",
+            "  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;if(!dayModeAllowsHabit(h,modeForDate(key)))continue;\n  const s=habitStatus(h,logs,key);")
+
+          # Daily summary must use the same effective habit set.
+          replace_once('src/daily.js',
+            "import {habitStatus} from './domain.js';",
+            "import {habitStatus,effectiveHabitsForDate} from './domain.js';")
+          replace_once('src/daily.js',
+            "export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date) {\n const parts = habits.filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);",
+            "export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date, mode='habitual') {\n const parts = effectiveHabitsForDate(habits,date,mode).filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);")
+
+          # main.js: today, calendar, progress and heatmap use the central rule.
+          replace_once('src/main.js',
+            "import {AREAS,ICONS,PALETTE,uid,dayKey,parseDay,addDays,scheduled,occurs,dayStats,streak,elapsed,fmtDuration,weekKeys,eventOnDate,flexibleWeekly,weeklyProgress,habitStatus} from './domain.js';",
+            "import {AREAS,ICONS,PALETTE,uid,dayKey,parseDay,addDays,scheduled,occurs,dayStats,streak,elapsed,fmtDuration,weekKeys,eventOnDate,flexibleWeekly,weeklyProgress,habitStatus,effectiveHabitsForDate} from './domain.js';")
+          replace_once('src/main.js',
+            "import {diaryEntries,personalProjects,laterTasks,isDiaryEntry,taskProjectOptions,dayModeAllowsHabit} from './selectors.js';",
+            "import {diaryEntries,personalProjects,laterTasks,isDiaryEntry,taskProjectOptions} from './selectors.js';")
+          replace_once('src/main.js',
+            "const done=hs.filter(h=>habitStatus(h,logs,today).done);const summary=",
+            "const dayMode=effectiveDayMode(settings(),today);const done=effectiveHabitsForDate(hs,today,dayMode).filter(h=>habitStatus(h,logs,today).done);const summary=")
+          replace_once('src/main.js',
+            "finishedBooks:catalog().finishedToday},today);const upcoming=",
+            "finishedBooks:catalog().finishedToday},today,dayMode);const upcoming=")
+          replace_once('src/main.js',
+            "const dayMode=effectiveDayMode(settings());const shown=hs.filter(h=>scheduled(h,today)&&dayModeAllowsHabit(h,dayMode));const visibleStats=dayStats(shown,logs,today);",
+            "const shown=effectiveHabitsForDate(hs,today,dayMode);const visibleStats=dayStats(hs,logs,today,dayMode);")
+          replace_once('src/main.js',
+            "st=dayStats(rec('habit'),rec('log'),d);",
+            "st=dayStats(rec('habit'),rec('log'),d,effectiveDayMode(settings(),d));")
+          replace_once('src/main.js',
+            "rec('habit').filter(h=>scheduled(h,date)).map(h=>{",
+            "effectiveHabitsForDate(rec('habit'),date,effectiveDayMode(settings(),date)).map(h=>{")
+          replace_once('src/main.js',
+            "function progressView(){const today=dayKey(),week=weekKeys(today),logs=rec('log'),doneLogs=logs.filter(l=>week.includes(l.date)&&l.status==='done'),minutes=",
+            "function progressView(){const today=dayKey(),week=weekKeys(today),logs=rec('log'),weekStats=week.map(d=>dayStats(rec('habit'),logs,d,effectiveDayMode(settings(),d))),doneThisWeek=weekStats.reduce((n,s)=>n+s.done,0),minutes=")
+          replace_once('src/main.js',
+            "<strong>${doneLogs.length}</strong><p>hábitos completados</p>",
+            "<strong>${doneThisWeek}</strong><p>hábitos completados</p>")
+          replace_all('src/main.js',
+            "const st=dayStats(rec('habit'),logs,d);",
+            "const st=dayStats(rec('habit'),logs,d,effectiveDayMode(settings(),d));",2)
+          replace_once('src/main.js',
+            "${streak(h,logs,today)} ${flexibleWeekly(h)?'semanas':'días'}",
+            "${streak(h,logs,today,d=>effectiveDayMode(settings(),d))} ${flexibleWeekly(h)?'semanas':'días'}")
+
+          # Contextual extras and weekly summary use the same effective date model too.
+          replace_once('src/extras.js',
+            "import {dayKey,addDays,weekKeys,occurs,eventOnDate,scheduled,flexibleWeekly,weeklyProgress} from './domain.js';",
+            "import {dayKey,addDays,weekKeys,occurs,eventOnDate,flexibleWeekly,weeklyProgress,effectiveHabitsForDate,dayStats} from './domain.js';")
+          replace_once('src/extras.js',
+            "import {activeWorkBlock} from './work-context.js';",
+            "import {activeWorkBlock} from './work-context.js';\nimport {effectiveDayMode} from './planning.js';")
+          replace_once('src/extras.js',
+            "const suggestions=db.records('habit').filter(h=>scheduled(h,today)&&!logs.some",
+            "const suggestions=effectiveHabitsForDate(db.records('habit'),today,effectiveDayMode(db.records('settings')[0]||{},today)).filter(h=>!logs.some")
+          replace_once('src/extras.js',
+            "journals:db.records('journal')},today);showModal('Tu cierre del día'",
+            "journals:db.records('journal')},today,effectiveDayMode(db.records('settings')[0]||{},today));showModal('Tu cierre del día'")
+          replace_once('src/extras.js',
+            "if(a==='extra-week'){const week=weekKeys(today),logs=db.records('log').filter(l=>week.includes(l.date)&&l.status==='done'),reads=",
+            "if(a==='extra-week'){const week=weekKeys(today),allLogs=db.records('log'),doneCount=week.map(d=>dayStats(db.records('habit'),allLogs,d,effectiveDayMode(db.records('settings')[0]||{},d))).reduce((n,s)=>n+s.done,0),reads=")
+          replace_once('src/extras.js',
+            "Esta semana registraste <strong>${logs.length} hábitos</strong>",
+            "Esta semana registraste <strong>${doneCount} hábitos</strong>")
+
+          # Unit tests for the shared semantics.
+          replace_once('tests/domain.test.js',
+            "import {scheduled,occurs,dayStats,streak,elapsed,addDays,weekKeys} from '../src/domain.js';",
+            "import {scheduled,occurs,dayStats,streak,elapsed,addDays,weekKeys,effectiveHabitsForDate} from '../src/domain.js';")
+          p=Path('tests/domain.test.js')
+          s=p.read_text()
+          s += "\ntest('effective habits apply day mode consistently',()=>{const habits=[{id:'personal',area:'personal',days:[1],essential:false},{id:'essential',area:'personal',days:[1],essential:true},{id:'work',area:'trabajo',days:[1],essential:false}];assert.deepEqual(effectiveHabitsForDate(habits,'2026-09-21','tranquilo').map(h=>h.id),['essential']);assert.deepEqual(effectiveHabitsForDate(habits,'2026-09-21','finDeSemana').map(h=>h.id),['personal','essential']);});\n"
+          s += "test('dayStats and streak respect the same day mode rule',()=>{const h={id:'h',area:'personal',days:[0,1,2,3,4,5,6],essential:false,startDate:'2026-09-20'},logs=[{habitId:'h',date:'2026-09-21',status:'done'},{habitId:'h',date:'2026-09-23',status:'done'}];assert.equal(dayStats([h],logs,'2026-09-22','tranquilo').total,0);assert.equal(dayStats([h],logs,'2026-09-23','habitual').percent,100);const mode=d=>d==='2026-09-22'?'tranquilo':'habitual';assert.equal(streak(h,logs,'2026-09-23',mode),2);});\n"
+          p.write_text(s)
+          PY
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated changes
+        run: |
+          rm .github/workflows/apply-unificar-dia.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain.js src/daily.js src/main.js src/extras.js tests/domain.test.js .github/workflows/apply-unificar-dia.yml
+          git commit -m "Unificar cálculo efectivo de hábitos por día"
+          git push origin HEAD:unificar-calculo-dia
