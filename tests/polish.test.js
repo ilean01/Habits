@@ -16,9 +16,15 @@ test('el modo oscuro define contraste explícito para texto, formularios y panel
  assert.match(css,/\.journal-intro/);
 });
 
-test('la capa de mejoras añade acceso lateral a Progreso y resumen de agua',async()=>{
- const src=await readFile(new URL('../src/enhancements.js',import.meta.url),'utf8');
- assert.match(src,/>Progreso<\/span>/);
- assert.match(src,/PROMEDIO DE AGUA/);
- assert.match(src,/Tu agua, día por día/);
+test('Progreso y agua viven en la arquitectura principal y no en un parche del DOM',async()=>{
+ const [main,progress,enh]=await Promise.all([
+  readFile(new URL('../src/main.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/progress-view.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/enhancements.js',import.meta.url),'utf8')
+ ]);
+ assert.match(main,/\['progress','ChartNoAxesColumn','Progreso'\]/);
+ assert.match(progress,/PROMEDIO DE AGUA/);
+ assert.match(progress,/Tu agua, día por día/);
+ assert.doesNotMatch(enh,/function addProgressShortcut/);
+ assert.doesNotMatch(enh,/function decorateWaterProgress/);
 });
