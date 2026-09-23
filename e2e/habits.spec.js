@@ -68,3 +68,23 @@ test('agenda avisa el choque antes de guardar el segundo evento',async({page},te
  expect(dialogMessage).toContain('Inglés');
  await expect(page.locator('#modal')).toHaveAttribute('open','');
 });
+
+test('editor de hábito maneja la frecuencia semanal sin parche de DOM',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
+ await enterDemo(page);
+ await page.locator('[data-action="new-habit"]').first().click();
+ const modal=page.locator('#modal');
+ const mode=modal.locator('[name="frequencyMode"]');
+ const weekly=modal.locator('[data-weekly-target]');
+ await expect(mode).toBeVisible();
+ await expect(weekly).toBeHidden();
+ await mode.selectOption('weekly');
+ await expect(weekly).toBeVisible();
+ await expect(modal.locator('[name="weeklyTarget"]')).toHaveValue('3');
+ await modal.locator('[name="weeklyTarget"]').fill('4');
+ await mode.selectOption('days');
+ await expect(weekly).toBeHidden();
+ await mode.selectOption('weekly');
+ await expect(weekly).toBeVisible();
+ await expect(modal.locator('[name="weeklyTarget"]')).toHaveValue('4');
+});
