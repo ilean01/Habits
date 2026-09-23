@@ -43,8 +43,9 @@ export function dayStats(habits,logs,date){
  const skipped=hs.filter(h=>today.some(l=>l.habitId===h.id&&l.status==='skip')).length;
  return {total:hs.length,done,skipped,percent:hs.length?Math.round(done/hs.length*100):0};
 }
-export function streak(h,logs,today,{restDates=[]}={}){
- const rest=new Set(restDates||[]);
+export function streak(h,logs,today,{restDates=[],restWeekdays=[]}={}){
+ const rest=new Set(restDates||[]),restDays=new Set((restWeekdays||[]).map(Number));
+ const isRest=d=>rest.has(d)||restDays.has(parseDay(d).getDay());
  if(flexibleWeekly(h)){
   let count=0,anchor=today;
   const current=weeklyProgress(h,logs,anchor);
@@ -52,7 +53,7 @@ export function streak(h,logs,today,{restDates=[]}={}){
   for(let i=0;i<520;i++){
    const p=weeklyProgress(h,logs,anchor),weekStart=p.keys[0];
    if(h.startDate&&p.keys[6]<h.startDate)break;
-   const eligible=p.keys.filter(d=>scheduled(h,d)&&!rest.has(d));
+   const eligible=p.keys.filter(d=>scheduled(h,d)&&!isRest(d));
    if(!eligible.length){anchor=addDays(weekStart,-1);continue;}
    if(p.complete)count++;else break;
    anchor=addDays(weekStart,-1);
@@ -61,7 +62,7 @@ export function streak(h,logs,today,{restDates=[]}={}){
  }
  const byDate=new Map();for(const x of logs)if(x.habitId===h.id&&!byDate.has(x.date))byDate.set(x.date,x);
  let n=0;for(let i=0;i<3660;i++){
-  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key)||rest.has(key))continue;
+  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key)||isRest(key))continue;
   const l=byDate.get(key);if(l?.status==='done')n++;else if(l?.status==='skip')continue;else if(i!==0)break;
  }
  return n;
