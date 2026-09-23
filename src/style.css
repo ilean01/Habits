@@ -12,3 +12,5 @@
 @media(max-width:760px){.mobile-nav button{min-width:0;flex:1}.mobile-nav button span{font-size:9px}}
 .icon-picker{display:flex;flex-wrap:wrap;gap:6px;grid-column:1/-1}.icon-picker label{display:block}.icon-picker input{position:absolute;opacity:0;width:1px;height:1px}.icon-picker span{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:10px}.icon-picker input:checked+span{background:var(--soft);border:2px solid var(--green)}.icon-picker input:focus-visible+span{outline:3px solid var(--accent)}
 .week-agenda{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));overflow-x:auto;gap:12px}.week-agenda>section{padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.week-agenda h3{font-size:13px}
+
+.area-agenda{padding:18px 22px}.area-agenda-day{padding:10px 0;border-bottom:1px solid var(--line)}.area-agenda-day:last-child{border:0}.area-agenda-day>small{display:block;font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:capitalize}.area-agenda .event-card{margin-bottom:0}
