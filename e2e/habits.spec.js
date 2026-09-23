@@ -12,6 +12,7 @@ test('notebook: navegación principal, progreso, diario y más son coherentes',a
  const sidebar=page.locator('.sidebar');
  await expect(sidebar.getByRole('button',{name:/Progreso/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Mi diario/i})).toBeVisible();
+ await expect(sidebar.getByRole('button',{name:/Biblioteca/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Más/i})).toBeVisible();
  await sidebar.getByRole('button',{name:/Progreso/i}).click();
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
@@ -23,15 +24,21 @@ test('notebook: navegación principal, progreso, diario y más son coherentes',a
  await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
 });
 
-test('móvil: cinco destinos estables y acceso a Para después',async({page},testInfo)=>{
+test('móvil: Biblioteca es destino directo y Más conserva áreas, progreso, diario y Para después',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='mobile','Escenario móvil');
  await enterDemo(page);
  const nav=page.locator('.mobile-nav');
- for(const label of ['Mi día','Calendario','Mis áreas','Progreso','Más'])await expect(nav.getByRole('button',{name:new RegExp(label,'i')})).toBeVisible();
- await nav.getByRole('button',{name:/Progreso/i}).click();
+ for(const label of ['Mi día','Calendario','Biblioteca','Más'])await expect(nav.getByRole('button',{name:new RegExp(label,'i')})).toBeVisible();
+ await expect(nav.getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
+ await expect(nav.getByRole('button',{name:/Progreso/i})).toHaveCount(0);
+ await nav.getByRole('button',{name:/Más/i}).click();
+ await expect(page.getByRole('button',{name:'Mis áreas'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Progreso'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Mi diario'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
+ await page.getByRole('button',{name:'Progreso'}).click();
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
  await nav.getByRole('button',{name:/Más/i}).click();
- await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
  await page.getByRole('button',{name:'Para después'}).click();
  await expect(page.getByText(/Ideas y pendientes sin fecha/i)).toBeVisible();
 });
