@@ -6,3 +6,5 @@ test('summary preserves names and includes only recorded activity',()=>{
  assert.match(summary,/Clase con Laura/);assert.match(summary,/Inglés/);assert.match(summary,/30 minutos/);assert.match(summary,/Terminé mi trabajo/);assert.doesNotMatch(summary,/Sin completar|50 minutos/);
 });
 test('night has a moon and appropriate copy',()=>{assert.equal(dayWelcome(22).icon,'Moon');assert.equal(dayWelcome(3).icon,'Moon');assert.equal(dayWelcome(10).icon,'Sun');});
+test('madrugada says good night and never "Buen día"',()=>{assert.equal(dayWelcome(1).greeting,'Buenas noches');assert.equal(dayWelcome(1).icon,'Moon');assert.doesNotMatch(dayWelcome(1).subtitle,/hiciste hoy/);assert.equal(dayWelcome(8).greeting,'Buen día');assert.equal(dayWelcome(15).greeting,'Buenas tardes');assert.equal(dayWelcome(21).greeting,'Buenas noches');});
+test('summary celebrates books finished in the library catalog',()=>{const s=daySummary({finishedBooks:['Matar a un ruiseñor']},'2026-09-23');assert.match(s,/terminar «Matar a un ruiseñor»/);});
