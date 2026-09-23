@@ -70,7 +70,7 @@ function decorateHolidays(){
 }
 function decorateHolidayToday(){const h=holidayOn(dayKey());if(!h)return;const hero=document.querySelector('.day-hero');if(!hero||document.querySelector('.holiday-today'))return;const note=document.createElement('p');note.className='holiday-today';note.textContent=`🇵🇾 Hoy es feriado: ${holidayStatusText(h)}`;hero.querySelector('div')?.append(note);}
 
-function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();addProgressShortcut();addLaterShortcut();decorateWaterProgress();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
+function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();decorateWaterProgress();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
 // Los adornos modifican el DOM: mientras corren, el observador se desconecta para no volver a dispararse a sí mismo.
 // Antes, cada adorno generaba una mutación que volvía a llamar a run() en un bucle infinito de microtareas y congelaba la página.
 const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
