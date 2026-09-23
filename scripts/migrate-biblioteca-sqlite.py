@@ -38,7 +38,10 @@ OWNER = os.environ.get("BIBLIOTECA_OWNER_ID", "")
 DB = Path(os.environ.get("BIBLIOTECA_DB", "biblioteca.db")).expanduser().resolve()
 ROOT = Path(os.environ.get("BIBLIOTECA_ROOT", str(DB.parent))).expanduser().resolve()
 
-if not URL or not KEY or not OWNER:
+APPLY = "--apply" in sys.argv
+RESUME = "--resume" in sys.argv
+
+if APPLY and (not URL or not KEY or not OWNER):
     sys.exit("Faltan SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY o BIBLIOTECA_OWNER_ID.")
 if not DB.exists():
     sys.exit(f"No existe la base SQLite: {DB}")
@@ -75,7 +78,7 @@ def rest_upsert(table: str, rows: list[dict], on_conflict: str, batch=250):
         endpoint = f"{REST}/{table}?on_conflict={urllib.parse.quote(on_conflict)}"
         result = request_json(
             "POST", endpoint, chunk,
-            {"Prefer": "resolution=merge-duplicates,return=representation"},
+            {"Prefer": "resolution=ignore-duplicates,return=representation"},
         ) or []
         out.extend(result)
         print(f"  {table}: {min(start + len(chunk), total)}/{total}")
@@ -115,7 +118,7 @@ def upload_file(local: Path, object_name: str):
         "apikey": KEY,
         "Authorization": f"Bearer {KEY}",
         "Content-Type": mime,
-        "x-upsert": "true",
+        "x-upsert": "false",
     }
     req = urllib.request.Request(endpoint, data=data, headers=h, method="POST")
     try:
@@ -123,6 +126,8 @@ def upload_file(local: Path, object_name: str):
             r.read()
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace")
+        if e.code == 409 or "Duplicate" in detail or "already exists" in detail:
+            return  # Preserve an existing cover when resuming.
         raise RuntimeError(f"No se pudo subir {local}: {e.code} {detail}") from e
 
 
@@ -140,11 +145,26 @@ def locate_cover(value: str | None):
 
 
 def main():
-    con = sqlite3.connect(DB)
+    con = sqlite3.connect("file:" + str(DB) + "?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys=ON")
 
-    print("1/7 Autorizando una sola cuenta para Biblioteca...")
+    covers = [r[0] for r in con.execute("SELECT portada FROM libros WHERE portada IS NOT NULL AND trim(portada) != ''")]
+    missing = [v for v in covers if not str(v).startswith(('https://', 'http://')) and not locate_cover(v)]
+    counts = {table: con.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in ['libros','lecturas','lecturas_finalizadas','personas','prestamos','config']}
+    print(json.dumps({"counts": counts, "cover_references": len(covers), "missing_local_covers": len(missing)}, ensure_ascii=False))
+    if missing:
+        sys.exit("Hay portadas locales faltantes. Corregí los archivos antes de migrar.")
+    if not APPLY:
+        print("Verificación local completada. No se modificó Supabase. Usá --apply para migrar.")
+        return
+    access = request_json("GET", f"{REST}/biblioteca_access?slot=eq.1&select=user_id") or []
+    if access and access[0]['user_id'] != OWNER:
+        sys.exit("Ya existe otra persona propietaria. No se cambia automáticamente.")
+    existing = request_json("GET", f"{REST}/biblioteca_libros?owner_id=eq.{OWNER}&select=id&limit=1") or []
+    if existing and not RESUME:
+        sys.exit("El catálogo ya contiene datos. Revisá el respaldo; --resume continúa conservando los registros existentes.")
+    print("1/7 Configurando la persona propietaria; se conservan los miembros autorizados...")
     request_json(
         "POST",
         f"{REST}/biblioteca_access?on_conflict=slot",
@@ -200,9 +220,14 @@ def main():
     inserted = rest_upsert("biblioteca_libros", libros, "owner_id,legacy_id")
     book_map = {int(x["legacy_id"]): int(x["id"]) for x in inserted if x.get("legacy_id") is not None}
     if len(book_map) != len(libros):
-        # recupera el mapa completo si PostgREST devolvió menos filas por configuración.
-        result = request_json("GET", f"{REST}/biblioteca_libros?owner_id=eq.{OWNER}&select=id,legacy_id") or []
+        result = []
+        for offset in range(0, len(libros) + 1000, 1000):
+            page = request_json("GET", f"{REST}/biblioteca_libros?owner_id=eq.{OWNER}&select=id,legacy_id&order=id&offset={offset}&limit=1000") or []
+            result.extend(page)
+            if len(page) < 1000: break
         book_map = {int(x["legacy_id"]): int(x["id"]) for x in result if x.get("legacy_id") is not None}
+        if any(int(b['legacy_id']) not in book_map for b in libros):
+            sys.exit("No se pudo verificar el mapa completo de libros. Se detuvo antes de crear relaciones.")
 
     print("3/7 Subiendo portadas privadas...")
     for i, (legacy_id, (local, object_name)) in enumerate(cover_sources.items(), 1):
@@ -221,6 +246,8 @@ def main():
             "fecha_creado": textv(d.get("fecha_creado")),
         })
     person_rows = rest_upsert("biblioteca_personas", personas, "owner_id,legacy_id") if personas else []
+    if personas:
+        person_rows = request_json("GET", f"{REST}/biblioteca_personas?owner_id=eq.{OWNER}&select=id,legacy_id,nombre") or []
     person_map = {int(x["legacy_id"]): int(x["id"]) for x in person_rows if x.get("legacy_id") is not None}
     name_to_person = {x["nombre"].strip().casefold(): x["id"] for x in person_rows if x.get("nombre")}
 
@@ -283,8 +310,13 @@ def main():
     print("7/7 Verificación...")
     counts = {}
     for table in ("biblioteca_libros", "biblioteca_lecturas", "biblioteca_lecturas_finalizadas", "biblioteca_personas", "biblioteca_prestamos", "biblioteca_config"):
-        rows = request_json("GET", f"{REST}/{table}?owner_id=eq.{OWNER}&select=id") or []
-        counts[table] = len(rows)
+        count = 0
+        column = "clave" if table == "biblioteca_config" else "id"
+        while True:
+            rows = request_json("GET", f"{REST}/{table}?owner_id=eq.{OWNER}&select={column}&order={column}&offset={count}&limit=1000") or []
+            count += len(rows)
+            if len(rows) < 1000: break
+        counts[table] = count
     con.close()
     print(json.dumps(counts, indent=2, ensure_ascii=False))
     print("Migración terminada. No borres la SQLite original hasta revisar la app en Supabase.")
