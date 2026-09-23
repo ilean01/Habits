@@ -1,0 +1,302 @@
+From ea36c885ad7e4cbc89a0d8dd1f5f465d19361b5b Mon Sep 17 00:00:00 2001
+From: "Claude (para Ileana)" <ilean01@users.noreply.github.com>
+Date: Wed, 23 Sep 2026 01:47:59 +0000
+Subject: [PATCH] =?UTF-8?q?Biblioteca=20para=20todas=20las=20cuentas;=20la?=
+ =?UTF-8?q?=20de=20mam=C3=A1=20solo=20por=20invitaci=C3=B3n,=20con=20selec?=
+ =?UTF-8?q?tor=20y=20pantalla=20para=20compartir?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ docs/REQUISITOS.md                              |   3 +-
+ src/biblioteca-main.js                          |  13 +-
+ src/biblioteca.css                              |   2 +
+ src/biblioteca/views.js                         |  10 +-
+ .../20260923100000_biblioteca_para_todos.sql    | 127 ++++++++++++++++++
+ tests/library-sharing.test.js                   |  72 ++++++++++
+ 6 files changed, 222 insertions(+), 5 deletions(-)
+ create mode 100644 supabase/migrations/20260923100000_biblioteca_para_todos.sql
+ create mode 100644 tests/library-sharing.test.js
+
+diff --git a/docs/REQUISITOS.md b/docs/REQUISITOS.md
+index 8725192..b763b84 100644
+--- a/docs/REQUISITOS.md
++++ b/docs/REQUISITOS.md
+@@ -93,7 +93,8 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
+ - ✅ ISBN, cámara, datos externos, portadas, etiquetas PDF, CSV/JSON, respaldos, estadísticas.
+ - ✅ Miembros con rol lector/editor, RLS en tablas y archivos.
+ - ✅ Habits muestra la lectura actual del catálogo y guarda página/final con `biblioteca_transition`.
++- ✅ Cada cuenta tiene biblioteca propia; la de otra persona solo aparece por invitación. Selector de biblioteca y gestión de permisos lector/editor.
+ - 🟡 QR de portadas: pide sesión (el original usaba token temporal).
+ - 🟡 Recomendador por reglas simples. 🟡 Configuración tipográfica sin cotejar.
+ - ❌ Misma navegación y estilo visual que Habits (hoy es una página aparte).
+-- ❌ Citas y libros simples de Habits migrados al catálogo para cuentas con Biblioteca.
++- ❌ Citas y libros simples de Habits migrados al catálogo.
+ 
+ ## 10. Planificación semanal y balance
+ 
+diff --git a/src/biblioteca-main.js b/src/biblioteca-main.js
+index dacd8d0..c12b3a1 100644
+--- a/src/biblioteca-main.js
++++ b/src/biblioteca-main.js
+@@ -14,15 +14,16 @@ s.filteredBooks=list=>s.data.books.filter(b=>!b.eliminado&&b.lista===list&&u.mat
+ s.labelFilteredBooks=()=>s.data.books.filter(b=>!b.eliminado&&b.lista==='catalogo'&&u.matchesSearch(b,s.labelFilters.q)&&(!s.labelFilters.codigo_p||b.codigo_p===s.labelFilters.codigo_p)&&(!s.labelFilters.genero||b.genero===s.labelFilters.genero)&&String(b.dewey||'').startsWith(s.labelFilters.dewey||''));
+ function toast(message){const t=document.querySelector('#library-toast');t.textContent=message;t.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.style.display='none',6500);}
+ function dialog(title,body,save){modal.innerHTML=`<div class="lib-page-head"><h2>${u.esc(title)}</h2>${button('Cerrar','close')}</div>${save?'<form>':''}${body}${save?'<button class="lib-button" type="submit">Guardar</button></form>':''}`;if(!modal.open)modal.showModal();if(save)modal.querySelector('form').onsubmit=async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;try{await save(new FormData(e.target));modal.close();await reload();toast('Guardado.');}catch(error){toast(error.message);}finally{b.disabled=false;}};}
+-async function reload(){s.data=await data.loadAll();s.covers=await data.signedCoverMap(s.data.books);s.config=u.configObject(s.data.config);s.perPage=s.config.por_pagina==='todos'?Math.max(1,s.data.books.length):Math.max(1,Number(s.config.por_pagina)||200);s.filterOptions={generos:u.unique(s.data.books.map(b=>b.genero)),codigos:u.unique(s.data.books.map(b=>b.codigo_p)),idiomas:u.unique(s.data.books.map(b=>b.idioma))};u.applyConfig(s.config);render();}
++async function loadSharing(){const [libs,m]=await Promise.all([supabase.rpc('biblioteca_disponibles'),supabase.rpc('biblioteca_miembros')]);s.libraries=libs.error?[]:libs.data||[];const active=s.libraries.find(x=>x.activa);s.activeLibrary=active||null;if(active?.propia){s.members=m.error?[]:m.data||[];}else s.members=[];}
++async function reload(){await loadSharing().catch(()=>{});s.data=await data.loadAll();s.covers=await data.signedCoverMap(s.data.books);s.config=u.configObject(s.data.config);s.perPage=s.config.por_pagina==='todos'?Math.max(1,s.data.books.length):Math.max(1,Number(s.config.por_pagina)||200);s.filterOptions={generos:u.unique(s.data.books.map(b=>b.genero)),codigos:u.unique(s.data.books.map(b=>b.codigo_p)),idiomas:u.unique(s.data.books.map(b=>b.idioma))};u.applyConfig(s.config);render();}
+ function extraView(){if(s.view==='duplicados'){const groups=new Map();for(const b of s.data.books.filter(b=>!b.eliminado)){const key=u.cleanIsbn(b.isbn)||u.stripAccents(`${b.titulo}|${b.autor}`);groups.set(key,[...(groups.get(key)||[]),b]);}return `<h1>Posibles duplicados</h1><p>No se elimina ningún ejemplar automáticamente.</p>${[...groups.values()].filter(g=>g.length>1).map(g=>`<section class="lib-panel">${g.map(b=>button(u.esc(b.titulo)+' · '+u.esc(b.codigo_p||'')+' '+u.esc(b.item||''),'book',b.id)).join('')}</section>`).join('')||'<p>Sin coincidencias.</p>'}`;}if(s.view==='recomendador'){const available=s.data.books.filter(b=>!b.eliminado&&b.lista==='catalogo'&&b.estado_lectura==='no_leido'&&!s.data.loans.some(l=>l.libro_id===b.id&&l.activo));const recommended=available.sort((a,b)=>Number(b.proxima_lectura)-Number(a.proxima_lectura)||Number(b.favorito)-Number(a.favorito)||Number(a.paginas||9999)-Number(b.paginas||9999)).slice(0,12);return `<h1>Tu próxima lectura</h1><p>Libros disponibles sin leer, priorizando tu lista, favoritos y lecturas breves.</p>${recommended.map(b=>`<section class="lib-panel"><h3>${u.esc(b.titulo)}</h3><p>${u.esc(b.autor)} · ${b.paginas||'—'} páginas</p>${button('Ver ficha','book',b.id)}</section>`).join('')||'<p>No hay libros pendientes disponibles.</p>'}`;}return renderCurrentView(s);}
+-function render(){root.innerHTML=headerView(s)+`<main class="lib-main"><div class="lib-actions">${button('Duplicados','duplicates')}${button('Recomendador','recommend')}${canWrite?button('Buscar por ISBN','isbn'):''}</div>${!canWrite?'<p class="lib-panel">Acceso de lectura. Solo las personas con permiso de edición pueden modificar esta biblioteca.</p>':''}${extraView()}</main>`;const config=root.querySelector('#config-form');if(config)config.onsubmit=async e=>{e.preventDefault();try{requireWrite();const f=new FormData(config);await data.saveConfig({...Object.fromEntries(f),mostrar_favoritos_catalogo:f.has('mostrar_favoritos_catalogo')?'1':'0'});await reload();toast('Configuración guardada.');}catch(error){toast(error.message);}};}
++function render(){root.innerHTML=headerView(s)+`<main class="lib-main"><div class="lib-actions">${button('Duplicados','duplicates')}${button('Recomendador','recommend')}${canWrite?button('Buscar por ISBN','isbn'):''}</div>${!canWrite?'<p class="lib-panel">Acceso de lectura. Solo las personas con permiso de edición pueden modificar esta biblioteca.</p>':''}${extraView()}</main>`;const share=root.querySelector('#share-form');if(share)share.onsubmit=async e=>{e.preventDefault();const f=new FormData(share);const r=await supabase.rpc('biblioteca_invitar',{p_email:String(f.get('email')||''),p_rol:String(f.get('rol')||'reader')});if(r.error){toast(r.error.message);return;}await loadSharing();render();toast('Listo: ahora esa cuenta puede abrir tu biblioteca.');};const config=root.querySelector('#config-form');if(config)config.onsubmit=async e=>{e.preventDefault();try{requireWrite();const f=new FormData(config);await data.saveConfig({...Object.fromEntries(f),mostrar_favoritos_catalogo:f.has('mostrar_favoritos_catalogo')?'1':'0'});await reload();toast('Configuración guardada.');}catch(error){toast(error.message);}};}
+ function requireWrite(){if(!canWrite)throw new Error('Tu permiso es de lectura. Pedí permiso de edición a la persona responsable.');}
+ function editBook(id,preset={}){requireWrite();const b={...(s.book(id)||{}),...preset};const names={titulo:'Título',autor:'Autor',codigo_p:'Código de propietario',item:'Número de ejemplar',dewey:'Dewey',genero:'Género',subdivision:'Subdivisión',editorial:'Editorial',paginas:'Páginas',isbn:'ISBN',idioma:'Idioma',relacionados:'Libros relacionados'};dialog(id?'Editar libro':'Agregar libro',Object.entries(names).map(([k,label])=>field(k,label,b[k],['item','paginas'].includes(k)?'number':'text',k==='titulo'?'required':(['item','paginas'].includes(k)?'min="0"':''))).join('')+`<label class="lib-field">Lista<select name="lista" class="lib-select"><option value="catalogo">Catálogo</option><option value="deseos" ${b.lista==='deseos'?'selected':''}>Deseos</option></select></label>`+text('descripcion','Sinopsis',b.descripcion)+text('observaciones','Observaciones',b.observaciones)+text('dedicatoria','Dedicatoria',b.dedicatoria)+field('rating','Valoración (0 a 5)',b.rating||0,'number','min="0" max="5"')+`<label><input type="checkbox" name="autografiado" ${b.autografiado?'checked':''}> Autografiado</label>`,async f=>{const v=Object.fromEntries(f);v.paginas=v.paginas?Number(v.paginas):null;v.item=v.item?Number(v.item):null;v.rating=Number(v.rating);v.autografiado=f.has('autografiado');v.dewey_orden=u.deweyNumber(v.dewey);if(id)await data.updateBook(id,v);else await data.insertBook({...v,estado_lectura:'no_leido',fecha_agregado:u.today(),portada:b.portada_url||null});});}
+@@ -55,3 +56,6 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-act
+  if(a==='scan-isbn'){const {BrowserMultiFormatReader}=await import('@zxing/browser');const reader=new BrowserMultiFormatReader();const video=document.createElement('video');video.style.maxWidth='100%';modal.append(video);let controls;const stop=()=>{controls?.stop();video.remove();};modal.addEventListener('close',stop,{once:true});controls=await reader.decodeFromVideoDevice(undefined,video,(result)=>{if(result){const input=modal.querySelector('[name=isbn]');if(input)input.value=u.cleanIsbn(result.getText());stop();}});return;}
+  if(a==='start-reading'){selectBook('Empezar una lectura',id=>transition('start',id));return;}if(a==='add-next'){selectBook('Agregar a próximas lecturas',id=>data.updateBook(id,{proxima_lectura:true}));return;}
+@@
+ async function boot(){try{const access=await sessionAndAccess();s.user=access.user;if(!access.allowed){root.innerHTML='<main class="lib-main"><div class="lib-panel"><h2>Biblioteca privada</h2><p>Tu cuenta no tiene acceso a esta biblioteca.</p><a href="./" class="lib-button">Volver a Habits</a></div></main>';return;}await ensureConfig();await reload();await createDailyBackup(s.data).catch(()=>{});const cover=new URLSearchParams(location.search).get('cover');if(cover){const b=s.book(Number(cover));if(b&&canWrite)editBook(b.id);}}catch(error){root.innerHTML=`<main class="lib-main"><div class="lib-panel"><h2>No se pudo abrir la biblioteca</h2><p>${u.esc(error.message)}</p><a href="./" class="lib-button">Volver a Habits</a></div></main>`;}}
+ boot();
++
++// Cambiar de biblioteca (la propia o una compartida) recarga todo con los datos de la elegida.
++document.addEventListener('change',async e=>{const sel=e.target.closest?.('[data-lib-switch]');if(!sel)return;sel.disabled=true;const r=await supabase.rpc('biblioteca_elegir',{p_owner:sel.value});if(r.error){toast(r.error.message);sel.disabled=false;return;}location.reload();});
+diff --git a/src/biblioteca.css b/src/biblioteca.css
+index 5534d31..e317b32 100644
+--- a/src/biblioteca.css
++++ b/src/biblioteca.css
+@@ -1 +1,3 @@
+ :root{--lib-bg:#f5f2e8;--lib-panel:#fff;--lib-text:#3a382f;--lib-muted:#7b7568;--lib-line:#ddd6c6;--lib-green:#526246;--lib-accent:#b18a5a}*{box-sizing:border-box}body{margin:0;background:var(--lib-bg);color:var(--lib-text);font-family:system-ui,sans-serif}.lib-header{background:var(--lib-panel);border-bottom:1px solid var(--lib-line);position:sticky;top:0;z-index:10}.lib-header-top{display:flex;align-items:center;gap:14px;padding:15px 22px}.lib-brand{display:flex;align-items:center;gap:10px;font-weight:700;text-decoration:none;color:inherit}.lib-brand-mark{font-size:20px}.lib-back{font-size:12px;color:var(--lib-muted);text-decoration:none}.lib-header-spacer{flex:1}.lib-user{font-size:11px;color:var(--lib-muted)}.lib-nav{display:flex;gap:5px;overflow:auto;padding:0 22px 12px}.lib-nav .lib-button{white-space:nowrap}.lib-main{max-width:1400px;margin:auto;padding:24px}.lib-panel{background:var(--lib-panel);border:1px solid var(--lib-line);border-radius:12px;padding:18px;margin-bottom:18px}.lib-page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:18px}.lib-page-head h1,.lib-page-head h2{margin:0}.lib-page-head p{color:var(--lib-muted)}.lib-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.lib-button{border:0;background:var(--lib-green);color:white;padding:10px 13px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font:inherit;font-size:12px}.lib-button.secondary{background:#ece8dc;color:var(--lib-text)}.lib-button.active{background:var(--lib-green);color:white}.lib-button.small{padding:6px 9px;font-size:11px}.lib-input,.lib-select{width:100%;padding:10px 11px;border:1px solid var(--lib-line);background:white;color:var(--lib-text);border-radius:8px;font:inherit}.lib-field{display:block;margin-bottom:13px}.lib-field>span{display:block;font-size:11px;color:var(--lib-muted);margin-bottom:5px}.lib-check{font-size:12px}.lib-config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.lib-config-section{background:var(--lib-panel);border:1px solid var(--lib-line);border-radius:12px;padding:16px}.lib-config-section h3{margin-top:0}.lib-table-wrap{overflow:auto}.lib-table{width:100%;border-collapse:collapse}.lib-table th,.lib-table td{padding:10px;border-bottom:1px solid var(--lib-line);text-align:left;font-size:12px}.lib-muted{color:var(--lib-muted)}.lib-small{font-size:11px}@media(max-width:650px){.lib-main{padding:14px}.lib-header-top{align-items:flex-start;flex-wrap:wrap}.lib-user{width:100%}.lib-config-grid{grid-template-columns:1fr}.lib-table th,.lib-table td{padding:8px}.lib-nav{padding-left:14px}.lib-header-top{padding-left:14px;padding-right:14px}}
++
++.lib-switch{max-width:260px;margin-left:12px}.lib-share{margin-top:22px}.lib-share-form{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.lib-share-form .lib-input{flex:1;min-width:200px}@media(max-width:650px){.lib-switch{max-width:100%;margin:8px 0 0;width:100%}}
+diff --git a/src/biblioteca/views.js b/src/biblioteca/views.js
+index 91348a7..1a35c8b 100644
+--- a/src/biblioteca/views.js
++++ b/src/biblioteca/views.js
+@@ -9,7 +9,7 @@ export function headerView(s){
+   const nav=[['catalogo','Catálogo'],['leyendo','Estoy leyendo'],['prestamos','Préstamos'],['deseos','Deseos'],['proximas','Leer después'],['revisar','Revisar'],['estadisticas','Estadísticas'],['etiquetas','Etiquetas'],['papelera','Papelera'],['configuracion','Configuración']];
+-  return `<header class="lib-header"><div class="lib-header-top"><a class="lib-brand" href="./"><span class="lib-brand-mark">📚</span><span>${esc(s.config.nombre_biblioteca||'Mi biblioteca')}</span></a><a class="lib-back" href="./">← Volver a Habits</a><div class="lib-header-spacer"></div><span class="lib-user">${esc(s.user?.email||'')}</span></div><nav class="lib-nav">${nav.map(([id,label])=>button(label,'view',`data-view="${id}"`,s.view===id?'active':'')).join('')}${button('+ Agregar','new-book','','lib-button')}</nav></header>`;
++  return `<header class="lib-header"><div class="lib-header-top"><a class="lib-brand" href="./"><span class="lib-brand-mark">📚</span><span>${esc(s.config.nombre_biblioteca||'Mi biblioteca')}</span></a><a class="lib-back" href="./">← Volver a Habits</a>${(s.libraries||[]).length>1?`<select class="lib-select lib-switch" data-lib-switch aria-label="Elegir biblioteca">${s.libraries.map(l=>`<option value="${esc(l.owner_id)}" ${l.activa?'selected':''}>${esc(l.propia?'Mi biblioteca':`${l.nombre} · ${l.email}`)}</option>`).join('')}</select>`:''}<div class="lib-header-spacer"></div><span class="lib-user">${esc(s.user?.email||'')}</span></div><nav class="lib-nav">${nav.map(([id,label])=>button(label,'view',`data-view="${id}"`,s.view===id?'active':'')).join('')}${button('+ Agregar','new-book','','lib-button')}</nav></header>`;
+ }
+@@ -41,9 +41,15 @@ function chart(title,rows,max=Math.max(1,...rows.map(x=>x[1]))){return `<section
+ export function statsView(s){const books=s.data.books.filter(b=>!b.eliminado&&b.lista==='catalogo'),years=new Map(),genres=new Map(),authors=new Map();for(const r of s.data.finished){const y=String(r.fecha_fin||'').slice(0,4)||'Sin fecha';years.set(y,(years.get(y)||0)+1);}for(const b of books){genres.set(b.genero||'Sin género',(genres.get(b.genero||'Sin género')||0)+1);authors.set(b.autor||'Sin autor',(authors.get(b.autor||'Sin autor')||0)+1);}return `<h1>Estadísticas</h1>${chart('Libros terminados por año',[...years])}${chart('Géneros del catálogo',[...genres].sort((a,b)=>b[1]-a[1]).slice(0,20))}${chart('Autores más presentes',[...authors].sort((a,b)=>b[1]-a[1]).slice(0,20))}`;}
+ export function configView(s){const c=s.config;return `<div class="lib-page-head"><div><h1>⚙ Configuración</h1><p>La configuración es privada para esta biblioteca.</p></div></div><form id="config-form"><div class="lib-config-grid"><section class="lib-config-section"><h3>🏷 Nombre</h3><label class="lib-field"><span>Nombre de la biblioteca</span><input class="lib-input" name="nombre_biblioteca" value="${esc(c.nombre_biblioteca)}"></label></section><section class="lib-config-section"><h3>🎨 Colores</h3>${color('Color principal','color_principal',c.color_principal)}${color('Fondo','color_fondo',c.color_fondo)}${color('Texto','color_texto',c.color_texto)}${color('Tarjetas','color_tarjeta',c.color_tarjeta)}</section><section class="lib-config-section"><h3>🔤 Tipografía</h3><label class="lib-field"><span>Fuente general</span><select class="lib-select" name="fuente">${['Georgia, serif','Arial, sans-serif','Verdana, sans-serif','Trebuchet MS, sans-serif','system-ui, sans-serif'].map(x=>`<option ${c.fuente===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label><label class="lib-field"><span>Tamaño de texto</span><input class="lib-input" type="number" min="12" max="22" name="tamano_texto" value="${esc(c.tamano_texto)}"></label></section><section class="lib-config-section"><h3>📚 Catálogo</h3><label class="lib-field"><span>Vista predeterminada</span><select class="lib-select" name="vista_default"><option value="cuadricula" ${c.vista_default==='cuadricula'?'selected':''}>Cuadrícula</option><option value="lista" ${c.vista_default==='lista'?'selected':''}>Lista</option></select></label><label class="lib-field"><span>Libros por página</span><select class="lib-select" name="por_pagina">${['100','200','500','todos'].map(x=>`<option ${c.por_pagina===x?'selected':''}>${x}</option>`).join('')}</select></label><label class="lib-check"><input type="checkbox" name="mostrar_favoritos_catalogo" ${c.mostrar_favoritos_catalogo==='1'?'checked':''}> Mostrar estrella de favoritos</label></section><section class="lib-config-section"><h3>💾 Copias y exportación</h3><p class="lib-muted lib-small">Se crea un respaldo JSON privado por día y se conservan los últimos 10.</p><div class="lib-actions">${button('Descargar último respaldo','download-backup','','lib-button secondary')}${button('Descargar CSV','export-csv','','lib-button secondary')}${button('Exportar JSON ahora','export-json','','lib-button secondary')}</div></section></div><div class="lib-actions" style="margin-top:18px"><button type="submit" class="lib-button">Guardar configuración</button></div></form>${shareView(s)}`}
++
++// Compartir: la dueña elige quién puede ver su biblioteca. Quien no está invitado solo ve la suya.
++export function shareView(s){const active=(s.libraries||[]).find(l=>l.activa);
++ if(active&&!active.propia)return `<section class="lib-panel lib-share"><h2>👥 Biblioteca compartida</h2><p>Estás viendo la biblioteca de <strong>${esc(active.email)}</strong> con permiso de ${active.rol==='editor'?'edición':'solo lectura'}. Tu biblioteca propia sigue aparte, sin mezclarse.</p><div class="lib-actions">${button('Volver a mi biblioteca','lib-own','','lib-button')}${button('Salir de esta biblioteca','share-leave',`data-owner="${esc(active.owner_id)}"`,'lib-button secondary')}</div></section>`;
++ const members=s.members||[];
++ return `<section class="lib-panel lib-share"><h2>👥 Compartir mi biblioteca</h2><p class="lib-muted">Solo las cuentas que agregues acá pueden ver tus libros, préstamos y lecturas. Cualquier otra persona tiene su propia biblioteca, vacía y con las mismas funciones.</p><form id="share-form" class="lib-share-form"><input class="lib-input" type="email" name="email" required placeholder="correo de la persona"><select class="lib-select" name="rol"><option value="reader">Solo puede ver</option><option value="editor">Puede editar</option></select><button type="submit" class="lib-button">Invitar</button></form>${members.length?`<div class="lib-table-wrap"><table class="lib-table"><thead><tr><th>Cuenta</th><th>Permiso</th><th></th></tr></thead><tbody>${members.map(m=>`<tr><td>${esc(m.email)}</td><td>${m.rol==='editor'?'Puede editar':'Solo puede ver'}</td><td>${button('Quitar acceso','share-remove',`data-user="${esc(m.user_id)}" data-email="${esc(m.email)}"`,'lib-button secondary small')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="lib-muted">Todavía no la compartiste con nadie.</p>'}<p class="lib-muted lib-small">La persona necesita una cuenta en Habits. Después elige tu biblioteca en el selector de arriba.</p></section>`;}
+diff --git a/supabase/migrations/20260923100000_biblioteca_para_todos.sql b/supabase/migrations/20260923100000_biblioteca_para_todos.sql
+new file mode 100644
+index 0000000..6f08078
+--- /dev/null
++++ b/supabase/migrations/20260923100000_biblioteca_para_todos.sql
+@@ -0,0 +1,127 @@
++-- Biblioteca para todas las cuentas.
++-- Cada persona tiene su propia biblioteca (vacía al principio) con todas las funciones.
++-- La biblioteca de otra persona (por ejemplo, la de mamá) solo se puede ver si su dueña
++-- invita a esa cuenta, como lectora (solo ver) o editora (puede cambiar cosas).
++-- Los datos nunca se mezclan: cada fila tiene owner_id y las políticas RLS ya existentes
++-- solo muestran la biblioteca que la cuenta tiene elegida en ese momento.
++
++-- 1) Los miembros ya no dependen de la biblioteca única (slot=1): cualquier cuenta puede invitar a su biblioteca.
++alter table public.biblioteca_members drop constraint if exists biblioteca_members_owner_id_fkey;
++alter table public.biblioteca_members add constraint biblioteca_members_owner_id_fkey
++  foreign key (owner_id) references auth.users(id) on delete cascade;
++do $$ begin
++  if not exists (select 1 from pg_constraint where conname = 'biblioteca_members_not_self') then
++    alter table public.biblioteca_members add constraint biblioteca_members_not_self check (owner_id <> user_id);
++  end if;
++end $$;
++
++-- 2) Qué biblioteca está mirando cada cuenta (la propia por defecto).
++create table if not exists public.biblioteca_seleccion (
++  user_id uuid primary key references auth.users(id) on delete cascade,
++  owner_id uuid not null references auth.users(id) on delete cascade,
++  updated_at timestamptz not null default now()
++);
++alter table public.biblioteca_seleccion enable row level security;
++revoke all on public.biblioteca_seleccion from public, anon, authenticated;
++-- Sin políticas: solo se modifica mediante las funciones de abajo.
++
++create or replace function public.biblioteca_puede_ver(p_owner uuid)
++returns boolean language sql stable security definer set search_path = public as $$
++  select auth.uid() is not null and p_owner is not null and (
++    p_owner = auth.uid()
++    or exists (select 1 from public.biblioteca_members m where m.owner_id = p_owner and m.user_id = auth.uid())
++  )
++$$;
++
++-- La biblioteca activa: la elegida si todavía hay permiso; si no, la propia.
++create or replace function public.biblioteca_owner()
++returns uuid language sql stable security definer set search_path = public as $$
++  select case when auth.uid() is null then null else coalesce(
++    (select s.owner_id from public.biblioteca_seleccion s
++      where s.user_id = auth.uid() and public.biblioteca_puede_ver(s.owner_id)),
++    auth.uid()) end
++$$;
++
++create or replace function public.biblioteca_can_write()
++returns boolean language sql stable security definer set search_path = public as $$
++  select auth.uid() is not null and (
++    public.biblioteca_owner() = auth.uid()
++    or exists (select 1 from public.biblioteca_members m
++      where m.owner_id = public.biblioteca_owner() and m.user_id = auth.uid() and m.role = 'editor')
++  )
++$$;
++
++-- Todas las cuentas tienen biblioteca (la propia).
++create or replace function public.has_biblioteca_access()
++returns boolean language sql stable security definer set search_path = public as $$
++  select auth.uid() is not null
++$$;
++
++-- 3) Bibliotecas que la cuenta puede abrir: la propia y las que le compartieron.
++create or replace function public.biblioteca_disponibles()
++returns table (owner_id uuid, nombre text, email text, rol text, propia boolean, activa boolean)
++language sql stable security definer set search_path = public as $$
++  select u.id,
++         coalesce((select c.valor from public.biblioteca_config c where c.owner_id = u.id and c.clave = 'nombre_biblioteca'), 'Mi biblioteca'),
++         u.email::text, 'duenia', true, public.biblioteca_owner() = u.id
++    from auth.users u where u.id = auth.uid()
++  union all
++  select m.owner_id,
++         coalesce((select c.valor from public.biblioteca_config c where c.owner_id = m.owner_id and c.clave = 'nombre_biblioteca'), 'Biblioteca compartida'),
++         u.email::text, m.role, false, public.biblioteca_owner() = m.owner_id
++    from public.biblioteca_members m join auth.users u on u.id = m.owner_id
++   where m.user_id = auth.uid()
++$$;
++
++create or replace function public.biblioteca_elegir(p_owner uuid)
++returns void language plpgsql security definer set search_path = public as $$
++begin
++  if not public.biblioteca_puede_ver(p_owner) then raise exception 'No tenés acceso a esa biblioteca'; end if;
++  insert into public.biblioteca_seleccion (user_id, owner_id) values (auth.uid(), p_owner)
++  on conflict (user_id) do update set owner_id = excluded.owner_id, updated_at = now();
++end $$;
++
++-- 4) Compartir: solo la dueña maneja quién entra a SU biblioteca.
++create or replace function public.biblioteca_miembros()
++returns table (user_id uuid, email text, rol text, desde timestamptz)
++language sql stable security definer set search_path = public as $$
++  select m.user_id, u.email::text, m.role, m.created_at
++    from public.biblioteca_members m join auth.users u on u.id = m.user_id
++   where m.owner_id = auth.uid()
++   order by m.created_at
++$$;
++
++create or replace function public.biblioteca_invitar(p_email text, p_rol text default 'reader')
++returns void language plpgsql security definer set search_path = public as $$
++declare invited uuid;
++begin
++  if auth.uid() is null then raise exception 'Iniciá sesión primero'; end if;
++  if p_rol not in ('reader', 'editor') then raise exception 'Permiso inválido'; end if;
++  select id into invited from auth.users where lower(email) = lower(trim(p_email)) limit 1;
++  if invited is null then raise exception 'No encontramos una cuenta de Habits con ese correo. Pedile que se registre primero.'; end if;
++  if invited = auth.uid() then raise exception 'Esa es tu propia cuenta'; end if;
++  insert into public.biblioteca_members (owner_id, user_id, role) values (auth.uid(), invited, p_rol)
++  on conflict (owner_id, user_id) do update set role = excluded.role;
++end $$;
++
++create or replace function public.biblioteca_quitar_miembro(p_user uuid)
++returns void language plpgsql security definer set search_path = public as $$
++begin
++  delete from public.biblioteca_members where owner_id = auth.uid() and user_id = p_user;
++  delete from public.biblioteca_seleccion where user_id = p_user and owner_id = auth.uid();
++end $$;
++
++-- Una persona invitada también puede salir por su cuenta.
++create or replace function public.biblioteca_salir(p_owner uuid)
++returns void language plpgsql security definer set search_path = public as $$
++begin
++  delete from public.biblioteca_members where owner_id = p_owner and user_id = auth.uid();
++  delete from public.biblioteca_seleccion where user_id = auth.uid() and owner_id = p_owner;
++end $$;
++
++revoke all on function public.biblioteca_puede_ver(uuid), public.biblioteca_disponibles(), public.biblioteca_elegir(uuid),
++  public.biblioteca_miembros(), public.biblioteca_invitar(text, text), public.biblioteca_quitar_miembro(uuid), public.biblioteca_salir(uuid)
++  from public, anon;
++grant execute on function public.biblioteca_puede_ver(uuid), public.biblioteca_disponibles(), public.biblioteca_elegir(uuid),
++  public.biblioteca_miembros(), public.biblioteca_invitar(text, text), public.biblioteca_quitar_miembro(uuid), public.biblioteca_salir(uuid)
++  to authenticated;
+diff --git a/tests/library-sharing.test.js b/tests/library-sharing.test.js
+new file mode 100644
+index 0000000..f7b1e9d
+--- /dev/null
++++ b/tests/library-sharing.test.js
+@@ -0,0 +1,72 @@
++import {test} from 'node:test';
++import assert from 'node:assert/strict';
++import {readFile} from 'node:fs/promises';
++import {PGlite} from '@electric-sql/pglite';
++
++// Todas las cuentas tienen biblioteca propia; la de mamá solo la ven las cuentas invitadas.
++test('library for everyone: own library by default, shared library only by invitation', async () => {
++  const pg = new PGlite();
++  const ids = [1, 2, 3, 4].map(n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`);
++  const [mama, ileana, extrana, amiga] = ids;
++  try {
++    await pg.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key,email text);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id bigint generated always as identity,bucket_id text,name text);alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert,update,delete on storage.objects to authenticated;create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;`);
++    for (const [i, id] of ids.entries()) await pg.query('insert into auth.users values($1,$2)', [id, ['mama@x.com', 'ileana@x.com', 'extrana@x.com', 'amiga@x.com'][i]]);
++    for (const file of ['20260922203000_biblioteca_privada.sql', '20260922204000_biblioteca_backups.sql', '20260923091000_biblioteca_members.sql', '20260923092000_biblioteca_transactions.sql', '20260923100000_biblioteca_para_todos.sql'])
++      await pg.exec(await readFile(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'));
++    const as = async id => { await pg.exec('reset role;set role authenticated;'); await pg.query("select set_config('request.jwt.claim.sub',$1,false)", [id]); };
++    const books = async () => (await pg.query('select titulo from biblioteca_libros order by titulo')).rows.map(r => r.titulo);
++
++    // Mamá carga su libro e invita a Ileana (editora) y a una amiga (solo lectura), usando el correo.
++    await as(mama);
++    await pg.query("insert into biblioteca_libros(owner_id,titulo,paginas) values(biblioteca_owner(),'Libro de mamá',100)");
++    await pg.query("insert into storage.objects(bucket_id,name) values('biblioteca-portadas',$1)", [mama + '/tapa.jpg']);
++    await pg.query("select biblioteca_invitar('ILEANA@x.com','editor')");
++    await pg.query("select biblioteca_invitar('amiga@x.com','reader')");
++    await assert.rejects(pg.query("select biblioteca_invitar('nadie@x.com','reader')"), /No encontramos/);
++    assert.equal((await pg.query('select * from biblioteca_miembros()')).rows.length, 2);
++
++    // Una cuenta cualquiera tiene su propia biblioteca, vacía, y no puede ver ni elegir la de mamá.
++    await as(extrana);
++    assert.deepEqual(await books(), []);
++    assert.equal((await pg.query('select has_biblioteca_access() as ok')).rows[0].ok, true);
++    await pg.query("insert into biblioteca_libros(owner_id,titulo) values(biblioteca_owner(),'Libro de la extraña')");
++    assert.deepEqual(await books(), ['Libro de la extraña']);
++    await assert.rejects(pg.query('select biblioteca_elegir($1)', [mama]), /No tenés acceso/);
++    await assert.rejects(pg.query("insert into biblioteca_libros(owner_id,titulo) values($1,'Intruso')", [mama]));
++    assert.equal((await pg.query('select * from storage.objects')).rows.length, 0);
++    await assert.rejects(pg.query("select biblioteca_invitar('amiga@x.com','superadmin')"), /Permiso inválido/);
++    assert.equal((await pg.query('select * from biblioteca_miembros()')).rows.length, 0, 'no ve los miembros de mamá');
++
++    // Mamá nunca ve la biblioteca de otra persona.
++    await as(mama);
++    assert.deepEqual(await books(), ['Libro de mamá']);
++
++    // La amiga ve su propia biblioteca por defecto; al elegir la de mamá la ve, pero no la puede cambiar.
++    await as(amiga);
++    assert.deepEqual(await books(), []);
++    assert.equal((await pg.query('select * from biblioteca_disponibles()')).rows.length, 2);
++    await pg.query('select biblioteca_elegir($1)', [mama]);
++    assert.deepEqual(await books(), ['Libro de mamá']);
++    assert.equal((await pg.query('select * from storage.objects')).rows.length, 1);
++    assert.equal((await pg.query("update biblioteca_libros set titulo='cambio' returning id")).rows.length, 0);
++    assert.equal((await pg.query('select biblioteca_can_write() as w')).rows[0].w, false);
++
++    // Ileana, como editora, puede actualizar la biblioteca de mamá.
++    await as(ileana);
++    await pg.query('select biblioteca_elegir($1)', [mama]);
++    assert.equal((await pg.query("update biblioteca_libros set paginas=120 returning id")).rows.length, 1);
++
++    // Si mamá quita a la amiga, la amiga vuelve automáticamente a su biblioteca propia.
++    await as(mama);
++    const amigaId = (await pg.query("select user_id from biblioteca_miembros() where email='amiga@x.com'")).rows[0].user_id;
++    await pg.query('select biblioteca_quitar_miembro($1)', [amigaId]);
++    await as(amiga);
++    assert.deepEqual(await books(), []);
++    await assert.rejects(pg.query('select biblioteca_elegir($1)', [mama]), /No tenés acceso/);
++
++    // Una invitada también puede salir sola.
++    await as(ileana);
++    await pg.query('select biblioteca_salir($1)', [mama]);
++    assert.deepEqual(await books(), []);
++  } finally { await pg.close(); }
++});
+-- 
+2.43.0
