@@ -1,0 +1,58 @@
+name: Apply HCI integration
+
+on:
+  push:
+    branches:
+      - hci-coherencia-2026-09-23
+    paths:
+      - '.patches/**'
+      - '.github/workflows/apply-hci-integration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout integration branch
+        uses: actions/checkout@v4
+        with:
+          ref: hci-coherencia-2026-09-23
+          fetch-depth: 0
+
+      - name: Rebuild and validate patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .patches/biblioteca-*.part > /tmp/biblioteca.patch
+          cat .patches/hci-*.part > /tmp/hci.patch
+          git apply --check /tmp/biblioteca.patch
+          git apply /tmp/biblioteca.patch
+          git apply --check /tmp/hci.patch
+          git apply /tmp/hci.patch
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build PWA
+        run: npm run build
+
+      - name: Commit validated integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .patches
+          rm -f .github/workflows/apply-hci-integration.yml
+          git config user.name "ChatGPT for Ileana"
+          git config user.email "74793571+ilean01@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Unificar Biblioteca y corregir coherencia HCI"
+          git push origin HEAD:hci-coherencia-2026-09-23
