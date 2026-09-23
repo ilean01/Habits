@@ -1,4 +1,4 @@
-name: Apply HCI integration
+name: Apply Biblioteca integration
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - hci-coherencia-2026-09-23
     paths:
       - '.patches/**'
+      - 'supabase/migrations/20260923101000_biblioteca_gestores.sql'
+      - 'tests/library-manager.test.js'
       - '.github/workflows/apply-hci-integration.yml'
 
 permissions:
@@ -21,22 +23,22 @@ jobs:
           ref: hci-coherencia-2026-09-23
           fetch-depth: 0
 
-      - name: Apply Biblioteca and HCI changes
+      - name: Apply Biblioteca changes
         shell: bash
         run: |
           set -euo pipefail
           cat .patches/biblioteca-*.part > /tmp/biblioteca.patch
-          cat .patches/hci-*.part > /tmp/hci.patch
           git apply --check --exclude=src/biblioteca-main.js --exclude=src/biblioteca/views.js /tmp/biblioteca.patch
           git apply --exclude=src/biblioteca-main.js --exclude=src/biblioteca/views.js /tmp/biblioteca.patch
           python .patches/apply_manual.py
           grep -q "biblioteca_disponibles" src/biblioteca-main.js
+          grep -q "biblioteca_can_manage" src/biblioteca-main.js
           grep -q "data-lib-switch" src/biblioteca/views.js
           grep -q "export function shareView" src/biblioteca/views.js
           test -f supabase/migrations/20260923100000_biblioteca_para_todos.sql
+          test -f supabase/migrations/20260923101000_biblioteca_gestores.sql
           test -f tests/library-sharing.test.js
-          git apply --check /tmp/hci.patch
-          git apply /tmp/hci.patch
+          test -f tests/library-manager.test.js
 
       - name: Install dependencies
         run: npm ci
@@ -56,5 +58,5 @@ jobs:
           git config user.name "ChatGPT for Ileana"
           git config user.email "74793571+ilean01@users.noreply.github.com"
           git add -A
-          git commit -m "Unificar Biblioteca y corregir coherencia HCI"
+          git commit -m "Biblioteca por usuario con acceso compartido aislado"
           git push origin HEAD:hci-coherencia-2026-09-23
