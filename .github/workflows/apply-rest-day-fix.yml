@@ -23,6 +23,6 @@ jobs:
           rm .github/workflows/apply-rest-day-fix.yml scripts/apply-rest-day-fix.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/selectors.js src/planning.js src/daily.js src/main.js tests/selectors.test.js tests/domain.test.js tests/day-modes.test.js .github/workflows/apply-rest-day-fix.yml scripts/apply-rest-day-fix.py
+          git add src/selectors.js src/day-modes.js src/planning.js src/daily.js src/main.js tests/selectors.test.js tests/domain.test.js tests/day-modes.test.js .github/workflows/apply-rest-day-fix.yml scripts/apply-rest-day-fix.py
           git commit -m "Diferenciar Día tranquilo y Día de descanso"
           git push
