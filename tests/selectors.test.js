@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {diaryEntries,personalProjects,subjectProjects,isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from '../src/selectors.js';
+import {diaryEntries,personalProjects,subjectProjects,taskProjectOptions,isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from '../src/selectors.js';
 
 test('el Diario no mezcla peso, fotos, inglés ni logros',()=>{
  const rows=[
@@ -17,6 +17,8 @@ test('materias y proyectos personales quedan separados',()=>{
  const rows=[{id:'p',name:'Casa'},{id:'s',name:'Física',category:'subject'}];
  assert.deepEqual(personalProjects(rows).map(x=>x.id),['p']);
  assert.deepEqual(subjectProjects(rows).map(x=>x.id),['s']);
+ assert.deepEqual(taskProjectOptions(rows,'').map(x=>x.id),['p']);
+ assert.deepEqual(taskProjectOptions(rows,'s').map(x=>x.id),['p','s']);
 });
 
 test('el hábito viejo de 8 vasos se reconoce como hidratación y equivale a 2 litros',()=>{
