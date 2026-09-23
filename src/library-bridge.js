@@ -1,9 +1,9 @@
-// Puente entre Habits y la Biblioteca privada: lectura actual, avance y libros terminados hoy.
-// Si la cuenta no tiene acceso (o las migraciones no están aplicadas), Habits sigue usando sus libros simples.
+// Puente entre Habits y la Biblioteca avanzada: lectura actual, avance y libros terminados hoy.
+// Todas las cuentas pueden tener Biblioteca; los datos visibles dependen de la biblioteca activa y sus permisos.
 import {supabase} from './store.js';
 import {dayKey} from './domain.js';
 
-const empty = () => ({status:'off', allowed:false, canWrite:false, reading:[], finishedToday:[], finishedCount:0, day:''});
+const empty = () => ({status:'off', allowed:false, canWrite:false, reading:[], finishedToday:[], finishedCount:0, day:'',activeOwner:null,libraryName:'Mi biblioteca',isOwn:true});
 let state = empty(), owner = null, notify = () => {}, loading = false;
 const cacheKey = () => `habits:catalogo:${owner}`;
 
@@ -30,7 +30,11 @@ export async function refreshCatalog(){
     const access = await supabase.rpc('has_biblioteca_access');
     if(current !== owner) return;
     if(access.error || !access.data){ state = empty(); save(); return; }
-    const write = await supabase.rpc('biblioteca_can_write');
+    const [write,libraries] = await Promise.all([
+      supabase.rpc('biblioteca_can_write'),
+      supabase.rpc('biblioteca_disponibles')
+    ]);
+    const active=(libraries.data||[]).find(x=>x.activa)||null;
     const today = dayKey();
     const [reading, finished, totalFinished] = await Promise.all([
       supabase.from('biblioteca_libros').select('id,titulo,autor,paginas,pagina_actual,estado_lectura,fecha_inicio')
@@ -45,9 +49,10 @@ export async function refreshCatalog(){
     const ids = [...new Set((finished.data || []).map(r => r.libro_id))];
     if(ids.length){
       const titles = await supabase.from('biblioteca_libros').select('id,titulo').in('id', ids);
+      if(titles.error)throw titles.error;
       finishedToday = (titles.data || []).map(b => b.titulo);
     }
-    state = {status:'ready', allowed:true, canWrite:write.data === true, reading:reading.data || [], finishedToday, finishedCount:Number(totalFinished.count||0), day:today};
+    state = {status:'ready',allowed:true,canWrite:write.data === true,reading:reading.data || [],finishedToday,finishedCount:Number(totalFinished.count||0),day:today,activeOwner:active?.owner_id||current,libraryName:active?.nombre||'Mi biblioteca',isOwn:active?.propia!==false};
     save();
   }catch(e){
     console.warn('No se pudo leer la Biblioteca:', e.message);
@@ -59,13 +64,12 @@ export async function refreshCatalog(){
 export async function recordProgress(id, {page = null, finish = false, comment = ''} = {}){
   const book = catalogBook(id);
   if(!book) return;
-  if(!state.canWrite) throw new Error('Tu cuenta puede ver la Biblioteca, pero no editarla.');
+  if(!state.canWrite) throw new Error('Tu permiso en esta biblioteca es de lectura.');
   const call = (p_action, p_data) => supabase.rpc('biblioteca_transition', {p_action, p_book:book.id, p_data});
   if(page !== null && !finish){ const r = await call('page', {page}); if(r.error) throw r.error; }
   if(finish){ const r = await call('finish', {comment}); if(r.error) throw r.error; }
   await refreshCatalog();
 }
 
-// Al volver a la app (por ejemplo, después de concluir un libro en la Biblioteca) se actualiza la lectura actual.
 window.addEventListener('focus', () => { void refreshCatalog(); });
 window.addEventListener('online', () => { void refreshCatalog(); });
