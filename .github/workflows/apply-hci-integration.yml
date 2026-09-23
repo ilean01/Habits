@@ -27,8 +27,8 @@ jobs:
           set -euo pipefail
           cat .patches/biblioteca-*.part > /tmp/biblioteca.patch
           cat .patches/hci-*.part > /tmp/hci.patch
-          git apply --check /tmp/biblioteca.patch
-          git apply /tmp/biblioteca.patch
+          echo "Biblioteca patch: $(sha256sum /tmp/biblioteca.patch | cut -d' ' -f1)"
+          git apply --3way /tmp/biblioteca.patch
           git apply --check /tmp/hci.patch
           git apply /tmp/hci.patch
 
