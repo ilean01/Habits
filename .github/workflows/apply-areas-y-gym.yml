@@ -1,0 +1,82 @@
+name: Aplicar mejoras de áreas y gym
+on:
+  push:
+    branches: [integrar-areas-y-gym]
+    paths:
+      - '.github/workflows/apply-areas-y-gym.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integrar-areas-y-gym
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Integrar Gym sin quitar la agenda por área
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              n=text.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label}: esperaba 1 coincidencia y encontré {n}')
+              return text.replace(old,new,1)
+
+          p=Path('src/main.js')
+          s=p.read_text()
+          s=replace_once(s,
+            "import { wellbeingView, wellbeingAction } from './wellbeing.js';",
+            "import { wellbeingView, wellbeingAction } from './wellbeing.js';\nimport { gymView, gymAction, afterGymDone, hydrateGymPhotos, GYM_AREA } from './gym.js';",
+            'import gym')
+          s=replace_once(s,
+            ";paintIcons();tick();}\nfunction safeColor",
+            ";paintIcons();tick();void hydrateGymPhotos().catch(()=>{});}\ndocument.addEventListener('habits:rerender',()=>render());\nfunction safeColor",
+            'hidratar fotos')
+          s=replace_once(s,
+            "${a.id==='lectura'?libraryView():a.id==='ingles'?vocabView():''}${areaAgenda(a)}",
+            "${a.id==='lectura'?libraryView():a.id==='ingles'?vocabView():a.id===GYM_AREA?gymView({esc,btn,icon}):''}${areaAgenda(a)}",
+            'vista gym')
+          s=replace_once(s,
+            "toast('¡Un paso más! Bien por vos.');return;}if(h.type==='check'",
+            "toast('¡Un paso más! Bien por vos.');return;}if(h.type==='check'",
+            'verificación estructura habit') if False else s
+          old="if(h.type==='check'){db.put('log',{habitId:id,date:d,status:'done',value:1,at:new Date().toISOString()},logId);toast('¡Un paso más! Bien por vos.');return;}"
+          new="if(h.type==='check'){db.put('log',{habitId:id,date:d,status:'done',value:1,at:new Date().toISOString()},logId);toast('¡Un paso más! Bien por vos.');afterGymDone(h,d,{showModal,input,textarea,btn,esc,toast,modal,render});return;}"
+          s=replace_once(s,old,new,'foto opcional al terminar gym')
+          old="if(await planningAction(a,el,{showModal,input,textarea,select,modal,toast}))return;if(await wellbeingAction(a,el,{showModal,input,textarea,btn,esc,toast,modal,render}))return;"
+          new="if(await planningAction(a,el,{showModal,input,textarea,select,modal,toast}))return;if(await gymAction(a,el,{showModal,input,textarea,btn,esc,toast,modal,render}))return;if(await wellbeingAction(a,el,{showModal,input,textarea,btn,esc,toast,modal,render}))return;"
+          s=replace_once(s,old,new,'acciones gym')
+          p.write_text(s)
+
+          p=Path('src/wellbeing.js')
+          s=p.read_text()
+          old='</section><section class="panel"><h2>Mi entrenamiento</h2><p>Guardá una foto y una nota para recordar cómo te sentiste.</p>${btn(\'Fotos del entrenamiento\',\'workout-photos\',\'\',\'button outline\')}</section>`;'
+          new='</section>`;'
+          s=replace_once(s,old,new,'mover acceso de entrenamiento al área Gym')
+          p.write_text(s)
+
+          p=Path('src/style.css')
+          s=p.read_text()
+          marker='.gym-today .button-row{margin-top:4px}'
+          if marker not in s:
+              s += '''\n.gym-today .button-row{margin-top:4px}.gym-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}.gym-stat{margin:0;padding:16px}.gym-stat span{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}.gym-stat strong{display:block;font-family:var(--serif);font-weight:400;font-size:28px;margin:6px 0 4px}.gym-stat small{font-size:10px;color:var(--muted)}\n.gym-chart{width:100%;height:auto;color:var(--green);display:block}.gym-chart circle{fill:var(--panel);stroke:var(--green);stroke-width:2}.gym-chart-labels{display:flex;justify-content:space-between;color:var(--muted)}.gym-history{margin-top:14px}.gym-history summary{cursor:pointer;color:var(--green);font-size:12px;margin-bottom:8px}.gym-history .session-row small{max-width:420px}\n.gym-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}.gym-photo{margin:0}.gym-photo figcaption{font-size:11px;margin-top:8px;line-height:1.5}.gym-photo figcaption small{display:block;color:var(--muted)}\n.gym-photo-img{aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:0}.gym-photo-img img{width:100%;height:100%;object-fit:cover;display:block}\n.gym-compare-controls{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.gym-compare-controls label{flex:1;min-width:140px;margin-bottom:12px}.gym-compare-controls .icon-button{margin-bottom:14px}.gym-diff{font-size:13px;margin:0 0 12px}.gym-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gym-compare-side{display:grid;gap:10px;align-content:start}.gym-compare-side p{font-size:12px;margin:0}.gym-compare-side small{color:var(--muted)}\n@media(max-width:650px){.gym-compare{gap:8px}.gym-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gym-stat strong{font-size:23px}}\n.gym-compare{max-width:760px}.gym-compare .gym-photo-img{max-height:460px}\n'''
+          p.write_text(s)
+          PY
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Guardar cambios validados
+        run: |
+          rm .github/workflows/apply-areas-y-gym.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.js src/style.css src/wellbeing.js .github/workflows/apply-areas-y-gym.yml
+          git commit -m "Completar área Gym con fotos, peso y medidas"
+          git push origin HEAD:integrar-areas-y-gym
