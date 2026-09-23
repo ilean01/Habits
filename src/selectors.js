@@ -8,7 +8,9 @@ export const workoutPhotos=rows=>rows.filter(r=>r?.workoutPhoto===true);
 export const hydrationLogs=rows=>rows.filter(r=>r?.hydration===true);
 export const subjectProjects=rows=>rows.filter(r=>r?.category==='subject');
 export const personalProjects=rows=>rows.filter(r=>r?.category!=='subject');
+export const pendingTasks=rows=>rows.filter(r=>!r?.done&&!!r?.due);
 export const laterTasks=rows=>rows.filter(r=>!r?.done&&!r?.due);
+export const completedTasks=rows=>rows.filter(r=>!!r?.done);
 
 export function taskProjectOptions(rows,currentId=''){
  const personal=personalProjects(rows),current=rows.find(r=>r?.id===currentId);

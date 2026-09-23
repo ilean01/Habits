@@ -40,7 +40,7 @@ test('móvil: Biblioteca es destino directo y Más conserva áreas, progreso, di
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
  await nav.getByRole('button',{name:/Más/i}).click();
  await page.getByRole('button',{name:'Para después'}).click();
- await expect(page.getByText(/Ideas y pendientes sin fecha/i)).toBeVisible();
+ await expect(page.getByText(/Tareas activas sin fecha, guardadas sin presión/i)).toBeVisible();
 });
 
 test('agenda avisa el choque antes de guardar el segundo evento',async({page},testInfo)=>{
