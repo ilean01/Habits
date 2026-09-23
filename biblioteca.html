@@ -11,6 +11,15 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>Biblioteca · Habits</title>
+  <script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-library')</script>
+  <style>
+    html.embedded-library body{min-height:0}
+    html.embedded-library .lib-back{display:none!important}
+    html.embedded-library .lib-brand{pointer-events:none;cursor:default}
+    html.embedded-library .library-loading{min-height:560px}
+    html.embedded-library .lib-header{top:0}
+    html.embedded-library .lib-main{padding-bottom:36px}
+  </style>
 </head>
 <body>
   <div id="library-app"><div class="library-loading">Abriendo tu biblioteca…</div></div>
