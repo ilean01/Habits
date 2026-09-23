@@ -39,8 +39,14 @@ export function hydrationTargetMl(h){
 export function dayModeAllowsHabit(h,mode){
  if(!h)return false;
  if(mode==='tranquilo'||mode==='descanso')return !!h.essential;
- if(mode==='trabajo')return h.area==='trabajo'||!!h.essential;
- if(mode==='facultad')return h.area==='facultad'||!!h.essential;
+ // Trabajo y Facultad priorizan su área, pero no hacen desaparecer el resto del día.
+ if(mode==='trabajo'||mode==='facultad')return true;
  if(mode==='finDeSemana')return h.area!=='trabajo'||!!h.essential;
  return true;
+}
+
+export function priorityAreaForDayMode(mode){
+ if(mode==='trabajo')return 'trabajo';
+ if(mode==='facultad')return 'facultad';
+ return '';
 }
