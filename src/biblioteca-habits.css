@@ -1,0 +1,19 @@
+/* Integra Biblioteca con la legibilidad y el tema general de Habits sin quitar su personalización. */
+.lib-button,.lib-input,.lib-select,.lib-back,.lib-nav button{min-height:44px;font-size:max(14px,.9rem)}
+.lib-button{padding:10px 14px}.lib-button.small{min-height:40px;font-size:13px}.lib-button.ghost{min-height:38px}
+.lib-input,.lib-select{padding:10px 12px}.lib-header-top{min-height:64px}.lib-nav{gap:6px}.lib-nav .lib-button{white-space:nowrap}
+.lib-book-card small,.lib-muted,.lib-row small,.lib-table,.lib-badge{font-size:max(12px,.76rem);line-height:1.4}
+.lib-book-card h3,.lib-page-head h1,.lib-page-head h2{line-height:1.2}
+.lib-switch{min-width:min(360px,42vw)}
+#library-modal{max-width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+html.large .lib-button,html.large .lib-input,html.large .lib-select,html.large .lib-table{font-size:16px}
+html.large .lib-muted,html.large .lib-book-card small,html.large .lib-badge{font-size:14px}
+html[data-theme=dark]{--lib-bg:#171d18!important;--lib-card:#232b24!important;--lib-text:#eef2e9!important;--lib-main:#9ab394!important;color-scheme:dark}
+html[data-theme=dark] .lib-header,html[data-theme=dark] #library-modal{background:#232b24!important;color:#eef2e9!important;border-color:#414d42!important}
+html[data-theme=dark] .lib-panel,html[data-theme=dark] .lib-book-card,html[data-theme=dark] .lib-row{border-color:#414d42!important}
+html[data-theme=dark] .lib-input,html[data-theme=dark] .lib-select{background:#1b221c!important;color:#f0f3ec!important;border-color:#4a584b!important}
+html[data-theme=dark] .lib-button.secondary,html[data-theme=dark] .lib-chip{background:#293229!important;color:#edf1e9!important;border-color:#465347!important}
+html[data-theme=dark] .lib-muted,html[data-theme=dark] .lib-book-meta,html[data-theme=dark] small{color:#b9c3b4}
+@media(max-width:720px){
+ .lib-header-top{align-items:flex-start;gap:8px;flex-wrap:wrap}.lib-switch{order:3;width:100%;min-width:0}.lib-user{max-width:55vw;overflow:hidden;text-overflow:ellipsis}.lib-nav{overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}.lib-main{padding-left:12px!important;padding-right:12px!important}.lib-toolbar{grid-template-columns:1fr!important}.lib-page-head{gap:12px}.lib-page-head h1{font-size:1.7rem}.lib-actions{gap:8px}.lib-button{min-height:46px}
+}
