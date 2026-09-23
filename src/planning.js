@@ -1,5 +1,7 @@
 import * as db from './store.js';
 import {dayKey,weekKeys,parseDay,occurs} from './domain.js';
+import {effectiveDayMode} from './day-modes.js';
+export {effectiveDayMode} from './day-modes.js';
 const SKILLS={listening:'Comprensión auditiva',reading:'Lectura',speaking:'Conversación',writing:'Escritura'};
 export function planningView({esc,btn}){
  const subjects=db.records('project').filter(p=>p.category==='subject'),tasks=db.records('task').filter(t=>t.area==='facultad'),practice=db.records('journal').filter(j=>j.englishPractice),week=weekKeys(dayKey());
@@ -16,4 +18,3 @@ export async function planningAction(a,el,{showModal,input,textarea,select,modal
  if(a==='plan-week')showModal('Tu semana',`<form>${['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'].map((day,i)=>select(day,'day'+i,[['habitual','Habitual'],['trabajo','Día de trabajo'],['facultad','Día de facu'],['finDeSemana','Fin de semana'],['tranquilo','Tranquilo'],['descanso','Descanso']],settings.weekModes?.[i]||'habitual')).join('')}<button class="button primary" type="submit">Guardar</button></form>`,f=>save('settings',{...settings,weekModes:Object.fromEntries(Array.from({length:7},(_,i)=>[i,f.get('day'+i)])),dayModeDate:null},'settings'));
  return true;
 }
-export function effectiveDayMode(settings,date=dayKey()) {return settings.dayModeDate===date?settings.dayMode:settings.weekModes?.[parseDay(date).getDay()]||settings.dayMode||'habitual';}

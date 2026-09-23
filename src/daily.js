@@ -7,6 +7,7 @@ export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readin
  if(minutes)parts.push(`${minutes} ${minutes===1?'minuto':'minutos'} de lectura`);
  for(const title of finishedBooks) parts.push(`terminar «${title}»`);
  parts.push(...journals.filter(j=>j.date===date&&j.achievement&&j.text?.trim()).map(j=>j.text.trim()));
+ if(mode==='descanso'&&!parts.length)return 'Hoy es un día de descanso. No tenés hábitos obligatorios y tus rachas quedan protegidas automáticamente.';
  return parts.length ? `Hoy hiciste espacio para: ${parts.join('; ')}. ¡Cada paso cuenta!` : 'Cada pequeño paso cuenta. Elegí por dónde querés empezar hoy.';
 }
 export function dayWelcome(hour=new Date().getHours()) {
