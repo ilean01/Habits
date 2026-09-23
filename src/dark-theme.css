@@ -1,0 +1,57 @@
+/* Contraste y legibilidad del modo oscuro. Se carga después del tema base. */
+[data-theme=dark]{
+ --bg:#171d18;
+ --panel:#232b24;
+ --text:#eef2e9;
+ --muted:#b9c3b4;
+ --line:#414d42;
+ --green:#a9c99e;
+ --soft:#303d31;
+ --accent:#d2aa78;
+ background:#171d18;
+ color:#eef2e9;
+}
+[data-theme=dark] body,[data-theme=dark] .main-wrap,[data-theme=dark] .content{background:var(--bg);color:var(--text)}
+[data-theme=dark] .sidebar,[data-theme=dark] .topbar,[data-theme=dark] dialog,[data-theme=dark] .panel,[data-theme=dark] .timeline,[data-theme=dark] .task-list,[data-theme=dark] .area-tile,[data-theme=dark] .book-card,[data-theme=dark] .quote-card,[data-theme=dark] .journal-card,[data-theme=dark] .mobile-nav{background:var(--panel);color:var(--text);border-color:var(--line)}
+[data-theme=dark] h1,[data-theme=dark] h2,[data-theme=dark] h3,[data-theme=dark] strong,[data-theme=dark] .event-title,[data-theme=dark] .task-main,[data-theme=dark] .breadcrumb strong{color:var(--text)}
+[data-theme=dark] .muted,[data-theme=dark] .sidebar-label,[data-theme=dark] .nav-link,[data-theme=dark] .area-link,[data-theme=dark] .breadcrumb,[data-theme=dark] .sync-pill,[data-theme=dark] .habit-area,[data-theme=dark] .habit-card>p,[data-theme=dark] .event-time,[data-theme=dark] .event-card small,[data-theme=dark] .task-main small,[data-theme=dark] .book-details p,[data-theme=dark] .book-details>small,[data-theme=dark] .journal-card small,[data-theme=dark] .session-row small,[data-theme=dark] .streak-row,[data-theme=dark] .week-chart small{color:var(--muted)!important}
+[data-theme=dark] .nav-link.active,[data-theme=dark] .nav-link:hover,[data-theme=dark] .area-link:hover,[data-theme=dark] .text-button,[data-theme=dark] .habit-check,[data-theme=dark] .calendar-progress,[data-theme=dark] .timer-display,[data-theme=dark] .words-grid summary{color:var(--green)}
+[data-theme=dark] .day-hero,[data-theme=dark] .progress-ring>div{background:#29372a!important;border-color:#435445!important}
+[data-theme=dark] .day-hero h2,[data-theme=dark] .day-hero p:not(.eyebrow),[data-theme=dark] .warm-note,[data-theme=dark] .progress-ring strong,[data-theme=dark] .progress-ring strong small,[data-theme=dark] .progress-ring span,[data-theme=dark] .progress-ring b{color:#e5eee0!important}
+[data-theme=dark] .progress-ring{background:conic-gradient(#8fb385 var(--progress),#435044 0)}
+[data-theme=dark] .reading-panel{background:#302c25!important;border-color:#51493d!important}
+[data-theme=dark] .reading-panel h3,[data-theme=dark] .reading-panel p,[data-theme=dark] .reading-panel .eyebrow,[data-theme=dark] .reading-panel .button,[data-theme=dark] .reading-link,[data-theme=dark] .book-progress{color:#e3d6c3!important}
+[data-theme=dark] .reading-panel .button{border-color:#625747!important}
+[data-theme=dark] .habit-card.done,[data-theme=dark] .reflection-card,[data-theme=dark] .journal-intro{background:#2b382d!important;border-color:#465847!important;color:var(--text)}
+[data-theme=dark] .reflection-card p,[data-theme=dark] .journal-intro p:not(.eyebrow){color:var(--muted)!important}
+[data-theme=dark] .reflection-card>span,[data-theme=dark] .moods button:hover,[data-theme=dark] .moods .chosen{background:#3b493a}
+[data-theme=dark] .notice{background:#393725!important;color:#eee7bd!important;border-color:#5e5a3d!important}
+[data-theme=dark] .priority{background:#354236;color:#c6d2c2}
+[data-theme=dark] .priority.high{background:#4a342b;color:#f0bd9d}
+[data-theme=dark] .overdue,[data-theme=dark] .danger{color:#efad9e}
+[data-theme=dark] .calendar-cell.selected{background:#314033}
+[data-theme=dark] .calendar-cell.current>span,[data-theme=dark] .mini-week .today,[data-theme=dark] .day-picker input:checked+span{background:#78986f;color:#fff}
+[data-theme=dark] .calendar-events small{filter:brightness(1.35) saturate(.8)}
+[data-theme=dark] .bar-track,[data-theme=dark] progress,[data-theme=dark] progress::-webkit-progress-bar{background:#354037}
+[data-theme=dark] .bar-track span,[data-theme=dark] progress::-webkit-progress-value,[data-theme=dark] progress::-moz-progress-bar{background:#8da983}
+[data-theme=dark] input:not([type=checkbox]),[data-theme=dark] textarea,[data-theme=dark] select{background:#1b221c;color:#f0f3ec;border-color:#4a584b;color-scheme:dark}
+[data-theme=dark] input::placeholder,[data-theme=dark] textarea::placeholder{color:#929d8e;opacity:1}
+[data-theme=dark] input[type=date]::-webkit-calendar-picker-indicator,[data-theme=dark] input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.8)}
+[data-theme=dark] .button.outline,[data-theme=dark] .chip.selected,[data-theme=dark] .install-step{background:#293229;border-color:#465347;color:#edf1e9}
+[data-theme=dark] .button.outline:hover,[data-theme=dark] .icon-button:hover,[data-theme=dark] .create-option:hover{background:#354237}
+[data-theme=dark] .chip{color:#c2cabe}
+[data-theme=dark] .space-tabs .chip.selected,[data-theme=dark] .area-filters .chip.selected{background:#78986f;color:white}
+[data-theme=dark] .auth-story{background:#28352a!important}
+[data-theme=dark] .auth-story h1,[data-theme=dark] .auth-story>div>p:not(.eyebrow),[data-theme=dark] .auth-story>small,[data-theme=dark] .auth-chips{color:#e3ecde!important}
+[data-theme=dark] .auth-form-wrap{background:var(--panel)}
+[data-theme=dark] .install-banner{background:#28352a!important;border-color:#445544!important;color:var(--text)}
+[data-theme=dark] .work-focus{background:#26343b!important;border-color:#415662!important;color:#d8e8ef!important}
+[data-theme=dark] .holiday-legend{background:#332f25!important;border-color:#554a37!important;color:#ead9b8!important}
+[data-theme=dark] .holiday-dot{color:#e0bd7d!important}
+[data-theme=dark] .weekly-frequency{border-color:var(--line)}
+[data-theme=dark] .weekly-help,[data-theme=dark] .weekly-goal{color:var(--muted)}
+[data-theme=dark] .water-summary span{background:#1c251e;border-color:#3f4d41}
+[data-theme=dark] .water-summary b{color:#cfe4c8}
+[data-theme=dark] .water-summary small{color:var(--muted)}
+[data-theme=dark] .water-progress-stat{background:#253229!important}
+[data-theme=dark] #toast{background:#dce9d7;color:#1e2a20}
