@@ -1,3 +1,0 @@
-Origen: mejoras-lectura.patch subido por la usuaria el 23/09/2026.
-Aplicado sobre main sin reemplazar funcionalidades existentes.
-Validaciones: npm test y npm run build.
