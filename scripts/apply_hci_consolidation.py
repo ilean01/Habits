@@ -23,10 +23,13 @@ new_nav="const nav=[['today','LayoutDashboard','Mi día'],['calendar','CalendarD
 s=replace_once(s,old_nav,new_nav,'navigation model')
 s=replace_once(s,'<div class="breadcrumb">Mi espacio <span>/</span>','<div class="breadcrumb">Habits <span>/</span>','breadcrumb')
 s=replace_once(s,"${view==='today'?todayView():view==='calendar'?calendarView():view==='areas'?areasView():view==='diary'?journalView():spaceView()}","${view==='today'?todayView():view==='calendar'?calendarView():view==='areas'?areasView():view==='progress'?progressViewV2({records:rec,catalog,prettyDate,esc,icon,btn,settings}):view==='diary'?journalView():spaceView()}",'render route')
-s=replace_once(s,'${nav.map(([id,ic,label])=>btn(icon(ic)+`<span>${label}</span>`,`nav`,`data-view="${id}"`,view===id?\'active\':\'\')).join(\'\')}','${mobileNav.map(([id,ic,label])=>btn(icon(ic)+`<span>${label}</span>`,`nav`,`data-view="${id}"`,view===id?\'active\':\'\')).join(\'\')}','mobile nav')
+old_mobile='<nav class="mobile-nav">${nav.map(([id,ic,label])=>btn(icon(ic)+`<span>${label}</span>`,\'nav\',`data-view="${id}"`,view===id?\'active\':\'\')).join(\'\')}</nav>'
+new_mobile='<nav class="mobile-nav">${mobileNav.map(([id,ic,label])=>btn(icon(ic)+`<span>${label}</span>`,\'nav\',`data-view="${id}"`,view===id?\'active\':\'\')).join(\'\')}</nav>'
+s=replace_once(s,old_mobile,new_mobile,'mobile nav')
 
 # Contexto de Mi día.
-s=re.sub(r"const done=hs\.filter\((.*?)\);const summary=",lambda m:f"const done=hs.filter({m.group(1)});const welcome=dayWelcome(undefined,done.length>0);const summary=",s,count=1)
+s,n=re.subn(r"const done=hs\.filter\((.*?)\);const summary=",lambda m:f"const done=hs.filter({m.group(1)});const welcome=dayWelcome(undefined,done.length>0);const summary=",s,count=1)
+if n!=1: raise SystemExit('No pude insertar dayWelcome contextual')
 s=replace_once(s,"const dayMode=effectiveDayMode(settings());const shown=hs.filter(h=>scheduled(h,today)&&(dayMode==='tranquilo'?h.essential:true));return","const dayMode=effectiveDayMode(settings());const shown=habitsForDayMode(hs,logs,today,dayMode);const modeNote=dayModeNotice(dayMode);return",'day mode behavior')
 s=s.replace('dayWelcome().icon','welcome.icon',1).replace('dayWelcome().subtitle','welcome.subtitle',1)
 s=replace_once(s,"${done.length?'Mirá todo lo que ya hiciste.':'Un nuevo día.<br>Un poquito más para vos.'}","${esc(welcome.hero)}",'hero text')
