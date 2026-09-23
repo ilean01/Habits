@@ -44,3 +44,5 @@
 
 /* native weekly frequency */
 .weekly-frequency{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:14px;margin:8px 0}.weekly-frequency legend{font-size:13px;font-weight:650}.weekly-frequency-grid{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;align-items:end}.weekly-frequency [data-weekly-target][hidden]{display:none}.weekly-help{font-size:12px;color:var(--muted);margin:8px 0 0}@media(max-width:650px){.weekly-frequency-grid{grid-template-columns:1fr}}
+
+.completed-tasks{margin:20px 0 0;border-top:1px solid var(--line);padding-top:12px}.completed-tasks summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none;padding:8px 2px}.completed-tasks summary::-webkit-details-marker{display:none}.completed-tasks summary span{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--soft);color:var(--green);font-size:10px}.completed-tasks[open] summary{margin-bottom:8px}
