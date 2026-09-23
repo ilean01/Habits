@@ -15,6 +15,7 @@ html.large .small,html.large .muted.small,html.large .habit-area,html.large .eve
 .streak-row span{display:flex;flex-direction:column;gap:2px}
 .day-mode-notice{margin:8px 0 14px}
 .more-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.more-hub .panel{cursor:pointer;text-align:left}
+.reorder-list{display:grid;gap:8px;margin-top:14px}.reorder-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel)}.reorder-row>span{display:flex;align-items:center;gap:10px;min-width:0}.reorder-row>span strong{overflow:hidden;text-overflow:ellipsis}.reorder-row>div{display:flex;gap:6px}.reorder-row .icon-button svg{transform:rotate(90deg)}
 @media(max-width:1000px){.progress-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){
  :root{--touch:46px}
@@ -23,4 +24,5 @@ html.large .small,html.large .muted.small,html.large .habit-area,html.large .eve
  .progress-stat-grid,.more-hub{grid-template-columns:1fr}
  .calendar-cell,.mini-week button{min-height:44px}
  .holiday-dot{font-size:11px!important}
+ .reorder-row{padding:10px}
 }
