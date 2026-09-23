@@ -6,7 +6,9 @@ self.addEventListener('fetch', event => {
  const r=event.request,u=new URL(r.url);
  if(r.method!=='GET'||u.origin!==self.location.origin)return;
  if(r.mode==='navigate'){
-  event.respondWith(fetch(r).then(res=>{if(res.ok){const copy=res.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put('./',copy)));}return res;}).catch(()=>caches.match('./')));return;
+  event.respondWith(fetch(r).then(res=>{if(res.ok){const copy=res.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(u.pathname.endsWith('/biblioteca.html')?'./biblioteca.html':'./',copy)));}return res;}).catch(()=>caches.match(u.pathname.endsWith('/biblioteca.html')?'./biblioteca.html':'./')));return;
  }
  if(/\.(js|css|png|svg|webmanifest)$/.test(u.pathname))event.respondWith(caches.match(r).then(cached=>cached||fetch(r).then(res=>{if(res.ok){const copy=res.clone();event.waitUntil(caches.open(CACHE).then(c=>c.put(r,copy)));}return res;})));
 });
+self.addEventListener('push',event=>{let p={};try{p=event.data?.json()||{};}catch{}event.waitUntil(self.registration.showNotification(p.title||'Habits',{body:p.body||'Tenés una actividad pendiente.',icon:'./icon-192.png',badge:'./icon-192.png',tag:p.tag||'habits-reminder',data:{date:/^\d{4}-\d{2}-\d{2}$/.test(p.date)?p.date:''}}));});
+self.addEventListener('notificationclick',event=>{event.notification.close();const url=new URL('./',self.registration.scope);if(event.notification.data?.date)url.searchParams.set('date',event.notification.data.date);event.waitUntil(self.clients.openWindow(url.href));});

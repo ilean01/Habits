@@ -90,3 +90,7 @@ Node 22 o posterior. Copiá `.env.example` a `.env.local` si querés sobrescribi
 - `src/store.js`: autenticación, caché, sincronización y conflictos.
 - `supabase/schema.sql`: esquema y seguridad.
 - `public/sw.js`: caché del programa, sin interceptar peticiones a Supabase.
+
+## Avance de integración
+
+El estado de la rama de Biblioteca y las tareas pendientes de activación están en [docs/ESTADO-2026-09-23.md](docs/ESTADO-2026-09-23.md). Los datos privados originales no se publican en este repositorio. Las nuevas migraciones deben aplicarse antes de usar las funciones que dependen de ellas.

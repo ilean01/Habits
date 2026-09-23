@@ -4,3 +4,11 @@ dist/
 .env.local
 .env.*.local
 test-results/
+
+# Biblioteca privada: los datos reales viven en Supabase, no en el repo público.
+*.db
+*.sqlite
+*.sqlite3
+respaldos/
+static/portadas/
+portadas/
