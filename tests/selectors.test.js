@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {diaryEntries,personalProjects,subjectProjects,taskProjectOptions,isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from '../src/selectors.js';
+import {diaryEntries,personalProjects,subjectProjects,taskProjectOptions,isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit,priorityAreaForDayMode} from '../src/selectors.js';
 
 test('el Diario no mezcla peso, fotos, inglés ni logros',()=>{
  const rows=[
@@ -27,11 +27,15 @@ test('el hábito viejo de 8 vasos se reconoce como hidratación y equivale a 2 l
  assert.equal(hydrationTargetMl(h),2000);
 });
 
-test('los tipos de día cambian realmente qué hábitos se muestran',()=>{
+test('los tipos de día reducen solo cuando corresponde y priorizan sin esconder',()=>{
  const personal={area:'personal',essential:false},work={area:'trabajo',essential:false},study={area:'facultad',essential:false},essential={area:'personal',essential:true};
  assert.equal(dayModeAllowsHabit(work,'trabajo'),true);
- assert.equal(dayModeAllowsHabit(personal,'trabajo'),false);
+ assert.equal(dayModeAllowsHabit(personal,'trabajo'),true);
  assert.equal(dayModeAllowsHabit(study,'facultad'),true);
+ assert.equal(dayModeAllowsHabit(personal,'facultad'),true);
+ assert.equal(priorityAreaForDayMode('trabajo'),'trabajo');
+ assert.equal(priorityAreaForDayMode('facultad'),'facultad');
+ assert.equal(dayModeAllowsHabit(personal,'tranquilo'),false);
  assert.equal(dayModeAllowsHabit(essential,'descanso'),true);
  assert.equal(dayModeAllowsHabit(work,'finDeSemana'),false);
 });
