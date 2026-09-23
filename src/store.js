@@ -11,6 +11,7 @@ let owner=null,cache={records:{},pending:{},conflicts:{}},meta={lastSync:null},l
 let status='local';
 const tabId=crypto.randomUUID();
 const bus=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('habits-local-v2'):null;
+bus?.unref?.();
 let writeQueue=Promise.resolve();
 const online=()=>typeof navigator==='undefined'||navigator.onLine!==false;
 const enqueue=fn=>{writeQueue=writeQueue.then(fn).catch(e=>console.warn('No se pudo guardar la caché local:',e.message));return writeQueue;};
@@ -80,7 +81,8 @@ export async function sync(){
   const remote=[];let offset=0;
   while(true){
    let query=supabase.from('entries').select('id,kind,data,rev,deleted,updated_at').eq('user_id',currentOwner).order('updated_at',{ascending:true}).order('id',{ascending:true}).range(offset,offset+499);
-   if(meta.lastSync)query=query.gt('updated_at',meta.lastSync);
+   // gte evita perder un segundo registro que comparta exactamente el timestamp del cursor. Repetir la última fila es inocuo.
+   if(meta.lastSync)query=query.gte('updated_at',meta.lastSync);
    const {data,error}=await query;if(owner!==currentOwner)return;if(error)throw error;
    remote.push(...data);if(data.length<500)break;offset+=500;
   }
