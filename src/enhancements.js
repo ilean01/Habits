@@ -1,7 +1,6 @@
 import './dark-theme.css';
 import * as db from './store.js';
 import {dayKey,addDays,weeklyProgress,flexibleWeekly} from './domain.js';
-import {waterStats} from './wellbeing.js';
 import {holidayOn,holidaysBetween,holidayStatusText} from './paraguay-holidays.js';
 import {activeWorkBlock} from './work-context.js';
 
@@ -39,22 +38,6 @@ function prioritizeWork(){
  const habits=rec('habit');for(const card of grid.querySelectorAll('[data-habit-id]'))if(habits.find(h=>h.id===card.dataset.habitId)?.area==='trabajo')card.classList.add('work-priority-card');
 }
 
-function progressIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/></svg>';}
-function addProgressShortcut(){
- const nav=document.querySelector('.sidebar nav');if(!nav)return;let b=nav.querySelector('[data-progress-shortcut]');if(!b){b=document.createElement('button');b.className='nav-link progress-link';b.dataset.action='progress';b.dataset.progressShortcut='1';b.innerHTML=`${progressIcon()}<span>Progreso</span>`;nav.append(b);}
- const active=[...document.querySelectorAll('.space-tabs .chip.selected')].some(x=>x.textContent.trim()==='Mi progreso')||!!document.querySelector('.water-progress-stat');b.classList.toggle('active',active);if(active&&!b.querySelector('.nav-dot'))b.insertAdjacentHTML('beforeend','<span class="nav-dot"></span>');if(!active)b.querySelector('.nav-dot')?.remove();
-}
-function addLaterShortcut(){
- const nav=document.querySelector('.sidebar nav');if(!nav||nav.querySelector('[data-enh-action="later"]'))return;const b=document.createElement('button');b.className='nav-link later-link';b.dataset.enhAction='later';b.innerHTML='<span aria-hidden="true">🗂️</span><span>Para después</span>';nav.append(b);
-}
-function openLater(){const tasks=rec('task').filter(t=>!t.done&&!t.due);modal.innerHTML=`<div class="modal-heading"><div><p class="eyebrow">SIN FECHA, SIN PRESIÓN</p><h2>Para después</h2><p class="muted">Ideas y pendientes que querés guardar sin ponerles fecha todavía.</p></div><button class="icon-button" data-action="close" aria-label="Cerrar">×</button></div><div class="later-list">${tasks.map(t=>`<div class="later-row"><button data-action="edit-task" data-id="${esc(t.id)}"><strong>${esc(t.name)}</strong><br><small>${esc(t.note||'Sin notas')}</small></button></div>`).join('')||'<p class="muted">No guardaste nada para después todavía.</p>'}</div><div class="modal-footer"><button class="button primary" data-action="new-task">+ Guardar una idea</button></div>`;if(!modal.open)modal.showModal();}
-
-function decorateWaterProgress(){
- const grid=[...document.querySelectorAll('.stat-grid')].find(x=>x.textContent.includes('ESTA SEMANA')&&x.textContent.includes('TIEMPO PARA LEER'));if(!grid)return;
- const stats=waterStats(rec('log').filter(r=>r.hydration),dayKey(),7);grid.classList.add('with-water');let card=grid.querySelector('.water-progress-stat');if(!card){card=document.createElement('article');card.className='panel water-progress-stat';grid.append(card);}card.innerHTML=`<span>💧 PROMEDIO DE AGUA</span><strong>${stats.average.toLocaleString('es-PY')}<small> L/día</small></strong><p>${stats.total.toLocaleString('es-PY')} L en 7 días · ${stats.daysWithWater}/7 días con registro</p>`;
- let detail=grid.parentElement.querySelector('.water-progress-detail');if(!detail){detail=document.createElement('section');detail.className='panel water-progress-detail';grid.after(detail);}detail.innerHTML=`<h2>Tu agua, día por día</h2><p class="muted">Promedio de los últimos 7 días, contando también los días sin registro.</p><div class="water-days">${stats.keys.map((d,i)=>`<div class="water-day"><b>${stats.liters[i].toLocaleString('es-PY')} L</b><small>${new Date(`${d}T12:00:00`).toLocaleDateString('es-PY',{weekday:'short'})}</small></div>`).join('')}</div>`;
-}
-
 function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function installed(){return window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true;}
 function installGuide(){
@@ -70,13 +53,13 @@ function decorateHolidays(){
 }
 function decorateHolidayToday(){const h=holidayOn(dayKey());if(!h)return;const hero=document.querySelector('.day-hero');if(!hero||document.querySelector('.holiday-today'))return;const note=document.createElement('p');note.className='holiday-today';note.textContent=`🇵🇾 Hoy es feriado: ${holidayStatusText(h)}`;hero.querySelector('div')?.append(note);}
 
-function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();decorateWaterProgress();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
+function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
 // Los adornos modifican el DOM: mientras corren, el observador se desconecta para no volver a dispararse a sí mismo.
 // Antes, cada adorno generaba una mutación que volvía a llamar a run() en un bucle infinito de microtareas y congelaba la página.
 const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
 function schedule(){if(queued)return;queued=true;nextFrame(run);}
 
-document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='new-habit')currentHabitId='';if(action==='edit-habit')currentHabitId=e.target.closest('[data-action]').dataset.id||'';const own=e.target.closest('[data-enh-action]');if(!own)return;if(own.dataset.enhAction==='later'){e.preventDefault();openLater();}if(own.dataset.enhAction==='dismiss-install'){e.preventDefault();sessionStorage.setItem('habits-install-dismissed','1');own.closest('.install-banner')?.remove();}},true);
+document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='new-habit')currentHabitId='';if(action==='edit-habit')currentHabitId=e.target.closest('[data-action]').dataset.id||'';const own=e.target.closest('[data-enh-action]');if(!own)return;if(own.dataset.enhAction==='dismiss-install'){e.preventDefault();sessionStorage.setItem('habits-install-dismissed','1');own.closest('.install-banner')?.remove();}},true);
 const observer=new MutationObserver(schedule);
 function observe(){observer.observe(document.body,{childList:true,subtree:true});}
 observe();
