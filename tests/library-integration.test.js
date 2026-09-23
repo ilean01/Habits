@@ -36,3 +36,14 @@ test('GitHub Pages no publica si Playwright no pasa',async()=>{
  assert.match(workflow,/needs: validate/);
  assert.match(workflow,/needs\.validate\.result == 'success'/);
 });
+
+test('Lectura aparece antes del catálogo y las insignias quedan ancladas a cada libro',async()=>{
+ const main=await read('src/main.js');
+ const integration=await read('src/library-integration.css');
+ const catalogCss=await read('src/biblioteca.css');
+ const reading=main.indexOf('legacy-reading-tools-primary');
+ const catalog=main.indexOf('habits-library-embed');
+ assert.ok(reading>=0&&catalog>=0&&reading<catalog);
+ assert.match(integration,/legacy-reading-tools-heading/);
+ assert.match(catalogCss,/lib-book-card>button:first-child\{position:relative/);
+});

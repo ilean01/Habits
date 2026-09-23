@@ -1,6 +1,6 @@
 :root{--lib-touch:44px;--habits-font-scale:1}
 html.embedded-library{background:transparent!important}
-html.embedded-library body{background:transparent!important;font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:calc(13px * var(--habits-font-scale));color:var(--lib-text);min-height:0}
+html.embedded-library body{background:transparent!important;font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:calc(12px * var(--habits-font-scale));color:var(--lib-text);min-height:0}
 html.embedded-library h1,html.embedded-library h2{font-family:'Lora',Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-.025em}
 html.embedded-library h3{font-family:'DM Sans',system-ui,sans-serif}
 html.embedded-library{--lib-main:#48634d;--lib-bg:#f7f7f2;--lib-text:#303b31;--lib-card:#fff;--lib-muted:#7c8178;--lib-line:#e9eae3;--lib-shadow:none}
@@ -60,17 +60,17 @@ html.embedded-library .lib-brand,html.embedded-library .lib-back,html.embedded-l
 html.embedded-library .lib-integrated-context{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--lib-line);border-radius:12px;background:var(--lib-card)}
 html.embedded-library .lib-integrated-context-copy{min-width:0}
 html.embedded-library .lib-integrated-context small{display:block;margin-bottom:2px;color:var(--lib-muted);font-size:10px;font-weight:650;letter-spacing:.08em;text-transform:uppercase}
-html.embedded-library .lib-integrated-context strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 15px/1.35 'Lora',Georgia,serif;color:var(--lib-text)}
+html.embedded-library .lib-integrated-context strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 13px/1.35 'Lora',Georgia,serif;color:var(--lib-text)}
 html.embedded-library .lib-switch{width:auto;min-width:220px;max-width:min(52vw,420px);font-size:12px}
 html.embedded-library .lib-nav{max-width:none;padding:0 0 12px;gap:5px;border-bottom:1px solid var(--lib-line)}
-html.embedded-library .lib-nav button{min-height:36px;padding:7px 10px;font-size:12px;border-radius:8px}
+html.embedded-library .lib-nav button{min-height:34px;padding:6px 9px;font-size:11px;border-radius:8px}
 html.embedded-library .lib-main{max-width:none;padding:16px 0 34px}
 html.embedded-library .lib-page-head{margin-bottom:16px;gap:16px}
-html.embedded-library .lib-page-head h1{font-size:clamp(22px,2.2vw,28px);line-height:1.2;margin-bottom:4px}
+html.embedded-library .lib-page-head h1{font-size:clamp(20px,2vw,25px);line-height:1.2;margin-bottom:4px}
 html.embedded-library .lib-page-head h2{font-size:20px}
 html.embedded-library .lib-page-head p{font-size:12px;line-height:1.55}
 html.embedded-library .lib-actions{gap:6px}
-html.embedded-library .lib-button{padding:8px 11px;border-radius:8px;font-size:12px;box-shadow:none;min-height:38px}
+html.embedded-library .lib-button{padding:7px 10px;border-radius:8px;font-size:11px;box-shadow:none;min-height:38px}
 html.embedded-library .lib-button.small{padding:6px 9px;font-size:11px;min-height:34px}
 html.embedded-library .lib-panel{padding:14px;border-radius:12px;box-shadow:none}
 html.embedded-library .lib-stats-mini{gap:8px;margin-bottom:14px}
