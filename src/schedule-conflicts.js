@@ -1,7 +1,8 @@
 import {addDays,occurs,eventOnDate} from './domain.js';
 
 const hasTime=e=>!!e?.time;
-const endOf=e=>e.end||e.time||'';
+function plusMinutes(time,minutes=30){const [h,m]=String(time||'00:00').split(':').map(Number),total=Math.min(24*60,h*60+m+minutes);return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;}
+const endOf=e=>e.end||plusMinutes(e.time,30);
 const overlaps=(a,b)=>hasTime(a)&&hasTime(b)&&a.time<endOf(b)&&b.time<endOf(a);
 
 export function findEventConflicts(candidate,events,{ignoreId='',days=120}={}){
