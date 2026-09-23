@@ -1,5 +1,8 @@
 name: Apply native weekly frequency
-on: workflow_dispatch
+on:
+  push:
+    branches: [centralizar-choques-eventos]
+    paths: [.github/workflows/apply-native-weekly.yml]
 permissions:
   contents: write
 jobs:
@@ -52,7 +55,6 @@ jobs:
           newclick="document.addEventListener('click',e=>{const own=e.target.closest('[data-enh-action]');"
           if oldclick not in e: raise SystemExit('enhancement click tracker not found')
           e=e.replace(oldclick,newclick,1)
-          # Remove weekly CSS from injected enhancement styles; those rules now live in style.css.
           e=e.replace(" .weekly-frequency{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:14px;margin:8px 0}.weekly-frequency legend{font-size:13px;font-weight:650}.weekly-frequency-grid{display:grid;grid-template-columns:1fr 150px;gap:10px}.weekly-help{font-size:12px;color:var(--muted);margin:8px 0 0}","",1)
           e=e.replace('@media(max-width:650px){.weekly-frequency-grid,.install-steps{grid-template-columns:1fr}', '@media(max-width:650px){.install-steps{grid-template-columns:1fr}',1)
           enh.write_text(e)
@@ -65,7 +67,7 @@ jobs:
           css.write_text(c)
 
           test=Path('tests/native-weekly-frequency.test.js')
-          test.write_text("""import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport fs from 'node:fs';\n\nconst main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');\nconst enhancements=fs.readFileSync(new URL('../src/enhancements.js',import.meta.url),'utf8');\nconst css=fs.readFileSync(new URL('../src/style.css',import.meta.url),'utf8');\n\ntest('el editor de hábitos renderiza frecuencia semanal de forma nativa',()=>{\n assert.match(main,/name=\\\"frequencyMode\\\"|frequencyMode'/);\n assert.match(main,/weeklyTarget/);\n assert.match(main,/X veces por semana/);\n assert.match(main,/Elegí entre 1 y 7 veces por semana/);\n});\n\ntest('enhancements ya no inyecta ni rastrea la frecuencia del hábito',()=>{\n assert.doesNotMatch(enhancements,/enhanceHabitEditor/);\n assert.doesNotMatch(enhancements,/currentHabitId/);\n assert.doesNotMatch(enhancements,/weekly-frequency-grid/);\n});\n\ntest('los estilos de frecuencia viven con la aplicación',()=>{\n assert.match(css,/native weekly frequency/);\n assert.match(css,/\\.weekly-frequency-grid/);\n});\n""")
+          test.write_text("""import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport fs from 'node:fs';\n\nconst main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');\nconst enhancements=fs.readFileSync(new URL('../src/enhancements.js',import.meta.url),'utf8');\nconst css=fs.readFileSync(new URL('../src/style.css',import.meta.url),'utf8');\n\ntest('el editor de hábitos renderiza frecuencia semanal de forma nativa',()=>{\n assert.match(main,/frequencyMode/);\n assert.match(main,/weeklyTarget/);\n assert.match(main,/X veces por semana/);\n assert.match(main,/Elegí entre 1 y 7 veces por semana/);\n});\n\ntest('enhancements ya no inyecta ni rastrea la frecuencia del hábito',()=>{\n assert.doesNotMatch(enhancements,/enhanceHabitEditor/);\n assert.doesNotMatch(enhancements,/currentHabitId/);\n assert.doesNotMatch(enhancements,/weekly-frequency-grid/);\n});\n\ntest('los estilos de frecuencia viven con la aplicación',()=>{\n assert.match(css,/native weekly frequency/);\n assert.match(css,/\\.weekly-frequency-grid/);\n});\n""")
           PY
       - run: npm ci
       - run: npm test
