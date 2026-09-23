@@ -33,7 +33,6 @@ jobs:
                   raise SystemExit(f'{path}: expected {expected} occurrences, found {n}: {old[:90]!r}')
               p.write_text(s.replace(old,new))
 
-          # domain.js: one source of truth for which habits count on a date.
           replace_once('src/domain.js',
             "import {isHydrationHabit,hydrationTargetMl} from './selectors.js';",
             "import {isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from './selectors.js';")
@@ -50,7 +49,6 @@ jobs:
             "  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;\n  const s=habitStatus(h,logs,key);",
             "  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;if(!dayModeAllowsHabit(h,modeForDate(key)))continue;\n  const s=habitStatus(h,logs,key);")
 
-          # Daily summary must use the same effective habit set.
           replace_once('src/daily.js',
             "import {habitStatus} from './domain.js';",
             "import {habitStatus,effectiveHabitsForDate} from './domain.js';")
@@ -58,7 +56,6 @@ jobs:
             "export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date) {\n const parts = habits.filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);",
             "export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date, mode='habitual') {\n const parts = effectiveHabitsForDate(habits,date,mode).filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);")
 
-          # main.js: today, calendar, progress and heatmap use the central rule.
           replace_once('src/main.js',
             "import {AREAS,ICONS,PALETTE,uid,dayKey,parseDay,addDays,scheduled,occurs,dayStats,streak,elapsed,fmtDuration,weekKeys,eventOnDate,flexibleWeekly,weeklyProgress,habitStatus} from './domain.js';",
             "import {AREAS,ICONS,PALETTE,uid,dayKey,parseDay,addDays,scheduled,occurs,dayStats,streak,elapsed,fmtDuration,weekKeys,eventOnDate,flexibleWeekly,weeklyProgress,habitStatus,effectiveHabitsForDate} from './domain.js';")
@@ -88,12 +85,11 @@ jobs:
             "<strong>${doneThisWeek}</strong><p>hábitos completados</p>")
           replace_all('src/main.js',
             "const st=dayStats(rec('habit'),logs,d);",
-            "const st=dayStats(rec('habit'),logs,d,effectiveDayMode(settings(),d));",2)
+            "const st=dayStats(rec('habit'),logs,d,effectiveDayMode(settings(),d));",1)
           replace_once('src/main.js',
             "${streak(h,logs,today)} ${flexibleWeekly(h)?'semanas':'días'}",
             "${streak(h,logs,today,d=>effectiveDayMode(settings(),d))} ${flexibleWeekly(h)?'semanas':'días'}")
 
-          # Contextual extras and weekly summary use the same effective date model too.
           replace_once('src/extras.js',
             "import {dayKey,addDays,weekKeys,occurs,eventOnDate,scheduled,flexibleWeekly,weeklyProgress} from './domain.js';",
             "import {dayKey,addDays,weekKeys,occurs,eventOnDate,flexibleWeekly,weeklyProgress,effectiveHabitsForDate,dayStats} from './domain.js';")
@@ -113,7 +109,6 @@ jobs:
             "Esta semana registraste <strong>${logs.length} hábitos</strong>",
             "Esta semana registraste <strong>${doneCount} hábitos</strong>")
 
-          # Unit tests for the shared semantics.
           replace_once('tests/domain.test.js',
             "import {scheduled,occurs,dayStats,streak,elapsed,addDays,weekKeys} from '../src/domain.js';",
             "import {scheduled,occurs,dayStats,streak,elapsed,addDays,weekKeys,effectiveHabitsForDate} from '../src/domain.js';")
