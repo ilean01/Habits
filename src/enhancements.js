@@ -3,6 +3,7 @@ import * as db from './store.js';
 import {dayKey} from './domain.js';
 import {holidayOn,holidayStatusText} from './paraguay-holidays.js';
 import {activeWorkBlock} from './work-context.js';
+import {priorityAreaForDayMode} from './selectors.js';
 
 const modal=document.querySelector('#modal');
 let currentHabitId='',queued=false;
@@ -12,7 +13,7 @@ const rec=k=>db.records(k);
 function installStyles(){
  if(document.querySelector('#habits-enhancement-styles'))return;
  const style=document.createElement('style');style.id='habits-enhancement-styles';style.textContent=`
- .weekly-frequency{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:14px;margin:8px 0}.weekly-frequency legend{font-size:13px;font-weight:650}.weekly-frequency-grid{display:grid;grid-template-columns:1fr 150px;gap:10px}.weekly-help{font-size:12px;color:var(--muted);margin:8px 0 0}.work-focus{border:1px solid #d9e3eb;background:#f2f6f8;border-radius:11px;padding:12px 15px;margin-bottom:14px;font-size:13px;color:#557080}.work-priority-card{order:-10}.install-banner{border:1px solid #dce3d4;background:#f1f5ed;border-radius:13px;padding:17px;margin-bottom:20px}.install-banner h3{font-family:var(--serif);font-size:20px;margin-bottom:8px}.install-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.install-step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;text-align:center;font-size:12px}.install-step b{display:block;font-size:22px;margin-bottom:5px}.install-close{float:right;min-width:44px;min-height:44px}.install-help.enhanced-install .install-steps{margin:12px 0}.holiday-today{border-left:3px solid #b79254;padding-left:10px}@media(max-width:650px){.weekly-frequency-grid,.install-steps{grid-template-columns:1fr}.install-banner{padding:14px}}
+ .weekly-frequency{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:14px;margin:8px 0}.weekly-frequency legend{font-size:13px;font-weight:650}.weekly-frequency-grid{display:grid;grid-template-columns:1fr 150px;gap:10px}.weekly-help{font-size:12px;color:var(--muted);margin:8px 0 0}.context-focus{border:1px solid #d9e3eb;background:#f2f6f8;border-radius:11px;padding:12px 15px;margin-bottom:14px;font-size:13px;color:#557080}.context-priority-card{order:-10}.install-banner{border:1px solid #dce3d4;background:#f1f5ed;border-radius:13px;padding:17px;margin-bottom:20px}.install-banner h3{font-family:var(--serif);font-size:20px;margin-bottom:8px}.install-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.install-step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;text-align:center;font-size:12px}.install-step b{display:block;font-size:22px;margin-bottom:5px}.install-close{float:right;min-width:44px;min-height:44px}.install-help.enhanced-install .install-steps{margin:12px 0}.holiday-today{border-left:3px solid #b79254;padding-left:10px}@media(max-width:650px){.weekly-frequency-grid,.install-steps{grid-template-columns:1fr}.install-banner{padding:14px}}
  `;document.head.append(style);
 }
 
@@ -24,11 +25,13 @@ function enhanceHabitEditor(){
  box.querySelector('[name="frequencyMode"]').addEventListener('change',e=>{const weekly=e.target.value==='weekly';box.querySelector('[data-weekly-target]').hidden=!weekly;if(weekly&&!currentHabitId)form.querySelectorAll('[name="days"]').forEach(x=>x.checked=true);});
 }
 
-function prioritizeWork(){
- const grid=document.querySelector('.dashboard-grid .habit-grid');if(!grid)return;const now=new Date(),date=dayKey(now),time=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,block=activeWorkBlock(rec('event'),date,time);
- document.querySelector('.work-focus')?.remove();grid.querySelectorAll('.work-priority-card').forEach(x=>x.classList.remove('work-priority-card'));if(!block)return;
- const section=grid.closest('section'),banner=document.createElement('div');banner.className='work-focus';banner.innerHTML=`💼 Estás dentro de <strong>${esc(block.name||'tu horario de trabajo')}</strong>${block.end?` hasta las ${esc(block.end)}`:''}. Primero te muestro lo laboral; lo personal sigue disponible.`;section?.insertBefore(banner,grid);
- const habits=rec('habit');for(const card of grid.querySelectorAll('[data-habit-id]'))if(habits.find(h=>h.id===card.dataset.habitId)?.area==='trabajo')card.classList.add('work-priority-card');
+function prioritizeContext(){
+ const grid=document.querySelector('.dashboard-grid .habit-grid');if(!grid)return;const now=new Date(),date=dayKey(now),time=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,workBlock=activeWorkBlock(rec('event'),date,time),dayMode=document.querySelector('#day-mode')?.value||'habitual';
+ document.querySelector('.context-focus')?.remove();grid.querySelectorAll('.context-priority-card').forEach(x=>x.classList.remove('context-priority-card'));
+ const priorityArea=workBlock?'trabajo':priorityAreaForDayMode(dayMode);if(!priorityArea)return;
+ const labels={trabajo:'lo laboral',facultad:'Facultad'},section=grid.closest('section');
+ if(workBlock){const banner=document.createElement('div');banner.className='context-focus';banner.innerHTML=`💼 Estás dentro de <strong>${esc(workBlock.name||'tu horario de trabajo')}</strong>${workBlock.end?` hasta las ${esc(workBlock.end)}`:''}. Primero te muestro ${labels[priorityArea]}; lo demás sigue disponible.`;section?.insertBefore(banner,grid);}
+ const habits=rec('habit');for(const card of grid.querySelectorAll('[data-habit-id]'))if(habits.find(h=>h.id===card.dataset.habitId)?.area===priorityArea)card.classList.add('context-priority-card');
 }
 
 function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
@@ -40,7 +43,7 @@ function installGuide(){
 function enrichSettingsInstall(){const help=modal?.querySelector('.install-help:not(.enhanced-install)');if(!help||!isIOS())return;help.classList.add('enhanced-install');help.insertAdjacentHTML('beforeend','<div class="install-steps"><div class="install-step"><b>①</b>Safari</div><div class="install-step"><b>↗</b>Compartir</div><div class="install-step"><b>＋</b>Agregar a inicio</div></div>');}
 function decorateHolidayToday(){const h=holidayOn(dayKey());if(!h)return;const hero=document.querySelector('.day-hero');if(!hero||document.querySelector('.holiday-today'))return;const note=document.createElement('p');note.className='holiday-today';note.textContent=`🇵🇾 Hoy es feriado: ${holidayStatusText(h)}`;hero.querySelector('div')?.append(note);}
 
-function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();prioritizeWork();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
+function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();prioritizeContext();installGuide();enrichSettingsInstall();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
 const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
 function schedule(){if(queued)return;queued=true;nextFrame(run);}
 
