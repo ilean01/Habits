@@ -70,10 +70,15 @@ function decorateHolidays(){
 }
 function decorateHolidayToday(){const h=holidayOn(dayKey());if(!h)return;const hero=document.querySelector('.day-hero');if(!hero||document.querySelector('.holiday-today'))return;const note=document.createElement('p');note.className='holiday-today';note.textContent=`🇵🇾 Hoy es feriado: ${holidayStatusText(h)}`;hero.querySelector('div')?.append(note);}
 
-function run(){queued=false;installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();addProgressShortcut();addLaterShortcut();decorateWaterProgress();installGuide();enrichSettingsInstall();decorateHolidays();decorateHolidayToday();}
-function schedule(){if(queued)return;queued=true;queueMicrotask(run);}
+function run(){queued=false;observer.disconnect();try{installStyles();enhanceHabitEditor();decorateWeeklyCards();prioritizeWork();addProgressShortcut();addLaterShortcut();decorateWaterProgress();installGuide();enrichSettingsInstall();decorateHolidays();decorateHolidayToday();}finally{observer.takeRecords();observe();}}
+// Los adornos modifican el DOM: mientras corren, el observador se desconecta para no volver a dispararse a sí mismo.
+// Antes, cada adorno generaba una mutación que volvía a llamar a run() en un bucle infinito de microtareas y congelaba la página.
+const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
+function schedule(){if(queued)return;queued=true;nextFrame(run);}
 
 document.addEventListener('click',e=>{const action=e.target.closest('[data-action]')?.dataset.action;if(action==='new-habit')currentHabitId='';if(action==='edit-habit')currentHabitId=e.target.closest('[data-action]').dataset.id||'';const own=e.target.closest('[data-enh-action]');if(!own)return;if(own.dataset.enhAction==='later'){e.preventDefault();openLater();}if(own.dataset.enhAction==='dismiss-install'){e.preventDefault();sessionStorage.setItem('habits-install-dismissed','1');own.closest('.install-banner')?.remove();}},true);
-new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
-setInterval(()=>{prioritizeWork();decorateWeeklyCards();decorateWaterProgress();},60000);
+const observer=new MutationObserver(schedule);
+function observe(){observer.observe(document.body,{childList:true,subtree:true});}
+observe();
+setInterval(schedule,60000);
 schedule();
