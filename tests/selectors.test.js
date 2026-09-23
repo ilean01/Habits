@@ -36,6 +36,8 @@ test('los tipos de día reducen solo cuando corresponde y priorizan sin esconder
  assert.equal(priorityAreaForDayMode('trabajo'),'trabajo');
  assert.equal(priorityAreaForDayMode('facultad'),'facultad');
  assert.equal(dayModeAllowsHabit(personal,'tranquilo'),false);
- assert.equal(dayModeAllowsHabit(essential,'descanso'),true);
+ assert.equal(dayModeAllowsHabit(essential,'tranquilo'),true);
+ assert.equal(dayModeAllowsHabit(personal,'descanso'),false);
+ assert.equal(dayModeAllowsHabit(essential,'descanso'),false);
  assert.equal(dayModeAllowsHabit(work,'finDeSemana'),false);
 });

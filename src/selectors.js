@@ -38,7 +38,10 @@ export function hydrationTargetMl(h){
 
 export function dayModeAllowsHabit(h,mode){
  if(!h)return false;
- if(mode==='tranquilo'||mode==='descanso')return !!h.essential;
+ // Descanso es una pausa global: no exige hábitos y, por tanto, no rompe rachas.
+ if(mode==='descanso')return false;
+ // Tranquilo mantiene únicamente lo esencial.
+ if(mode==='tranquilo')return !!h.essential;
  // Trabajo y Facultad priorizan su área, pero no hacen desaparecer el resto del día.
  if(mode==='trabajo'||mode==='facultad')return true;
  if(mode==='finDeSemana')return h.area!=='trabajo'||!!h.essential;
