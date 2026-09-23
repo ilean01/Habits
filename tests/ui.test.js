@@ -19,7 +19,7 @@ test('demo UI preserves navigation, diary, incremental water, habit fields and c
  await click('[data-view=diary]');assert.match(w.document.body.textContent,/Qué te gustaría recordar/);
  await click('[data-action=journal]');w.document.querySelector('[name=text]').value='Mi diario privado';w.document.querySelector('#modal form').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await waitFor(()=>/Mi diario privado/.test(w.document.body.textContent));assert.match(w.document.body.textContent,/Mi diario privado/);
  await click('[data-view=today]');await click('[data-action=new-habit]');assert.equal(w.document.querySelectorAll('[name=icon]').length,18);assert.equal(w.document.querySelector('[data-target-fields]').hidden,true);const type=w.document.querySelector('[name=type]');type.value='time';type.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(w.document.querySelector('[name=unit]').value,'minutos');assert.equal(w.document.querySelector('[data-target-fields]').hidden,false);
- await click('[data-action=close]');await click('[data-view=calendar]');await click('[data-action=calendar-mode]');assert.equal(w.document.querySelectorAll('.week-agenda>section').length,7);
+ await click('[data-action=close]');await click('[data-view=calendar]');await click('[data-action=calendar-mode][data-mode=week]');assert.equal(w.document.querySelectorAll('.week-agenda>section').length,7);
  await click('[data-action=settings]');assert.match(w.document.querySelector('#modal').textContent,/Exportar mis datos/);
  }finally{w.close();}
 });
