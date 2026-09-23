@@ -10,6 +10,11 @@ export const subjectProjects=rows=>rows.filter(r=>r?.category==='subject');
 export const personalProjects=rows=>rows.filter(r=>r?.category!=='subject');
 export const laterTasks=rows=>rows.filter(r=>!r?.done&&!r?.due);
 
+export function taskProjectOptions(rows,currentId=''){
+ const personal=personalProjects(rows),current=rows.find(r=>r?.id===currentId);
+ return current?.category==='subject'?[...personal,current]:personal;
+}
+
 export function isDiaryEntry(r){
  return !!r && !r.achievement && !r.workoutPhoto && !r.englishPractice && !r.bodyLog && !r.hydration;
 }
