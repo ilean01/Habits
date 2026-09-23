@@ -5,6 +5,8 @@ const supabase=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE
 function local(now:Date,zone:string){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now).map(x=>[x.type,x.value]));return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`};}
 function occurs(e:any,date:string){if(e.exceptions?.[date]?.cancelled||date<e.date||(e.until&&date>e.until))return false;const dow=(s:string)=>new Date(s+'T12:00:00Z').getUTCDay();return e.repeat==='daily'||(e.repeat==='weekly'&&dow(e.date)===dow(date))||(e.repeat==='monthly'&&e.date.slice(8)===date.slice(8))||(e.repeat==='yearly'&&e.date.slice(5)===date.slice(5))||e.date===date;}
 function allowedEndpoint(value:string){const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443')&&(url.hostname==='fcm.googleapis.com'||url.hostname==='updates.push.services.mozilla.com'||url.hostname.endsWith('.push.services.mozilla.com')||url.hostname==='web.push.apple.com'||url.hostname.endsWith('.notify.windows.com'));}
+function weekKeys(date:string){const d=new Date(date+'T12:00:00Z'),dow=d.getUTCDay(),delta=(dow+6)%7;d.setUTCDate(d.getUTCDate()-delta);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setUTCDate(d.getUTCDate()+i);return x.toISOString().slice(0,10);});}
+function weeklyComplete(entries:any[],habitId:string,e:any,date:string){if(e.frequencyMode!=='weekly'||!Number(e.weeklyTarget))return false;const keys=new Set(weekKeys(date)),done=entries.filter(l=>l.kind==='log'&&l.data.habitId===habitId&&keys.has(l.data.date)&&l.data.status==='done').length;return done>=Number(e.weeklyTarget);}
 Deno.serve(async req=>{
  if(req.method!=='POST'||!secret||req.headers.get('x-cron-secret')!==secret)return new Response('Unauthorized',{status:401});
  const publicKey=Deno.env.get('VAPID_PUBLIC_KEY'),privateKey=Deno.env.get('VAPID_PRIVATE_KEY'),subject=Deno.env.get('VAPID_SUBJECT');
@@ -19,7 +21,10 @@ Deno.serve(async req=>{
  for(const entry of entries.filter(e=>['habit','event'].includes(e.kind))){const e=entry.data;if(e.reminderMinutes===undefined||e.reminderMinutes===null||e.reminderMinutes===''||e.archived)continue;if(settings.quietWork&&working&&e.area!=='trabajo')continue;
  for(let lag=0;lag<5;lag++){const target=local(new Date(now.getTime()+(Number(e.reminderMinutes)-lag)*60000),zone),date=target.date,override=e.exceptions?.[date]||{},time=override.time||e.time||e.suggestedTime;if(!time||time!==target.time)continue;
  if(entry.kind==='event'&&!occurs(e,date))continue;
- if(entry.kind==='habit'&&((e.startDate&&date<e.startDate)||!(e.days||[0,1,2,3,4,5,6]).includes(new Date(date+'T12:00:00Z').getUTCDay())))continue;
+ if(entry.kind==='habit'){
+  if((e.startDate&&date<e.startDate)||!(e.days||[0,1,2,3,4,5,6]).includes(new Date(date+'T12:00:00Z').getUTCDay()))continue;
+  if(weeklyComplete(entries,entry.id,e,date))continue;
+ }
  if(entries.some(l=>l.data.date===date&&((l.kind==='log'&&l.data.habitId===entry.id&&['done','skip'].includes(l.data.status))||(l.kind==='eventLog'&&l.data.eventId===entry.id))))continue;
  const occurrence=`${entry.id}:${date}:${time}`;const claim=await supabase.rpc('claim_push',{p_subscription:sub.id,p_occurrence:occurrence});if(claim.error)throw claim.error;if(!claim.data)continue;
  try{await webpush.sendNotification({endpoint:sub.endpoint,keys:sub.keys},JSON.stringify({title:'Un momento para vos',body:override.name||e.name||'Tenés una actividad',date,tag:occurrence}),{TTL:300});await supabase.from('push_deliveries').update({sent_at:new Date().toISOString()}).eq('subscription_id',sub.id).eq('occurrence',occurrence);sent++;}

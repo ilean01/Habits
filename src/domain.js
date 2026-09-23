@@ -13,16 +13,47 @@ export const uid=()=>crypto.randomUUID();
 export function dayKey(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
 export function parseDay(s){return new Date(`${s}T12:00:00`);}
 export function addDays(key,n){const d=parseDay(key);d.setDate(d.getDate()+n);return dayKey(d);}
-export function scheduled(h,date){return !h.archived && (!h.startDate || date>=h.startDate) && (h.days||[0,1,2,3,4,5,6]).includes(parseDay(date).getDay());}
+export function weekKeys(today){const dow=parseDay(today).getDay();const monday=addDays(today,-((dow+6)%7));return Array.from({length:7},(_,i)=>addDays(monday,i));}
+export function flexibleWeekly(h){return h?.frequencyMode==='weekly'&&Number(h.weeklyTarget)>0;}
+export function scheduled(h,date){
+ if(h.archived||(h.startDate&&date<h.startDate))return false;
+ const days=h.days||[0,1,2,3,4,5,6];
+ if(flexibleWeekly(h))return days.includes(parseDay(date).getDay());
+ return days.includes(parseDay(date).getDay());
+}
+export function weeklyProgress(h,logs,date=dayKey()){
+ const keys=weekKeys(date),target=Math.max(1,Number(h.weeklyTarget)||1);
+ const done=logs.filter(l=>l.habitId===h.id&&keys.includes(l.date)&&l.status==='done').length;
+ const skipped=logs.filter(l=>l.habitId===h.id&&keys.includes(l.date)&&l.status==='skip').length;
+ return {done,target,skipped,complete:done>=target,keys};
+}
 export function occurs(e,date){if(e.exceptions?.[date]?.cancelled)return false;if(date<e.date || (e.until && date>e.until))return false;if(e.repeat==='daily')return true;if(e.repeat==='weekly')return parseDay(date).getDay()===parseDay(e.date).getDay();if(e.repeat==='monthly')return date.slice(8)===e.date.slice(8);if(e.repeat==='yearly')return date.slice(5)===e.date.slice(5);return e.date===date;}
-export function dayStats(habits,logs,date){const hs=habits.filter(h=>scheduled(h,date));const done=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='done')).length;const skipped=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='skip')).length;return {total:hs.length,done,skipped,percent:hs.length?Math.round(done/hs.length*100):0};}
-export function streak(h,logs,today){let n=0;for(let i=0;i<3660;i++){const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;const l=logs.find(x=>x.habitId===h.id&&x.date===key);if(l?.status==='done')n++;else if(l?.status==='skip')continue;else if(i!==0)break;}return n;}
+export function dayStats(habits,logs,date){
+ const hs=habits.filter(h=>scheduled(h,date)&&!flexibleWeekly(h));
+ const done=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='done')).length;
+ const skipped=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='skip')).length;
+ return {total:hs.length,done,skipped,percent:hs.length?Math.round(done/hs.length*100):0};
+}
+export function streak(h,logs,today){
+ if(flexibleWeekly(h)){
+  let count=0;let anchor=today;
+  const current=weeklyProgress(h,logs,anchor);
+  if(!current.complete)anchor=addDays(anchor,-7);
+  for(let i=0;i<520;i++){
+   const p=weeklyProgress(h,logs,anchor);
+   const weekStart=p.keys[0];
+   if(h.startDate&&p.keys[6]<h.startDate)break;
+   if(p.complete)count++;else break;
+   anchor=addDays(weekStart,-1);
+  }
+  return count;
+ }
+ let n=0;for(let i=0;i<3660;i++){const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;const l=logs.find(x=>x.habitId===h.id&&x.date===key);if(l?.status==='done')n++;else if(l?.status==='skip')continue;else if(i!==0)break;}return n;
+}
 export function elapsed(timer,now=Date.now()){return Math.max(0,Math.floor(((timer.elapsed||0)+(timer.running?now-timer.startedAt:0))/1000));}
 export function fmtDuration(seconds){return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}
 export function newRecord(kind,data,id=uid()){return {id,kind,data,rev:0,deleted:false};}
 export function starterRecords(){const today=dayKey();return [newRecord('settings',{name:'',tone:'warm',theme:'light',large:false,quiet:false,dayMode:'habitual'},'settings'),...AREAS.map(a=>newRecord('area',a,a.id)),...[
  ['Despertar con calma','Sun','personal','mañana','check',1],['Ir al gym','Dumbbell','salud','mañana','check',1],['Disfrutar el desayuno','Coffee','personal','mañana','check',1],['Ducha y cuidado personal','ShowerHead','personal','mañana','check',1],['Un rato de lectura','BookOpen','lectura','tarde','time',20],['Tomar agua','Droplets','salud','tarde','quantity',8]
-].map(([name,icon,area,period,type,target],i)=>newRecord('habit',{name,icon,area,period,type,target,unit:type==='time'?'minutos':type==='quantity'?'vasos':'veces',days:i===1?[1,2,3,4,5]:[0,1,2,3,4,5,6],startDate:today,essential:i===0||i===2,order:i,note:''}))];}
-export function weekKeys(today){const dow=parseDay(today).getDay();const monday=addDays(today,-((dow+6)%7));return Array.from({length:7},(_,i)=>addDays(monday,i));}
-
+].map(([name,icon,area,period,type,target],i)=>newRecord('habit',{name,icon,area,period,type,target,unit:type==='time'?'minutos':type==='quantity'?'vasos':'veces',days:i===1?[1,2,3,4,5]:[0,1,2,3,4,5,6],startDate:today,essential:i===0||i===2,order:i,note:'',frequencyMode:'days',weeklyTarget:null}))];}
 export function eventOnDate(e,date){return {...e,...(e.exceptions?.[date]||{}),id:e.id};}
