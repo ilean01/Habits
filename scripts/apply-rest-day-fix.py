@@ -34,12 +34,27 @@ replace_once(
     'selectors block',
 )
 
-replace_once(
-    'src/planning.js',
-    "export function effectiveDayMode(settings,date=dayKey()) {return settings.dayModeDate===date?settings.dayMode:settings.weekModes?.[parseDay(date).getDay()]||settings.dayMode||'habitual';}",
-    "export function effectiveDayMode(settings,date=dayKey()) {const override=settings.dayModeOverrides?.[date];if(override)return override;if(settings.dayModeDate===date)return settings.dayMode||'habitual';return settings.weekModes?.[parseDay(date).getDay()]||settings.dayMode||'habitual';}",
-    'effectiveDayMode block',
-)
+Path('src/day-modes.js').write_text("""const dayKey=(date=new Date())=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const parseDay=s=>new Date(`${s}T12:00:00`);
+
+export function effectiveDayMode(settings={},date=dayKey()){
+ const override=settings.dayModeOverrides?.[date];
+ if(override)return override;
+ if(settings.dayModeDate===date)return settings.dayMode||'habitual';
+ return settings.weekModes?.[parseDay(date).getDay()]||settings.dayMode||'habitual';
+}
+""")
+
+p=Path('src/planning.js')
+s=p.read_text()
+old="import {dayKey,weekKeys,parseDay,occurs} from './domain.js';"
+new="import {dayKey,weekKeys,parseDay,occurs} from './domain.js';\nimport {effectiveDayMode} from './day-modes.js';\nexport {effectiveDayMode} from './day-modes.js';"
+if old not in s: raise SystemExit('planning import not found')
+s=s.replace(old,new,1)
+old="export function effectiveDayMode(settings,date=dayKey()) {return settings.dayModeDate===date?settings.dayMode:settings.weekModes?.[parseDay(date).getDay()]||settings.dayMode||'habitual';}\n"
+if old not in s: raise SystemExit('legacy effectiveDayMode block not found')
+s=s.replace(old,'',1)
+p.write_text(s)
 
 replace_once(
     'src/daily.js',
@@ -95,7 +110,7 @@ if "Día tranquilo conserva esenciales y Descanso no exige hábitos" not in s:
 Path('tests/day-modes.test.js').write_text("""import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {effectiveDayMode} from '../src/planning.js';
+import {effectiveDayMode} from '../src/day-modes.js';
 import {daySummary} from '../src/daily.js';
 
 test('los overrides de tipo de día se conservan por fecha',()=>{
