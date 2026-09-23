@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {waterTotal,waterStats} from '../src/wellbeing.js';
+import {waterTotal,waterStats} from '../src/hydration.js';
 
 const logs=[
  {hydration:true,date:'2026-09-16',milliliters:1000},
