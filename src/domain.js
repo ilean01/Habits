@@ -1,4 +1,4 @@
-import {isHydrationHabit,hydrationTargetMl} from './selectors.js';
+import {isHydrationHabit,hydrationTargetMl,dayModeAllowsHabit} from './selectors.js';
 export const AREAS = [
  {id:'personal',name:'Personal',icon:'Sun',color:'#bf9360'},
  {id:'salud',name:'Gym y bienestar',icon:'Dumbbell',color:'#738d70'},
@@ -21,6 +21,9 @@ export function scheduled(h,date){
  const days=h.days||[0,1,2,3,4,5,6];
  return days.includes(parseDay(date).getDay());
 }
+export function effectiveHabitsForDate(habits,date,mode='habitual'){
+ return habits.filter(h=>scheduled(h,date)&&dayModeAllowsHabit(h,mode));
+}
 export function weeklyProgress(h,logs,date=dayKey()){
  const keys=weekKeys(date),target=Math.max(1,Number(h.weeklyTarget)||1),week=new Set(keys);
  const own=logs.filter(l=>l.habitId===h.id&&week.has(l.date));
@@ -38,8 +41,8 @@ export function habitStatus(h,logs,date=dayKey()){
  return {done:log?.status==='done',skip:log?.status==='skip',partial:log?.status==='partial',value:Number(log?.value)||0,target:Number(h.target)||1,unit:h.unit,hydration:false,log,weekly};
 }
 export function occurs(e,date){if(e.exceptions?.[date]?.cancelled)return false;if(date<e.date || (e.until && date>e.until))return false;if(e.repeat==='daily')return true;if(e.repeat==='weekly')return parseDay(date).getDay()===parseDay(e.date).getDay();if(e.repeat==='monthly')return date.slice(8)===e.date.slice(8);if(e.repeat==='yearly')return date.slice(5)===e.date.slice(5);return e.date===date;}
-export function dayStats(habits,logs,date){
- const scheduledToday=habits.filter(h=>scheduled(h,date));
+export function dayStats(habits,logs,date,mode='habitual'){
+ const scheduledToday=effectiveHabitsForDate(habits,date,mode);
  let total=0,done=0,skipped=0;
  for(const h of scheduledToday){
   const s=habitStatus(h,logs,date);
@@ -53,7 +56,7 @@ export function dayStats(habits,logs,date){
  }
  return {total,done,skipped,percent:total?Math.round(done/total*100):0};
 }
-export function streak(h,logs,today){
+export function streak(h,logs,today,modeForDate=()=> 'habitual'){
  if(flexibleWeekly(h)){
   let count=0;let anchor=today;
   const current=weeklyProgress(h,logs,anchor);
@@ -68,7 +71,7 @@ export function streak(h,logs,today){
  }
  let n=0;
  for(let i=0;i<3660;i++){
-  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;
+  const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;if(!dayModeAllowsHabit(h,modeForDate(key)))continue;
   const s=habitStatus(h,logs,key);if(s.done)n++;else if(s.skip)continue;else if(i!==0)break;
  }
  return n;

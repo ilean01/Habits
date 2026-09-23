@@ -1,7 +1,7 @@
-import {habitStatus} from './domain.js';
+import {habitStatus,effectiveHabitsForDate} from './domain.js';
 // Only explicitly recorded activities contribute to the daily message.
-export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date) {
- const parts = habits.filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);
+export function daySummary({ habits=[], logs=[], events=[], eventLogs=[], readings=[], journals=[], finishedBooks=[] }, date, mode='habitual') {
+ const parts = effectiveHabitsForDate(habits,date,mode).filter(h=>habitStatus(h,logs,date).done).map(h=>h.name);
  for(const l of eventLogs.filter(l=>l.date===date)) parts.push(events.find(e=>e.id===l.eventId)?.name||'Un evento completado');
  const minutes=readings.filter(r=>r.date===date).reduce((sum,r)=>sum+(Number(r.minutes)||0),0);
  if(minutes)parts.push(`${minutes} ${minutes===1?'minuto':'minutos'} de lectura`);
