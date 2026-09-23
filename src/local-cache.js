@@ -36,6 +36,7 @@ async function putValue(store,owner,id,value){const db=await database();await db
 async function deleteValue(store,owner,id){const db=await database();await db.delete(store,[owner,id]);}
 
 export const saveRecord=(owner,id,value)=>putValue('records',owner,id,value);
+export const removeRecord=(owner,id)=>deleteValue('records',owner,id);
 export const savePending=(owner,id,value)=>putValue('pending',owner,id,value);
 export const saveConflict=(owner,id,value)=>putValue('conflicts',owner,id,value);
 export const removePending=(owner,id)=>deleteValue('pending',owner,id);
