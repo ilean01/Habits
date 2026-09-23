@@ -1,0 +1,69 @@
+name: Apply water calendar fix
+on:
+  push:
+    branches: [fix-agua-calendario]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-agua-calendario
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Use habitStatus in calendar history
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/main.js')
+          s=p.read_text()
+          old="""effectiveHabitsForDate(rec('habit'),date,effectiveDayMode(settings(),date)).map(h=>{const l=rec('log').find(l=>l.habitId===h.id&&l.date===date);return `<button class=\"history-row\" data-action=\"habit-action\" data-id=\"${h.id}\" data-date=\"${date}\">${icon(l?.status==='done'?'CheckCircle2':h.icon)}<span>${esc(h.name)}</span><small>${l?.status==='done'?'Hecho':l?.status==='skip'?'Pausa':'Pendiente'}</small></button>`;})"""
+          new="""effectiveHabitsForDate(rec('habit'),date,effectiveDayMode(settings(),date)).map(h=>{const status=habitStatus(h,rec('log'),date),label=status.done?'Hecho':status.skip?'Pausa':status.partial?(status.hydration?`${Math.round(status.value/10)/100} / ${Math.round(status.target/10)/100} L`:'En progreso'):'Pendiente';return `<button class=\"history-row\" data-action=\"habit-action\" data-id=\"${h.id}\" data-date=\"${date}\">${icon(status.done?'CheckCircle2':h.icon)}<span>${esc(h.name)}</span><small>${label}</small></button>`;})"""
+          if old not in s:
+              raise SystemExit('No se encontró el bloque esperado del historial de hábitos')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          cat > tests/calendar-hydration.test.js <<'EOF'
+          import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {habitStatus,dayStats} from '../src/domain.js';
+
+          test('las tomas de agua completan el hábito también para las estadísticas del calendario',()=>{
+            const h={id:'agua',name:'Tomar agua',hydration:true,type:'quantity',target:2000,targetMl:2000,unit:'ml',days:[0,1,2,3,4,5,6]};
+            const logs=[
+              {id:'w1',date:'2026-09-23',hydration:true,milliliters:500},
+              {id:'w2',date:'2026-09-23',hydration:true,milliliters:1500}
+            ];
+            const status=habitStatus(h,logs,'2026-09-23');
+            assert.equal(status.done,true);
+            assert.equal(status.value,2000);
+            assert.deepEqual(dayStats([h],logs,'2026-09-23'),{total:1,done:1,skipped:0,percent:100});
+          });
+
+          test('el historial del Calendario usa habitStatus y muestra progreso parcial de agua',async()=>{
+            const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+            assert.match(main,/const status=habitStatus\(h,rec\('log'\),date\)/);
+            assert.match(main,/status\.hydration/);
+            assert.doesNotMatch(main,/const l=rec\('log'\)\.find\(l=>l\.habitId===h\.id&&l\.date===date\)/);
+          });
+          EOF
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated changes
+        run: |
+          rm .github/workflows/apply-water-calendar-fix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main.js tests/calendar-hydration.test.js .github/workflows/apply-water-calendar-fix.yml
+          git commit -m 'Corregir agua en Calendario'
+          git push origin HEAD:fix-agua-calendario
