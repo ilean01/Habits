@@ -13,10 +13,12 @@
   <title>Biblioteca · Habits</title>
   <script>if(new URLSearchParams(location.search).get('embedded')==='1')document.documentElement.classList.add('embedded-library')</script>
   <style>
-    html.embedded-library body{min-height:0}
+    html.embedded-library{--lib-main:#48634d!important;--lib-bg:#f7f7f2!important;--lib-text:#303b31!important;--lib-card:#fff!important;--lib-muted:#7c8178!important;--lib-line:#e9eae3!important;--lib-shadow:none!important;font-size:calc(13px * var(--habits-font-scale,1))!important;font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;background:transparent!important}
+    html.embedded-library[data-habits-theme="dark"]{--lib-main:#9dbf95!important;--lib-bg:#171d18!important;--lib-text:#eef2e9!important;--lib-card:#232b24!important;--lib-muted:#b9c3b4!important;--lib-line:#414d42!important;color-scheme:dark}
+    html.embedded-library body{min-height:0;background:transparent!important}
     html.embedded-library .lib-back{display:none!important}
     html.embedded-library .lib-brand{pointer-events:none;cursor:default}
-    html.embedded-library .library-loading{min-height:560px}
+    html.embedded-library .library-loading{min-height:420px}
     html.embedded-library .lib-header{top:0}
     html.embedded-library .lib-main{padding-bottom:36px}
   </style>
