@@ -15,10 +15,13 @@ bus?.unref?.();
 let writeQueue=Promise.resolve();
 const online=()=>typeof navigator==='undefined'||navigator.onLine!==false;
 const enqueue=fn=>{writeQueue=writeQueue.then(fn).catch(e=>console.warn('No se pudo guardar la caché local:',e.message));return writeQueue;};
-const notify=()=>listener();
+const notify=()=>{invalidate();listener();};
 
 export const info=()=>({status,pending:Object.keys(cache.pending).length,conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb'});
-export function records(kind){return Object.values(cache.records).filter(r=>!r.deleted&&(!kind||r.kind===kind)).map(r=>({...r.data,id:r.id}));}
+// Cada pantalla llama a records() decenas de veces (el calendario, más de cien). Se calcula una vez por cambio y se reutiliza.
+const byKind=new Map();
+const invalidate=()=>byKind.clear();
+export function records(kind){const k=kind||'*';let list=byKind.get(k);if(!list){list=Object.values(cache.records).filter(r=>!r.deleted&&(!kind||r.kind===kind)).map(r=>({...r.data,id:r.id}));byKind.set(k,list);}return list.slice();}
 export function raw(id){return cache.records[id];}
 export function exportData(){return {version:1,exportedAt:new Date().toISOString(),records:cache.records,pending:cache.pending,conflicts:cache.conflicts};}
 
@@ -42,7 +45,7 @@ export async function openStore(user,onChange){
  }
 }
 
-export function closeStore(){if(channel){supabase.removeChannel(channel);channel=null;}owner=null;cache={records:{},pending:{},conflicts:{}};meta={lastSync:null};listener=()=>{};status='local';}
+export function closeStore(){if(channel){supabase.removeChannel(channel);channel=null;}owner=null;cache={records:{},pending:{},conflicts:{}};invalidate();meta={lastSync:null};listener=()=>{};status='local';}
 
 export function put(kind,data,id=crypto.randomUUID(),deleted=false){
  if(!owner)throw new Error('Iniciá sesión primero.');
@@ -66,7 +69,7 @@ export function resolveConflict(id,keepLocal){
 function newerSync(a,b){if(!a)return b||null;if(!b)return a;return a>b?a:b;}
 export async function sync(){
  if(!owner||owner==='demo'||syncing)return;if(!online()){status='offline';notify();return;}
- syncing=true;const currentOwner=owner;status='syncing';notify();
+ syncing=true;const currentOwner=owner,before=status;let changed=false;status='syncing';
  try{
   await writeQueue;
   let newest=meta.lastSync||null;
@@ -74,6 +77,7 @@ export async function sync(){
    if(cache.conflicts[id]||cache.pending[id]?.op!==p.op)continue;
    const {data,error}=await supabase.rpc('write_entry',{p_id:id,p_kind:p.kind,p_data:p.data,p_deleted:p.deleted,p_expected:p.expected,p_op:p.op});
    if(owner!==currentOwner)return;if(error)throw error;
+   changed=true;
    if(!data.ok){cache.conflicts[id]={id,local:cache.pending[id]||p,remote:data.entry};delete cache.pending[id];}
    else if(cache.pending[id]?.op===p.op){cache.records[id]=data.entry;delete cache.pending[id];newest=newerSync(newest,data.entry?.updated_at);}
    persistId(id);broadcast(id);
@@ -88,10 +92,12 @@ export async function sync(){
   }
   for(const r of remote){
    newest=newerSync(newest,r.updated_at);
-   if(!cache.pending[r.id]&&!cache.conflicts[r.id]){cache.records[r.id]=r;persistId(r.id);}
+   if(!cache.pending[r.id]&&!cache.conflicts[r.id]){const prev=cache.records[r.id];if(!prev||prev.rev!==r.rev||prev.deleted!==r.deleted)changed=true;cache.records[r.id]=r;persistId(r.id);}
   }
   if(newest&&newest!==meta.lastSync){meta=await saveMeta(currentOwner,{lastSync:newest});}
-  status=Object.keys(cache.conflicts).length?'conflict':Object.keys(cache.pending).length?'pending':'synced';notify();
+  status=Object.keys(cache.conflicts).length?'conflict':Object.keys(cache.pending).length?'pending':'synced';
+  // Solo se vuelve a dibujar la pantalla si llegó algo nuevo o cambió el estado; antes se redibujaba todo dos veces cada 20 segundos.
+  if(changed||status!==before)notify();
  }catch(e){if(owner===currentOwner){status='error';console.warn('No se pudo sincronizar:',e.message);notify();}}
  finally{syncing=false;}
 }

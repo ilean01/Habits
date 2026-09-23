@@ -22,16 +22,19 @@ export function scheduled(h,date){
  return days.includes(parseDay(date).getDay());
 }
 export function weeklyProgress(h,logs,date=dayKey()){
- const keys=weekKeys(date),target=Math.max(1,Number(h.weeklyTarget)||1);
- const done=logs.filter(l=>l.habitId===h.id&&keys.includes(l.date)&&l.status==='done').length;
- const skipped=logs.filter(l=>l.habitId===h.id&&keys.includes(l.date)&&l.status==='skip').length;
+ const keys=weekKeys(date),target=Math.max(1,Number(h.weeklyTarget)||1),week=new Set(keys);
+ const own=logs.filter(l=>l.habitId===h.id&&week.has(l.date));
+ const done=own.filter(l=>l.status==='done').length;
+ const skipped=own.filter(l=>l.status==='skip').length;
  return {done,target,skipped,complete:done>=target,keys};
 }
 export function occurs(e,date){if(e.exceptions?.[date]?.cancelled)return false;if(date<e.date || (e.until && date>e.until))return false;if(e.repeat==='daily')return true;if(e.repeat==='weekly')return parseDay(date).getDay()===parseDay(e.date).getDay();if(e.repeat==='monthly')return date.slice(8)===e.date.slice(8);if(e.repeat==='yearly')return date.slice(5)===e.date.slice(5);return e.date===date;}
 export function dayStats(habits,logs,date){
  const hs=habits.filter(h=>scheduled(h,date)&&!flexibleWeekly(h));
- const done=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='done')).length;
- const skipped=hs.filter(h=>logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==='skip')).length;
+ // Filtrar primero por fecha: con un año de registros, recorrer todos por cada hábito y cada celda del calendario era lo más caro.
+ const today=logs.filter(l=>l.date===date);
+ const done=hs.filter(h=>today.some(l=>l.habitId===h.id&&l.status==='done')).length;
+ const skipped=hs.filter(h=>today.some(l=>l.habitId===h.id&&l.status==='skip')).length;
  return {total:hs.length,done,skipped,percent:hs.length?Math.round(done/hs.length*100):0};
 }
 export function streak(h,logs,today){
@@ -48,7 +51,8 @@ export function streak(h,logs,today){
   }
   return count;
  }
- let n=0;for(let i=0;i<3660;i++){const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;const l=logs.find(x=>x.habitId===h.id&&x.date===key);if(l?.status==='done')n++;else if(l?.status==='skip')continue;else if(i!==0)break;}return n;
+ const byDate=new Map();for(const x of logs)if(x.habitId===h.id&&!byDate.has(x.date))byDate.set(x.date,x);
+ let n=0;for(let i=0;i<3660;i++){const key=addDays(today,-i);if(h.startDate&&key<h.startDate)break;if(!scheduled(h,key))continue;const l=byDate.get(key);if(l?.status==='done')n++;else if(l?.status==='skip')continue;else if(i!==0)break;}return n;
 }
 export function elapsed(timer,now=Date.now()){return Math.max(0,Math.floor(((timer.elapsed||0)+(timer.running?now-timer.startedAt:0))/1000));}
 export function fmtDuration(seconds){return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}
