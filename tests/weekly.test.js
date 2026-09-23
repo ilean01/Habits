@@ -12,10 +12,12 @@ test('meta semanal flexible cuenta cualquier tres días habilitados',()=>{
  assert.equal(scheduled(habit,'2026-09-24'),true);
 });
 
-test('un hábito semanal flexible no infla el porcentaje diario',()=>{
- const daily={id:'agua',days:[0,1,2,3,4,5,6],startDate:'2026-09-01'};
- const stats=dayStats([habit,daily],[{habitId:'agua',date:'2026-09-23',status:'done'}],'2026-09-23');
+test('un hábito semanal no penaliza el día si no se hizo, pero sí celebra cuando se hace',()=>{
+ const daily={id:'leer',days:[0,1,2,3,4,5,6],startDate:'2026-09-01'};
+ let stats=dayStats([habit,daily],[{habitId:'leer',date:'2026-09-23',status:'done'}],'2026-09-23');
  assert.deepEqual(stats,{total:1,done:1,skipped:0,percent:100});
+ stats=dayStats([habit,daily],[{habitId:'leer',date:'2026-09-23',status:'done'},done('2026-09-23')],'2026-09-23');
+ assert.deepEqual(stats,{total:2,done:2,skipped:0,percent:100});
 });
 
 test('racha semanal cuenta semanas completas consecutivas',()=>{

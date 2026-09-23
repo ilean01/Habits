@@ -1,0 +1,24 @@
+:root{--font-scale:1;--touch:44px}
+html.large{--font-scale:1.14}
+body{font-size:calc(16px * var(--font-scale))}
+.content,.sidebar,.topbar,dialog,.mobile-nav{font-size:calc(1rem * var(--font-scale))}
+button,.button,.nav-link,.area-link,.icon-button,.profile-button,.chip,.habit-check,.text-button,.calendar-cell,.history-row,.event-title,.task-main{min-height:var(--touch)}
+.icon-button,.profile-button{min-width:var(--touch)}
+.nav-link,.area-link{font-size:max(13px,calc(13px * var(--font-scale)))}
+.muted,.habit-area,.event-time,.event-card small,.task-main small,.journal-card small,.session-row small,.breadcrumb,.sync-pill,.weekly-help,.weekly-goal,.water-summary small,.water-day small{font-size:max(12px,calc(12px * var(--font-scale)))!important;line-height:1.45}
+.eyebrow,.sidebar-label,.weekday,.holiday-dot{font-size:max(11px,calc(11px * var(--font-scale)))!important;letter-spacing:.07em}
+.holiday-dot{line-height:1.25!important}
+.water-summary b,.water-day b{font-size:max(14px,calc(14px * var(--font-scale)))}
+input,textarea,select{font-size:max(16px,calc(15px * var(--font-scale)))}
+.habit-card .touch-order{display:none;gap:4px}
+@media (pointer:coarse),(max-width:760px){
+ .habit-card{touch-action:manipulation}
+ .habit-card .touch-order{display:flex}
+ .habit-card .touch-order .icon-button{min-width:42px;min-height:42px}
+ .mobile-nav button{min-height:52px}
+ .mobile-nav span{font-size:11px}
+ .calendar-cell{min-height:64px}
+ .text-button.small{min-height:40px}
+}
+@media (prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+html.quiet *,html.quiet *::before,html.quiet *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}

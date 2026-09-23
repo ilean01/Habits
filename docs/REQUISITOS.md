@@ -9,7 +9,7 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 ## 0. Producción (prioridad máxima)
 
 - 🔧 Aplicar y verificar todas las migraciones en el Supabase real, en orden.
-- 🔧 Configurar dueña y miembros de la Biblioteca (`biblioteca_access`, `biblioteca_members`).
+- 🔧 Verificar en Supabase real bibliotecas personales, `biblioteca_members`, `biblioteca_seleccion` y roles reader/editor/manager.
 - 🔧 Importar los 1.470 libros, lecturas, personas, préstamos, configuraciones y 59 portadas; controlar cantidades.
 - 🔧 Definir un día de corte: desde ese día solo se usa la Biblioteca nueva (la app Flask queda de solo lectura).
 - 🔧 VAPID, Edge Function `send-reminders`, cron y prueba de push real.
@@ -43,7 +43,7 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 
 - ✅ Nombre, ícono (selector visual), color, área, días, momento, hora sugerida, nota.
 - ✅ Tipos: completar, tiempo, cantidad. Agua por tomas.
-- ✅ Hoy no, pausar/archivar, reordenar arrastrando, X veces por semana.
+- ✅ Hoy no, pausar/archivar, reordenar con mouse o controles táctiles, X veces por semana.
 - ✅ Rachas que respetan días programados.
 - ✅ Tipos de día: habitual, tranquilo, trabajo, facultad, fin de semana, descanso.
 - ❌ Duplicar ficha. ❌ Favoritas fijadas. ❌ Subtareas/checklist.
@@ -56,7 +56,7 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 - ✅ Vista mensual y semanal. Repeticiones. Editar/cancelar una ocurrencia.
 - ✅ Feriados de Paraguay.
 - ❌ Vista Día y vista Agenda. ❌ Arrastrar eventos.
-- ❌ Aviso de choque de horarios. ❌ Días cargados. ❌ Filtro por área.
+- ✅ Aviso de choque antes de guardar, incluidas recurrencias futuras y eventos sin hora final. ❌ Días cargados. ❌ Filtro por área.
 - ❌ Hábitos visibles dentro del calendario.
 - ❌ Mapa, traslado, cosas para llevar, preparación, documentos.
 - ❌ Estado por confirmar/confirmado/cancelado. ❌ Cuenta regresiva.
@@ -98,7 +98,7 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 - ✅ Habits muestra la lectura actual del catálogo y guarda página/final con `biblioteca_transition`.
 - 🟡 QR de portadas: pide sesión (el original usaba token temporal).
 - 🟡 Recomendador por reglas simples. 🟡 Configuración tipográfica sin cotejar.
-- ❌ Misma navegación y estilo visual que Habits (hoy es una página aparte).
+- 🟡 Biblioteca sigue siendo una página especializada, pero comparte lenguaje visual, blancos táctiles y regreso claro a Habits.
 - ❌ Citas y libros simples de Habits migrados al catálogo para cuentas con Biblioteca.
 
 ## 10. Planificación semanal y balance
@@ -109,7 +109,7 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 
 ## 11. Progreso y motivación
 
-- ✅ Semana, rachas, heatmap, lectura, libros terminados, agua, logros básicos.
+- ✅ Semana, rachas con unidad correcta (días/semanas), heatmap, lectura, libros terminados, agua, logros básicos.
 - ❌ Horas por área y balance. ❌ Hora promedio por hábito. ❌ Resumen mensual/cartita.
 - ❌ Relación ánimo-actividades. ❌ Tono cálido/directo/entusiasta.
 - ❌ Frases y motivos propios. ❌ Activar/desactivar medallas y confeti.
@@ -123,7 +123,16 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 
 ## 13. Personalización y accesibilidad
 
-- ✅ Claro/oscuro, letra grande, diseño adaptable.
+- ✅ Claro/oscuro, escala de texto global, blancos táctiles de 44 px, diseño adaptable y reducción de movimiento.
 - ❌ Foto de perfil. ❌ Desactivar animaciones. ❌ Resumen en voz alta. ❌ Dictado.
 - ❌ Ayuda contextual. ❌ Modo discreto. ❌ Aviso de formulario sin guardar.
 - ❌ Restaurar disposición sin borrar datos.
+
+## 14. Calidad y coherencia de interacción
+
+- ✅ Progreso es destino real en notebook y móvil; Para después vive dentro de Más.
+- ✅ Diario excluye registros técnicos de Gym, Inglés y logros; materias y proyectos personales tienen selectores separados.
+- ✅ Hidratación usa una sola fuente de verdad: las tomas completan la meta de agua, incluido el hábito legado de 8 vasos.
+- ✅ Formularios avisan antes de descartar cambios; papelera, pausas y agua ofrecen deshacer donde corresponde.
+- ✅ Tests unitarios, PGlite, JSDOM y Playwright en notebook/móvil cubren navegación y choque de agenda.
+- 🟡 Refactor de `main.js` por vistas puede continuar sin cambiar comportamiento; ya se centralizaron selectores y reglas de dominio.

@@ -1,0 +1,42 @@
+:root{--lib-touch:44px}
+.lib-header{border-bottom-color:color-mix(in srgb,var(--lib-main) 18%,var(--lib-line))}
+.lib-brand{font-family:Georgia,'Times New Roman',serif;letter-spacing:-.02em}
+.lib-brand::before{content:'habits.';font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:750;font-size:.85rem;color:var(--lib-main);padding-right:10px;border-right:1px solid var(--lib-line)}
+.lib-button,.lib-nav button,.lib-chip,.lib-back,.lib-icon-button{min-height:var(--lib-touch)}
+.lib-icon-button{min-width:var(--lib-touch);width:var(--lib-touch);height:var(--lib-touch)}
+.lib-input,.lib-select,.lib-textarea{font-size:16px;min-height:44px}
+.lib-small,.lib-stat span,.lib-field>span,.lib-table th,.lib-book-meta,.lib-cover-option span{font-size:max(.78rem,12px)}
+.lib-user,.lib-book-body p,.lib-row small{font-size:max(.88rem,13px)}
+#library-app[data-permission="read"] [data-action="new-book"],
+#library-app[data-permission="read"] [data-action="edit-book"],
+#library-app[data-permission="read"] [data-action="isbn"],
+#library-app[data-permission="read"] [data-action="scan-isbn"],
+#library-app[data-permission="read"] [data-action="start-reading"],
+#library-app[data-permission="read"] [data-action="add-next"],
+#library-app[data-permission="read"] [data-action="update-page"],
+#library-app[data-permission="read"] [data-action="finish-reading"],
+#library-app[data-permission="read"] [data-action="abandon-reading"],
+#library-app[data-permission="read"] [data-action="new-loan"],
+#library-app[data-permission="read"] [data-action="return-loan"],
+#library-app[data-permission="read"] [data-action="lost-loan"],
+#library-app[data-permission="read"] [data-action="delete-loan"],
+#library-app[data-permission="read"] [data-action="start-book"],
+#library-app[data-permission="read"] [data-action="favorite"],
+#library-app[data-permission="read"] [data-action="add-next-book"],
+#library-app[data-permission="read"] [data-action="remove-next"],
+#library-app[data-permission="read"] [data-action="buy-book"],
+#library-app[data-permission="read"] [data-action="trash-book"],
+#library-app[data-permission="read"] [data-action="restore-book"],
+#library-app[data-permission="read"] [data-action="delete-forever"],
+#library-app[data-permission="read"] [data-action="empty-trash"],
+#library-app[data-permission="read"] [data-action="cover"],
+#library-app[data-permission="read"] [data-action="remove-cover"],
+#library-app[data-permission="read"] [data-action="phone-cover"],
+#library-app[data-permission="read"] [data-action="internet"],
+#library-app[data-permission="read"] [data-action="apply-option"],
+#library-app[data-permission="read"] #config-form button[type="submit"]{display:none!important}
+#library-app[data-permission="read"] input:not([type="search"]):not([readonly]),
+#library-app[data-permission="read"] textarea:not([readonly]),
+#library-app[data-permission="read"] #config-form select{accent-color:var(--lib-main)}
+.lib-readonly-note{display:flex;align-items:center;gap:8px;border-left:4px solid var(--lib-main)}
+@media(max-width:700px){.lib-header-top{gap:9px}.lib-brand::before{display:none}.lib-back{padding-inline:8px}.lib-button,.lib-nav button,.lib-chip{min-height:44px}.lib-nav{scroll-snap-type:x proximity}.lib-nav button{scroll-snap-align:start}}

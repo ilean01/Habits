@@ -1,7 +1,7 @@
 name: Validate Habits
 on:
   push:
-    branches: [main, completar-pendientes-habits]
+    branches: [main, consolidacion-hci-ingenieria]
   pull_request:
 permissions:
   contents: read
@@ -17,3 +17,5 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
