@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Este script se ejecuta una sola vez sobre la rama de consolidación y se elimina antes del merge.
 p=Path(__file__).resolve().parents[1]/'src/main.js'
 s=p.read_text()
 
