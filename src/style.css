@@ -36,3 +36,7 @@
 
 /* HCI touch targets */
 @media(max-width:650px){.icon-button{min-width:44px;min-height:44px}.event-card .icon-button,.habit-top .icon-button{width:44px;height:44px}.text-button{min-height:44px}.mobile-nav button{min-height:52px}.calendar-events small{font-size:9px}}
+.habits-library-embed{min-width:0;position:relative;margin:0 0 20px}.habits-library-frame{display:block;width:100%;height:max(560px,calc(100dvh - 240px));border:1px solid var(--line);border-radius:14px;background:var(--panel)}.legacy-reading-tools{border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:20px}.legacy-reading-tools>summary{cursor:pointer;min-height:36px;font-size:14px}.legacy-reading-tools[open]>summary{margin-bottom:18px}
+@media(max-width:760px){.habits-library-frame{height:calc(100dvh - 220px);min-height:440px}.mobile-nav{grid-template-columns:repeat(4,1fr)}}
+
+.mobile-more-shortcuts{display:none}@media(max-width:760px){.mobile-more-shortcuts{display:flex;margin-bottom:20px}}

@@ -5,8 +5,9 @@ const T={books:'biblioteca_libros',readings:'biblioteca_lecturas',finished:'bibl
 async function fetchAll(table,select='*',order='id',ascending=true){
   const all=[];let from=0;
   while(true){
-    let q=supabase.from(table).select(select).range(from,from+499);
+    let q=supabase.from(table).select(select).eq('owner_id',libraryOwner).range(from,from+499);
     if(order)q=q.order(order,{ascending});
+    if(order!=='id'&&table!==T.config)q=q.order('id');
     const {data,error}=await q;if(error)throw error;
     all.push(...(data||[]));if(!data||data.length<500)break;from+=500;
   }

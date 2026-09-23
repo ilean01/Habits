@@ -11,8 +11,8 @@ export let canWrite=false;
 export async function sessionAndAccess(){
   const {data:{session},error}=await supabase.auth.getSession();
   if(error)throw error;
-  if(!session?.user)return {user:null,allowed:false};
-  currentUser=session.user;
+  if(!session?.user){currentUser=null;libraryOwner=null;canWrite=false;return {user:null,allowed:false};}
+  currentUser=session.user;libraryOwner=null;canWrite=false;
   const {data,error:accessError}=await supabase.rpc('has_biblioteca_access');
   if(accessError)throw accessError;
   if(data){const owner=await supabase.rpc('biblioteca_owner');if(owner.error)throw owner.error;libraryOwner=owner.data;const permission=await supabase.rpc('biblioteca_can_write');if(permission.error)throw permission.error;canWrite=permission.data===true;}
