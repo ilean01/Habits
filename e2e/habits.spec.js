@@ -54,11 +54,10 @@ test('agenda avisa el choque antes de guardar el segundo evento',async({page},te
  await page.locator('#modal [name="date"]').fill('2026-09-24');
  await page.locator('#modal [name="time"]').fill('19:00');
  await page.locator('#modal [name="end"]').fill('20:00');
- const dialogPromise=page.waitForEvent('dialog');
+ let dialogMessage='';
+ page.once('dialog',async dialog=>{dialogMessage=dialog.message();await dialog.dismiss();});
  await page.locator('#modal form').getByRole('button',{name:/Guardar/i}).click();
- const dialog=await dialogPromise;
- expect(dialog.message()).toContain('Coincide con');
- expect(dialog.message()).toContain('Inglés');
- await dialog.dismiss();
+ await expect.poll(()=>dialogMessage).toContain('Coincide con');
+ expect(dialogMessage).toContain('Inglés');
  await expect(page.locator('#modal')).toHaveAttribute('open','');
 });
