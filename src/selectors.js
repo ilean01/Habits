@@ -1,0 +1,12 @@
+export const subjects=projects=>projects.filter(p=>p.category==='subject');
+export const personalProjects=projects=>projects.filter(p=>p.category!=='subject');
+export const englishPractice=journals=>journals.filter(j=>j.englishPractice===true);
+export const bodyMeasurements=journals=>journals.filter(j=>j.bodyLog===true);
+export const workoutPhotos=journals=>journals.filter(j=>j.workoutPhoto===true);
+export const achievements=journals=>journals.filter(j=>j.achievement===true);
+export const diaryEntries=journals=>journals.filter(j=>!j.workoutPhoto&&!j.englishPractice&&!j.bodyLog);
+export const moodEntries=journals=>journals.filter(j=>!j.workoutPhoto&&!j.englishPractice&&!j.bodyLog&&!j.achievement);
+export const hydrationLogs=logs=>logs.filter(l=>l.hydration===true);
+export const habitLogs=logs=>logs.filter(l=>l.habitId);
+export const undatedTasks=tasks=>tasks.filter(t=>!t.done&&!t.due);
+export const activeTasks=tasks=>tasks.filter(t=>!t.done);
