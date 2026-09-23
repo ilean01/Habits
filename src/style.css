@@ -33,3 +33,6 @@
 [data-theme=dark] .holiday-note{background:#332f25;color:#ead9b8}[data-theme=dark] .holiday-cell>span{color:#e0bd7d}
 .calendar-cell{display:flex;flex-direction:column;align-items:center}.calendar-cell>span{margin-left:auto;margin-right:auto}.calendar-cell .calendar-events{align-self:stretch;min-width:0}.calendar-cell .calendar-progress,.calendar-cell .holiday-dot{text-align:center}
 .heading-actions .button{white-space:nowrap}
+
+/* HCI touch targets */
+@media(max-width:650px){.icon-button{min-width:44px;min-height:44px}.event-card .icon-button,.habit-top .icon-button{width:44px;height:44px}.text-button{min-height:44px}.mobile-nav button{min-height:52px}.calendar-events small{font-size:9px}}

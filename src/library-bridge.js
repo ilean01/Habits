@@ -3,7 +3,7 @@
 import {supabase} from './store.js';
 import {dayKey} from './domain.js';
 
-const empty = () => ({status:'off', allowed:false, canWrite:false, reading:[], finishedToday:[], day:''});
+const empty = () => ({status:'off', allowed:false, canWrite:false, reading:[], finishedToday:[], finishedCount:0, day:''});
 let state = empty(), owner = null, notify = () => {}, loading = false;
 const cacheKey = () => `habits:catalogo:${owner}`;
 
@@ -32,20 +32,22 @@ export async function refreshCatalog(){
     if(access.error || !access.data){ state = empty(); save(); return; }
     const write = await supabase.rpc('biblioteca_can_write');
     const today = dayKey();
-    const [reading, finished] = await Promise.all([
+    const [reading, finished, totalFinished] = await Promise.all([
       supabase.from('biblioteca_libros').select('id,titulo,autor,paginas,pagina_actual,estado_lectura,fecha_inicio')
         .in('estado_lectura', ['leyendo','releyendo']).eq('eliminado', false).order('fecha_inicio', {ascending:false, nullsFirst:false}),
-      supabase.from('biblioteca_lecturas_finalizadas').select('libro_id').eq('fecha_fin', today)
+      supabase.from('biblioteca_lecturas_finalizadas').select('libro_id').eq('fecha_fin', today),
+      supabase.from('biblioteca_libros').select('id',{count:'exact',head:true}).eq('estado_lectura','leido').eq('eliminado',false)
     ]);
     if(current !== owner) return;
     if(reading.error) throw reading.error;
+    if(totalFinished.error) throw totalFinished.error;
     let finishedToday = [];
     const ids = [...new Set((finished.data || []).map(r => r.libro_id))];
     if(ids.length){
       const titles = await supabase.from('biblioteca_libros').select('id,titulo').in('id', ids);
       finishedToday = (titles.data || []).map(b => b.titulo);
     }
-    state = {status:'ready', allowed:true, canWrite:write.data === true, reading:reading.data || [], finishedToday, day:today};
+    state = {status:'ready', allowed:true, canWrite:write.data === true, reading:reading.data || [], finishedToday, finishedCount:Number(totalFinished.count||0), day:today};
     save();
   }catch(e){
     console.warn('No se pudo leer la Biblioteca:', e.message);
