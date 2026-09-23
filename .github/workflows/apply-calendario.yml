@@ -65,8 +65,6 @@ jobs:
 
           test=Path('tests/ui.test.js')
           text=test.read_text()
-          old="[data-action=calendar-mode]'
-          "
           text=text.replace("await click('[data-action=calendar-mode]');assert.equal", "await click('[data-action=calendar-mode][data-mode=week]');assert.equal")
           test.write_text(text)
           PY
