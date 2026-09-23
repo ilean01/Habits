@@ -1,0 +1,95 @@
+name: Apply task separation
+on:
+  push:
+    branches: [separar-tareas-estado]
+    paths: ['.github/workflows/apply-task-separation.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Separate task states
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          selectors=Path('src/selectors.js')
+          s=selectors.read_text()
+          old="export const laterTasks=rows=>rows.filter(r=>!r?.done&&!r?.due);"
+          new="""export const pendingTasks=rows=>rows.filter(r=>!r?.done&&!!r?.due);
+          export const laterTasks=rows=>rows.filter(r=>!r?.done&&!r?.due);
+          export const completedTasks=rows=>rows.filter(r=>!!r?.done);"""
+          assert old in s
+          s=s.replace(old,new)
+          selectors.write_text(s)
+
+          main=Path('src/main.js')
+          s=main.read_text()
+          old="import {diaryEntries,personalProjects,laterTasks,isDiaryEntry,taskProjectOptions} from './selectors.js';"
+          new="import {diaryEntries,personalProjects,pendingTasks,laterTasks,completedTasks,isDiaryEntry,taskProjectOptions} from './selectors.js';"
+          assert old in s
+          s=s.replace(old,new)
+
+          old='<div class="section-title"><h2>Pendientes</h2></div>${taskList(rec(\'task\').filter(t=>t.area===a.id))}'
+          new='''<div class="section-title"><div><h2>Pendientes</h2><p>Activas con fecha.</p></div></div>${taskList(pendingTasks(rec('task')).filter(t=>t.area===a.id),'No hay pendientes con fecha en esta área.')}<div class="section-title"><div><h2>Para después</h2><p>Sin fecha, sin presión.</p></div></div>${taskList(laterTasks(rec('task')).filter(t=>t.area===a.id),'No hay tareas guardadas para después en esta área.')}${completedTasksSection(completedTasks(rec('task')).filter(t=>t.area===a.id))}'''
+          assert old in s
+          s=s.replace(old,new)
+
+          pattern=r"function spaceView\(\)\{.*?\nfunction taskList\(tasks\)\{.*?\nfunction catalogReadingCards"
+          match=re.search(pattern,s,re.S)
+          assert match, 'spaceView/taskList block not found'
+          replacement='''function spaceView(){const tasks=rec('task'),tabs=[['tareas','Pendientes'],['later','Para después'],['proyectos','Proyectos'],['planning','Estudio y trabajo']];return `${heading('ORGANIZÁ SIN PERDERTE','Más','Pendientes, proyectos y estudio en un solo lugar.')}<div class="button-row mobile-more-shortcuts">${[['areas','Mis áreas'],['progress','Progreso'],['diary','Mi diario']].map(([v,n])=>btn(n,'nav',`data-view="${v}"`,'button outline')).join('')}</div><div class="chips space-tabs">${tabs.map(([id,name])=>btn(name,'space-tab',`data-tab="${id}"`,tab===id?'chip selected':'chip')).join('')}</div>${tab==='planning'?planningView({esc,btn}):tab==='proyectos'?projectsView():tab==='later'?`<div class="section-title"><div><h2>Para después</h2><p>Ideas y tareas activas sin fecha, guardadas sin presión.</p></div>${btn(icon('Plus')+'Nueva tarea','new-task','','button primary')}</div>${taskList(laterTasks(tasks),'No tenés nada guardado para después.')}`:`<div class="section-title"><div><h2>Una cosa a la vez</h2><p>Tareas activas que sí tienen fecha.</p></div>${btn(icon('Plus')+'Nueva tarea','new-task','','button primary')}</div>${taskList(pendingTasks(tasks),'No tenés pendientes con fecha.')}${completedTasksSection(completedTasks(tasks))}`}`;}
+          function completedTasksSection(tasks){if(!tasks.length)return '';return `<details class="completed-tasks"><summary>Completadas <span>${tasks.length}</span></summary>${taskList(tasks,'')}</details>`;}
+          function taskList(tasks,emptyText='Lo pendiente puede empezar con una pequeña tarea.'){return `<div class="task-list">${tasks.sort((a,b)=>Number(a.done)-Number(b.done)||(a.due||'9999').localeCompare(b.due||'9999')).map(t=>`<article class="task-row ${t.done?'completed':''}">${btn(icon(t.done?'CheckCircle2':'Check'),'task-done',`data-id="${t.id}" aria-label="${t.done?'Reabrir':'Completar'} tarea"`,'icon-button')}<button class="task-main" data-action="edit-task" data-id="${t.id}"><strong>${esc(t.name)}</strong><small>${esc(area(t.area).name)} ${t.projectId?' · '+esc(get('project',t.projectId)?.name||''):''}${t.due?' · '+prettyDate(t.due,{day:'numeric',month:'short'}):' · Sin fecha'}</small></button><span class="priority ${t.priority==='alta'?'high':''}">${t.priority==='alta'?'Alta':t.priority==='baja'?'Baja':'Media'}</span>${t.due<dayKey()&&!t.done?'<span class="overdue">Vencida</span>':''}</article>`).join('')||(emptyText?empty(emptyText,'new-task','Crear tarea'):'')}</div>`;}
+          function catalogReadingCards'''
+          s=s[:match.start()]+replacement+s[match.end():]
+          main.write_text(s)
+
+          style=Path('src/style.css')
+          css=style.read_text()
+          addon='''\n.completed-tasks{margin:20px 0 0;border-top:1px solid var(--line);padding-top:12px}.completed-tasks summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none;padding:8px 2px}.completed-tasks summary::-webkit-details-marker{display:none}.completed-tasks summary span{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--soft);color:var(--green);font-size:10px}.completed-tasks[open] summary{margin-bottom:8px}\n'''
+          if '.completed-tasks{' not in css: css += addon
+          style.write_text(css)
+
+          test=Path('tests/task-selectors.test.js')
+          test.write_text("""import {describe,it,expect} from 'vitest';
+          import {pendingTasks,laterTasks,completedTasks} from '../src/selectors.js';
+
+          describe('selectores de tareas',()=>{
+            const rows=[
+              {id:'dated',name:'Con fecha',due:'2026-09-30',done:false},
+              {id:'later',name:'Sin fecha',due:'',done:false},
+              {id:'done-dated',name:'Terminada con fecha',due:'2026-09-20',done:true},
+              {id:'done-later',name:'Terminada sin fecha',done:true}
+            ];
+            it('Pendientes contiene solo activas con fecha',()=>expect(pendingTasks(rows).map(x=>x.id)).toEqual(['dated']));
+            it('Para después contiene solo activas sin fecha',()=>expect(laterTasks(rows).map(x=>x.id)).toEqual(['later']));
+            it('Completadas contiene todas las terminadas',()=>expect(completedTasks(rows).map(x=>x.id)).toEqual(['done-dated','done-later']));
+            it('los tres estados son mutuamente excluyentes',()=>{
+              const ids=[...pendingTasks(rows),...laterTasks(rows),...completedTasks(rows)].map(x=>x.id);
+              expect(new Set(ids).size).toBe(ids.length);
+              expect(ids).toHaveLength(rows.length);
+            });
+          });
+          """)
+          PY
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated changes
+        shell: bash
+        run: |
+          rm .github/workflows/apply-task-separation.yml
+          git config user.name 'Ileana Sanabria'
+          git config user.email '74793571+ilean01@users.noreply.github.com'
+          git add src/main.js src/selectors.js src/style.css tests/task-selectors.test.js .github/workflows/apply-task-separation.yml
+          git commit -m 'Separar Pendientes, Para después y Completadas'
+          git push origin separar-tareas-estado
