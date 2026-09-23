@@ -18,7 +18,7 @@ test('Ile can manage mom historical library without mixing it with her own libra
 
     await as(mom);
     await pg.query("insert into biblioteca_libros(owner_id,titulo) values(biblioteca_owner(),'Histórico mamá')");
-    await pg.query('insert into biblioteca_members(owner_id,user_id,role) values($1,$2,\'manager\')',[mom,ile]);
+    await pg.query("select biblioteca_invitar('ile@x.com','manager')");
 
     await as(ile);
     assert.deepEqual(await titles(), [], 'Ile starts in her own personal library');
