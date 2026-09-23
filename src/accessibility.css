@@ -1,0 +1,26 @@
+/* Capa de legibilidad y tactilidad compartida por notebook y móvil. */
+:root{--touch:44px}
+button,.button,.nav-link,.area-link,.chip,.icon-button,.profile-button,.habit-check,.text-button{min-height:var(--touch)}
+.icon-button,.profile-button{min-width:var(--touch)}
+.small,.muted.small,.habit-area,.event-time,.book-details>small,.session-row small,.streak-row small,.water-summary small,.water-day small,.holiday-dot,.gym-chart-labels small{font-size:12px!important;line-height:1.35}
+.sidebar-label,.eyebrow,.count,.priority,.tag,.lib-badge{font-size:12px!important}
+.nav-link,.area-link,.button,.chip,input,select,textarea{font-size:14px}
+body{font-size:15px;line-height:1.5}
+html.large body{font-size:17px}
+html.large .content{zoom:1!important}
+html.large .nav-link,html.large .area-link,html.large .button,html.large .chip,html.large input,html.large select,html.large textarea{font-size:16px}
+html.large .small,html.large .muted.small,html.large .habit-area,html.large .event-time,html.large .book-details>small,html.large .session-row small,html.large .streak-row small,html.large .water-day small{font-size:14px!important}
+.water-percent{font-size:14px;font-weight:700;color:var(--green)}
+.progress-stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.streak-row span{display:flex;flex-direction:column;gap:2px}
+.day-mode-notice{margin:8px 0 14px}
+.more-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.more-hub .panel{cursor:pointer;text-align:left}
+@media(max-width:1000px){.progress-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){
+ :root{--touch:46px}
+ body{font-size:16px}
+ .mobile-nav button{min-height:56px;font-size:12px}
+ .progress-stat-grid,.more-hub{grid-template-columns:1fr}
+ .calendar-cell,.mini-week button{min-height:44px}
+ .holiday-dot{font-size:11px!important}
+}
