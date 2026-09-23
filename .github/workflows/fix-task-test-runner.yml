@@ -1,0 +1,54 @@
+name: Fix task test runner
+on:
+  push:
+    branches: [separar-tareas-estado]
+    paths: ['.github/workflows/fix-task-test-runner.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace Vitest with Node test runner
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('.github/workflows/apply-task-separation.yml')
+          s=p.read_text()
+          pattern=r'test\.write_text\("""import \{describe,it,expect\} from \'vitest\';.*?\n          """\)'
+          replacement='''test.write_text("""import test from 'node:test';
+          import assert from 'node:assert/strict';
+          import {pendingTasks,laterTasks,completedTasks} from '../src/selectors.js';
+
+          const rows=[
+            {id:'dated',name:'Con fecha',due:'2026-09-30',done:false},
+            {id:'later',name:'Sin fecha',due:'',done:false},
+            {id:'done-dated',name:'Terminada con fecha',due:'2026-09-20',done:true},
+            {id:'done-later',name:'Terminada sin fecha',done:true}
+          ];
+
+          test('Pendientes contiene solo activas con fecha',()=>assert.deepEqual(pendingTasks(rows).map(x=>x.id),['dated']));
+          test('Para después contiene solo activas sin fecha',()=>assert.deepEqual(laterTasks(rows).map(x=>x.id),['later']));
+          test('Completadas contiene todas las terminadas',()=>assert.deepEqual(completedTasks(rows).map(x=>x.id),['done-dated','done-later']));
+          test('los tres estados son mutuamente excluyentes',()=>{
+            const ids=[...pendingTasks(rows),...laterTasks(rows),...completedTasks(rows)].map(x=>x.id);
+            assert.equal(new Set(ids).size,ids.length);
+            assert.equal(ids.length,rows.length);
+          });
+          """)'''
+          s2,n=re.subn(pattern,replacement,s,flags=re.S)
+          assert n==1, f'replacements={n}'
+          p.write_text(s2)
+          PY
+      - name: Commit workflow fix
+        shell: bash
+        run: |
+          rm .github/workflows/fix-task-test-runner.yml
+          git config user.name 'Ileana Sanabria'
+          git config user.email '74793571+ilean01@users.noreply.github.com'
+          git add .github/workflows/apply-task-separation.yml .github/workflows/fix-task-test-runner.yml
+          git commit -m 'Usar runner nativo de Node en tests de tareas'
+          git push origin separar-tareas-estado
