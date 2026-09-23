@@ -1,7 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {newRecord,starterRecords} from './domain.js';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
-import {loadOwner,migrateLegacyLocalStorage,saveRecord,savePending,saveConflict,removePending,removeConflict,saveMeta} from './local-cache.js';
+import {loadOwner,migrateLegacyLocalStorage,saveRecord,removeRecord,savePending,saveConflict,removePending,removeConflict,saveMeta} from './local-cache.js';
 
 const url=import.meta.env.VITE_SUPABASE_URL||SUPABASE_URL;
 const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY;
@@ -23,7 +23,7 @@ export function exportData(){return {version:1,exportedAt:new Date().toISOString
 
 function broadcast(id){if(!bus||!owner)return;bus.postMessage({source:tabId,owner,id,record:cache.records[id]||null,pending:cache.pending[id]||null,conflict:cache.conflicts[id]||null});}
 function persistId(id){const currentOwner=owner;if(!currentOwner)return;const record=cache.records[id],pending=cache.pending[id],conflict=cache.conflicts[id];enqueue(async()=>{
- if(record)await saveRecord(currentOwner,id,record);
+ if(record)await saveRecord(currentOwner,id,record);else await removeRecord(currentOwner,id);
  if(pending)await savePending(currentOwner,id,pending);else await removePending(currentOwner,id);
  if(conflict)await saveConflict(currentOwner,id,conflict);else await removeConflict(currentOwner,id);
 });}
@@ -98,7 +98,7 @@ if(bus)bus.onmessage=e=>{const m=e.data;if(!owner||m?.source===tabId||m?.owner!=
  const localPending=cache.pending[m.id];
  if(localPending&&m.pending&&localPending.op!==m.pending.op){cache.conflicts[m.id]={id:m.id,local:localPending,remote:m.record};persistId(m.id);status='conflict';notify();return;}
  if(!localPending&&!cache.conflicts[m.id]){
-  if(m.record)cache.records[m.id]=m.record;
+  if(m.record)cache.records[m.id]=m.record;else delete cache.records[m.id];
   if(m.pending)cache.pending[m.id]=m.pending;else delete cache.pending[m.id];
   if(m.conflict)cache.conflicts[m.id]=m.conflict;
   persistId(m.id);notify();
