@@ -48,7 +48,37 @@ Configurar un SMTP propio en Authentication para confirmación de cuenta y recup
 
 Las credenciales SMTP (host, puerto, usuario y contraseña) son secretos del proveedor de correo y no deben guardarse en este repositorio.
 
-## 5. Prueba final obligatoria
+## 5. Owner temporal de una Biblioteca histórica
+
+La Biblioteca histórica puede quedar temporalmente a nombre de una cuenta ya registrada y transferirse más adelante. No guardar el correo ni el UUID de esa persona en el repositorio.
+
+Primero verificar la cuenta sin modificar Supabase:
+
+```sh
+SUPABASE_URL=... \
+SUPABASE_SERVICE_ROLE_KEY=... \
+BIBLIOTECA_OWNER_EMAIL=... \
+BIBLIOTECA_NAME="Biblioteca de mamá" \
+python3 scripts/assign-biblioteca-owner.py
+```
+
+Si el resultado muestra la cuenta correcta, aplicar:
+
+```sh
+SUPABASE_URL=... \
+SUPABASE_SERVICE_ROLE_KEY=... \
+BIBLIOTECA_OWNER_EMAIL=... \
+BIBLIOTECA_NAME="Biblioteca de mamá" \
+python3 scripts/assign-biblioteca-owner.py --apply
+```
+
+El script imprime el UUID resuelto. Ese mismo UUID debe usarse como `BIBLIOTECA_OWNER_ID` al ejecutar `scripts/migrate-biblioteca-sqlite.py` para que libros, lecturas, personas, préstamos, configuración y portadas queden bajo la misma biblioteca.
+
+Si `biblioteca_access(slot=1)` ya apunta a otra cuenta, el helper se detiene y no sobrescribe nada. `--force` solo debe usarse después de verificar que no se está reemplazando una biblioteca distinta con datos reales.
+
+Para una transferencia futura a otra cuenta no alcanza con cambiar `owner_id` de las tablas: también deben trasladarse las rutas privadas de `biblioteca-portadas` y `biblioteca-backups`, porque las políticas de Storage usan el UUID de la persona propietaria como primer segmento de la ruta. Hacer esa transferencia como operación administrativa controlada, con respaldo previo.
+
+## 6. Prueba final obligatoria
 
 Antes de considerar producción terminada:
 
