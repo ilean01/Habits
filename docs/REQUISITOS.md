@@ -93,7 +93,8 @@ Lista oficial de lo pedido para la app. Cada cambio se valida contra esta lista.
 - ✅ Préstamos con persona, fecha prevista, devolución, perdido e historial por persona.
 - ✅ Deseos, Leer después con "Empezar a leer", papelera, revisión, duplicados.
 - ✅ ISBN, cámara, datos externos, portadas, etiquetas PDF, CSV/JSON, respaldos, estadísticas.
-- ✅ Miembros con rol lector/editor, RLS en tablas y archivos.
+- ✅ Cada cuenta tiene su propia biblioteca (vacía al empezar) con todas las funciones.
+- ✅ La biblioteca de mamá solo la ven las cuentas que su dueña invite por correo (solo ver o editar); se puede quitar el acceso en cualquier momento. RLS en tablas y archivos.
 - ✅ Habits muestra la lectura actual del catálogo y guarda página/final con `biblioteca_transition`.
 - 🟡 QR de portadas: pide sesión (el original usaba token temporal).
 - 🟡 Recomendador por reglas simples. 🟡 Configuración tipográfica sin cotejar.
