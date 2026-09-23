@@ -1,32 +1,31 @@
 import {dayKey} from './domain.js';
-import {waterTotal,waterStats} from './hydration.js';
+import {waterTotal,waterStats,hydrationHabit,normalizeHydrationHabit,hydrationHabitValue} from './hydration.js';
+import {hydrationLogs} from './selectors.js';
 import * as db from './store.js';
 export {waterTotal,waterStats} from './hydration.js';
-export function wellbeingView({esc,btn}) {
- const date=dayKey(),all=db.records('log').filter(r=>r.hydration),entries=all.filter(r=>r.date===date),stats=waterStats(all,date,7);
- return `<section class="panel water-panel"><h2>Agua, de a poquito</h2><p><strong>${waterTotal(entries,date).toLocaleString('es-PY')} litros</strong> registrados hoy</p><div class="water-summary"><span><b>${stats.average.toLocaleString('es-PY')} L</b><small>promedio diario · 7 días</small></span><span><b>${stats.total.toLocaleString('es-PY')} L</b><small>total últimos 7 días</small></span><span><b>${stats.daysWithWater}/7</b><small>días con registro</small></span></div><div class="button-row">${[250,500,1000].map(n=>btn(`+ ${n/1000} L`,'water-add',`data-ml="${n}"`,'button outline')).join('')}${btn('Otra cantidad','water-custom','','button outline')}</div>${entries.map(r=>`<div class="button-row"><small>${esc(new Date(r.at).toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'}))} · ${r.milliliters/1000} L</small>${btn('Quitar','water-remove',`data-id="${esc(r.id)}"`,'text-button')}</div>`).join('')}<p class="muted small">Cada toma se guarda por separado. El promedio cuenta los últimos 7 días completos, incluso los días sin registro.</p></section>`;
+
+export function ensureHydrationHabit(){
+ const before=hydrationHabit(db.records('habit'));if(!before)return null;
+ const after=normalizeHydrationHabit(before);
+ if(JSON.stringify(before)!==JSON.stringify(after))db.put('habit',after,before.id);
+ return after;
 }
-export async function wellbeingAction(a,el,{showModal,input,textarea,btn,esc,toast,modal,render}) {
- if(!a.startsWith('water-')&&!a.startsWith('workout-'))return false;
- const add=ml=>{if(!Number.isFinite(ml)||ml<=0||ml>10000)throw new Error('Ingresá una cantidad mayor que cero y hasta 10 litros.');db.put('log',{hydration:true,milliliters:Math.round(ml),date:dayKey(),at:new Date().toISOString()});toast('Agua registrada.');};
- if(a==='water-add')add(Number(el.dataset.ml));
- if(a==='water-remove')db.remove(el.dataset.id);
- if(a==='water-custom')showModal('Agregar agua',`<form>${input('Litros que acabás de tomar','liters',0.25,'number','required min="0.001" max="10" step="0.001"')}<button class="button primary" type="submit">Sumar a hoy</button></form>`,f=>{add(Number(f.get('liters'))*1000);modal.close();});
- if(a==='workout-photos'){
-  const photos=db.records('journal').filter(r=>r.workoutPhoto).sort((a,b)=>b.date.localeCompare(a.date));
-  showModal('Fotos del entrenamiento',`<p>Solo tu cuenta puede acceder a estas fotos.</p><form>${input('Fecha','date',dayKey(),'date','required')}<label>Tomar o elegir una foto<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required></label>${textarea('Cómo te sentiste','text','')}<p class="muted small">En el iPhone podés elegir la cámara. Hasta 10 MB. Para subir fotos necesitás conexión.</p><button class="button primary" type="submit">Guardar foto</button></form><div id="workout-gallery">${photos.map(p=>`<article class="panel"><p>${esc(p.date)} · ${esc(p.text)}</p><div data-photo="${esc(p.id)}"></div>${btn('Eliminar foto','workout-delete',`data-id="${esc(p.id)}"`,'text-button danger')}</article>`).join('')}</div>`,async f=>{
-   if(db.info().demo)throw new Error('Iniciá sesión para guardar fotos privadas.');
-   const file=f.get('photo');if(!file?.size||file.size>10485760||!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Elegí una imagen JPG, PNG o WebP de hasta 10 MB.');
-   const {data:{user}}=await db.supabase.auth.getUser();if(!user)throw new Error('Iniciá sesión de nuevo.');
-   const path=`${user.id}/${crypto.randomUUID()}.${file.type.split('/')[1]}`;
-   const {error}=await db.supabase.storage.from('workout-photos').upload(path,file,{contentType:file.type});if(error)throw new Error('No se pudo subir la foto. Revisá la conexión y que esté aplicada la migración de fotos.');
-   db.put('journal',{workoutPhoto:true,path,text:String(f.get('text')||''),date:f.get('date'),at:new Date().toISOString()});modal.close();toast('Foto guardada.');
-  });
-  if(!db.info().demo)for(const p of photos){const {data,error}=await db.supabase.storage.from('workout-photos').createSignedUrl(p.path,300);if(error)continue;const slot=[...modal.querySelectorAll('[data-photo]')].find(e=>e.dataset.photo===p.id);if(slot){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de tu entrenamiento';img.style='max-width:100%;border-radius:12px';slot.append(img);}}
- }
- if(a==='workout-delete'){
-  const p=db.records('journal').find(r=>r.id===el.dataset.id&&r.workoutPhoto);if(!p)return true;
-  showModal('Eliminar foto',`<p>Se eliminará la imagen del almacenamiento privado. Esta acción no se puede deshacer.</p><form><button type="submit" class="button primary">Eliminar esta foto</button></form>`,async()=>{const {error}=await db.supabase.storage.from('workout-photos').remove([p.path]);if(error)throw error;db.remove(p.id);modal.close();toast('Foto eliminada.');});
- }
+export function syncHydrationHabit(date=dayKey()){
+ const h=ensureHydrationHabit();if(!h)return;
+ const liters=waterTotal(hydrationLogs(db.records('log')),date),state=hydrationHabitValue(h,liters),id=`log:${h.id}:${date}`,existing=db.raw(id)?.data;
+ if(!state.status){if(existing?.hydrationDerived)db.remove(id);return;}
+ db.put('log',{habitId:h.id,date,status:state.status,value:state.value,unit:'litros',hydrationDerived:true,note:existing?.note||'',at:new Date().toISOString()},id);
+}
+export function wellbeingView({esc,btn}) {
+ const date=dayKey(),logs=hydrationLogs(db.records('log')),entries=logs.filter(r=>r.date===date),habit=hydrationHabit(db.records('habit')),target=Math.max(.1,Number(habit?.target)||2),total=waterTotal(logs,date),pct=Math.min(100,Math.round(total/target*100));
+ return `<section class="panel water-panel"><div class="section-title"><div><h2>Agua, de a poquito</h2><p><strong>${total.toLocaleString('es-PY')} L</strong> de ${target.toLocaleString('es-PY')} L hoy</p></div><span class="water-percent">${pct}%</span></div><progress max="${target}" value="${Math.min(total,target)}"></progress><div class="button-row">${[250,500,1000].map(n=>btn(`+ ${n/1000} L`,'water-add',`data-ml="${n}" data-date="${date}"`,'button outline')).join('')}${btn('Otra cantidad','water-custom',`data-date="${date}"`,'button outline')}</div>${entries.map(r=>`<div class="button-row water-entry"><small>${esc(new Date(r.at).toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'}))} · ${(r.milliliters/1000).toLocaleString('es-PY')} L</small>${btn('Quitar','water-remove',`data-id="${esc(r.id)}"`,'text-button')}</div>`).join('')}<p class="muted small">Cada toma suma automáticamente a tu hábito de agua. El promedio semanal está en Progreso.</p></section>`;
+}
+export async function wellbeingAction(a,el,{showModal,input,toast,modal}) {
+ if(!a.startsWith('water-'))return false;
+ const targetDate=el?.dataset?.date||dayKey();
+ const add=(ml,date=targetDate)=>{if(!Number.isFinite(ml)||ml<=0||ml>10000)throw new Error('Ingresá una cantidad mayor que cero y hasta 10 litros.');db.put('log',{hydration:true,milliliters:Math.round(ml),date,at:new Date().toISOString()});syncHydrationHabit(date);toast('Agua registrada.');};
+ if(a==='water-add'){add(Number(el.dataset.ml));return true;}
+ if(a==='water-remove'){const old=db.raw(el.dataset.id)?.data;db.remove(el.dataset.id);if(old?.date)syncHydrationHabit(old.date);return true;}
+ if(a==='water-custom')showModal('Agregar agua',`<form>${input('Fecha','date',targetDate,'date',`required max="${dayKey()}"`)}${input('Litros que tomaste','liters',0.25,'number','required min="0.001" max="10" step="0.001"')}<button class="button primary" type="submit">Sumar agua</button></form>`,f=>{const d=String(f.get('date')||targetDate);add(Number(f.get('liters'))*1000,d);modal.close();});
  return true;
 }
