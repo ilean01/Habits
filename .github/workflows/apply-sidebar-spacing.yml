@@ -1,0 +1,41 @@
+name: Apply sidebar spacing
+on:
+  push:
+    branches: [separar-menu-areas]
+    paths: [.github/workflows/apply-sidebar-spacing.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: separar-menu-areas
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Increase sidebar section spacing
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/style.css')
+          s=p.read_text()
+          old='.sidebar-areas{margin-top:33px}'
+          new='.sidebar-areas{margin-top:54px}'
+          if old not in s:
+            raise SystemExit('sidebar spacing anchor not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit validated change
+        run: |
+          rm .github/workflows/apply-sidebar-spacing.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/style.css .github/workflows/apply-sidebar-spacing.yml
+          git commit -m "Separar navegación principal de las áreas"
+          git push origin HEAD:separar-menu-areas
