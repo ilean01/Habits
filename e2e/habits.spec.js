@@ -43,6 +43,16 @@ test('móvil: Biblioteca es destino directo y Más conserva áreas, progreso, di
  await expect(page.getByText(/Tareas activas sin fecha, guardadas sin presión/i)).toBeVisible();
 });
 
+test('Biblioteca usa un solo catálogo y deja las sesiones/citas como complemento',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
+ await enterDemo(page);
+ await page.locator('.sidebar').getByRole('button',{name:/Biblioteca/i}).click();
+ await expect(page.locator('[data-action="new-book"]')).toHaveCount(0);
+ await expect(page.locator('[data-action="edit-book"]')).toHaveCount(0);
+ await expect(page.getByText('Sesiones y citas de lectura')).toBeVisible();
+ await expect(page.locator('.habits-library-embed + .reading-companion')).toHaveCount(1);
+});
+
 test('agenda avisa el choque antes de guardar el segundo evento',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
  await enterDemo(page);

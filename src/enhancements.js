@@ -4,6 +4,8 @@ import {dayKey} from './domain.js';
 import {holidayOn,holidayStatusText} from './paraguay-holidays.js';
 import {activeWorkBlock} from './work-context.js';
 import {priorityAreaForDayMode} from './selectors.js';
+import {catalogBook} from './library-bridge.js';
+import {retireLegacyBooks} from './legacy-book-retirement.js';
 
 const modal=document.querySelector('#modal');
 let queued=false;
@@ -15,6 +17,7 @@ function installStyles(){
  const style=document.createElement('style');style.id='habits-enhancement-styles';style.textContent=`
 .context-focus{border:1px solid #d9e3eb;background:#f2f6f8;border-radius:11px;padding:12px 15px;margin-bottom:14px;font-size:13px;color:#557080}.context-priority-card{order:-10}.install-banner{border:1px solid #dce3d4;background:#f1f5ed;border-radius:13px;padding:17px;margin-bottom:20px}.install-banner h3{font-family:var(--serif);font-size:20px;margin-bottom:8px}.install-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.install-step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;text-align:center;font-size:12px}.install-step b{display:block;font-size:22px;margin-bottom:5px}.install-close{float:right;min-width:44px;min-height:44px}.install-help.enhanced-install .install-steps{margin:12px 0}.holiday-today{border-left:3px solid #b79254;padding-left:10px}
 .water-progress-detail{overflow:hidden}.water-progress-detail .water-days{display:grid;grid-template-columns:repeat(7,minmax(58px,1fr));gap:12px;align-items:end;margin-top:22px;padding:6px 2px 2px}.water-progress-detail .water-day{display:grid;grid-template-rows:auto 128px auto;justify-items:center;align-items:end;gap:8px;min-width:0;text-align:center}.water-progress-detail .water-day b{font-size:14px;font-weight:650;line-height:1.2;white-space:nowrap;color:var(--text)}.water-progress-detail .water-day small{display:block;line-height:1.2;text-transform:capitalize}.water-column-track{width:36px;height:128px;border-radius:999px;background:color-mix(in srgb,var(--green) 8%,var(--soft));border:1px solid var(--line);padding:4px;display:flex;align-items:flex-end;overflow:hidden}.water-column-fill{display:block;width:100%;height:var(--water-level,3%);min-height:4px;border-radius:999px;background:linear-gradient(180deg,#9bcce5,#73afcf);transition:height .25s ease}.water-day:last-child .water-column-track{outline:2px solid color-mix(in srgb,#73afcf 22%,transparent);outline-offset:2px}
+.reading-companion .books-grid,.reading-companion [data-action="new-book"],.reading-companion [data-action="edit-book"]{display:none!important}.reading-companion .library-layout{grid-template-columns:1fr!important}.reading-companion .reading-panel{max-width:none;width:100%}.reading-companion{margin-top:22px}
 @media(max-width:650px){.install-steps{grid-template-columns:1fr}.install-banner{padding:14px}.water-progress-detail{padding-left:14px;padding-right:14px}.water-progress-detail .water-days{grid-template-columns:repeat(7,minmax(38px,1fr));gap:4px;margin-top:18px}.water-progress-detail .water-day{grid-template-rows:auto 92px auto;gap:6px}.water-column-track{width:28px;height:92px;padding:3px}.water-progress-detail .water-day b{font-size:13px}.water-progress-detail .water-day small{font-size:11px!important}}
  `;document.head.append(style);
 }
@@ -44,9 +47,30 @@ function enhanceWaterHistory(){
  wrap.dataset.enhanced='true';
 }
 
-function run(){queued=false;observer.disconnect();try{installStyles();prioritizeContext();installGuide();enrichSettingsInstall();decorateHolidayToday();enhanceWaterHistory();}finally{observer.takeRecords();observe();}}
+function snapshotCatalogReferences(){
+ for(const kind of ['reading','quote'])for(const record of rec(kind)){
+  if(!String(record.bookId||'').startsWith('lib:')||record.bookTitle)continue;
+  const book=catalogBook(record.bookId);if(!book)continue;
+  const {id,...data}=record;db.put(kind,{...data,bookTitle:book.titulo||'',bookAuthor:book.autor||''},id);
+ }
+}
+
+function retireLegacyBookUi(){
+ const shell=document.querySelector('.legacy-reading-tools-primary');
+ if(shell){
+  shell.classList.add('reading-companion');
+  const heading=shell.querySelector('.legacy-reading-tools-heading');if(heading)heading.textContent='Sesiones y citas de lectura';
+  const firstTitle=shell.querySelector('.section-title');if(firstTitle&&/Entre páginas/i.test(firstTitle.textContent||''))firstTitle.remove();
+  shell.querySelectorAll('.books-grid,[data-action="new-book"],[data-action="edit-book"]').forEach(node=>node.remove());
+  const layout=shell.querySelector('.library-layout');if(layout)layout.classList.add('reading-companion-layout');
+  const embed=document.querySelector('.habits-library-embed');if(embed&&embed.nextElementSibling!==shell)shell.before(embed);
+ }
+ document.querySelectorAll('[data-action="new-book"],[data-action="edit-book"],[data-action="search-result"][data-kind="book"]').forEach(node=>node.remove());
+}
+
+function run(){queued=false;observer.disconnect();try{installStyles();retireLegacyBooks(db);snapshotCatalogReferences();prioritizeContext();installGuide();enrichSettingsInstall();decorateHolidayToday();enhanceWaterHistory();retireLegacyBookUi();}finally{observer.takeRecords();observe();}}
 const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
 function schedule(){if(queued)return;queued=true;nextFrame(run);}
 
-document.addEventListener('click',e=>{const own=e.target.closest('[data-enh-action]');if(own?.dataset.enhAction==='dismiss-install'){e.preventDefault();sessionStorage.setItem('habits-install-dismissed','1');own.closest('.install-banner')?.remove();}},true);
+document.addEventListener('click',e=>{const own=e.target.closest('[data-enh-action]');if(own?.dataset.enhAction==='dismiss-install'){e.preventDefault();sessionStorage.setItem('habits-install-dismissed','1');own.closest('.install-banner')?.remove();return;}const action=e.target.closest('[data-action]');const legacyAction=action&&(['new-book','edit-book'].includes(action.dataset.action)||(action.dataset.action==='search-result'&&action.dataset.kind==='book'));if(legacyAction){e.preventDefault();e.stopImmediatePropagation();modal?.close();document.querySelector('[data-action="nav"][data-view="library"]')?.click();}},true);
 const observer=new MutationObserver(schedule);function observe(){observer.observe(document.body,{childList:true,subtree:true});}observe();setInterval(schedule,60000);schedule();
