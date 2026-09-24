@@ -1,3 +1,4 @@
+import './planning.css';
 import * as db from './store.js';
 import {dayKey,parseDay} from './domain.js';
 import {effectiveDayMode} from './day-modes.js';
