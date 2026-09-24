@@ -1,5 +1,5 @@
 const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
-const ignore=new Set('de que se trata trata sobre dame decime explicame resumen sinopsis argumento por favor un una el la los las a y en del libro libros busca buscar buscame busco tenes tienes tengo hay quien autor autora autores recomendame recomenda recomendar algo leer quiero me mi mis para con por esta este cuantos cuantas cantidad total biblioteca catalogo catálogo corto corta breve paginas páginas menos mas más'.split(' '));
+const ignore=new Set('de que se trata trata sobre dame decime explicame resumen sinopsis argumento por favor un una el la los las a y en del libro libros busca buscar buscame busco tenes tienes tengo hay quien autor autora autores recomendame recomenda recomendar algo leer quiero me mi mis para con por esta este cuantos cuantas cantidad total biblioteca catalogo catálogo corto corta breve paginas páginas menos mas más preste prestamo prestamos prestado prestada tiene activo activos'.split(' '));
 const tokens=value=>normalize(value).split(/[^a-z0-9]+/).filter(x=>x.length>1&&!ignore.has(x));
 const label=b=>`${b.titulo||'Sin título'}${b.autor?` — ${b.autor}`:''}`;
 const list=(values,limit=10)=>values.slice(0,limit).map(v=>`• ${v}`).join('\n');
