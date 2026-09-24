@@ -47,7 +47,7 @@ language plpgsql
 security definer
 set search_path = pg_catalog, public, private
 as $$
-declare changed boolean := false;
+declare changed_rows integer := 0;
 begin
   if p_public !~ '^[A-Za-z0-9_-]{80,120}$' or p_private !~ '^[A-Za-z0-9_-]{30,120}$' then
     raise exception 'Invalid VAPID keys';
@@ -55,8 +55,8 @@ begin
   update private.notification_runtime
   set vapid_public_key=p_public,vapid_private_key=p_private,vapid_subject=p_subject,updated_at=now()
   where id=1 and vapid_public_key is null;
-  get diagnostics changed = row_count;
-  return changed;
+  get diagnostics changed_rows = row_count;
+  return changed_rows > 0;
 end
 $$;
 revoke all on function public.notification_vapid_initialize(text,text,text) from public, anon, authenticated;
