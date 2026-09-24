@@ -6,8 +6,9 @@ const load=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('settings remains reachable from desktop sidebar and the persistent top bar',async()=>{
  const [main,css]=await Promise.all([load('src/main.js'),load('src/accessibility.css')]);
- assert.match(main,/data-action=\\?"settings\\?"/,'main UI must expose a settings action');
- assert.match(main,/profile-button/,'top bar must expose profile/settings');
+ assert.match(main,/Ajustes','settings'/,'sidebar must expose a Settings action');
+ assert.match(main,/Abrir perfil y ajustes/,'top bar must expose profile/settings');
+ assert.match(main,/profile-button/,'top bar must render the persistent profile control');
  assert.match(css,/\.topbar\{position:sticky;top:0;z-index:/,'top bar must stay visible while scrolling');
  assert.match(css,/@media \(min-width:651px\)[\s\S]*\.sidebar\{height:100dvh;overflow-y:auto/,'sidebar must scroll on shorter desktop/tablet viewports');
  assert.match(css,/\.sidebar>\.nav-link:last-child\{position:sticky;bottom:0/,'desktop Settings entry must stay pinned to the bottom of the sidebar');
