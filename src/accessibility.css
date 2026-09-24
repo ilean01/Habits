@@ -11,6 +11,26 @@ button,.button,.nav-link,.area-link,.icon-button,.profile-button,.chip,.habit-ch
 .water-summary b,.water-day b{font-size:max(14px,calc(14px * var(--font-scale)))}
 input,textarea,select{font-size:max(16px,calc(15px * var(--font-scale)))}
 .habit-card .touch-order{display:none;gap:4px}
+
+/* Navigation must remain reachable regardless of scroll position. */
+.topbar{position:sticky;top:0;z-index:18}
+.topbar .profile-button{flex:0 0 auto}
+
+/* The desktop/tablet sidebar can be taller than a notebook viewport.
+   Let its content scroll, while keeping Settings pinned to its bottom edge. */
+@media (min-width:651px){
+ .sidebar{height:100dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+ .sidebar>*{flex-shrink:0}
+ .sidebar>.nav-link:last-child{position:sticky;bottom:0;z-index:3;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -8px 16px color-mix(in srgb,var(--panel) 92%,transparent)}
+}
+
+/* On phones the sidebar is hidden, so the sticky top bar keeps the
+   profile/settings control permanently available above the fixed bottom nav. */
+@media (max-width:650px){
+ .topbar{top:0;z-index:25}
+ .topbar .profile-button{min-width:44px;min-height:44px}
+}
+
 @media (pointer:coarse),(max-width:760px){
  .habit-card{touch-action:manipulation}
  .habit-card .touch-order{display:flex}
