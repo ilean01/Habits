@@ -36,12 +36,25 @@ export async function deleteLoan(id){const {error}=await supabase.from(T.loans).
 
 export async function saveConfig(values){const rows=Object.entries(values).map(([clave,valor])=>({owner_id:libraryOwner,clave,valor:String(valor??'')}));const {error}=await supabase.from(T.config).upsert(rows,{onConflict:'owner_id,clave'});if(error)throw error}
 
+const signedCoverCache=new Map();
+const SIGNED_COVER_TTL=50*60*1000;
 export async function signedCoverMap(books){
-  const map=new Map(),paths=[];
-  for(const b of books){const p=String(b.portada||'').trim();if(!p)continue;if(/^https?:\/\//i.test(p))map.set(b.id,p);else paths.push(p)}
-  for(let i=0;i<paths.length;i+=100){const chunk=paths.slice(i,i+100);const {data,error}=await supabase.storage.from('biblioteca-portadas').createSignedUrls(chunk,3600);if(error)continue;for(const row of data||[]){if(!row?.path||!row?.signedUrl)continue;for(const b of books)if(b.portada===row.path)map.set(b.id,row.signedUrl)}}
+  const map=new Map(),pathToIds=new Map(),missing=new Set(),now=Date.now();
+  for(const b of books){
+    const p=String(b.portada||'').trim();if(!p)continue;
+    if(/^https?:\/\//i.test(p)){map.set(b.id,p);continue;}
+    if(!pathToIds.has(p))pathToIds.set(p,[]);pathToIds.get(p).push(b.id);
+    const cached=signedCoverCache.get(p);
+    if(cached&&cached.expiresAt>now)map.set(b.id,cached.url);else missing.add(p);
+  }
+  const paths=[...missing];
+  for(let i=0;i<paths.length;i+=100){
+    const chunk=paths.slice(i,i+100),{data,error}=await supabase.storage.from('biblioteca-portadas').createSignedUrls(chunk,3600);if(error)continue;
+    for(const row of data||[]){if(!row?.path||!row?.signedUrl)continue;signedCoverCache.set(row.path,{url:row.signedUrl,expiresAt:now+SIGNED_COVER_TTL});for(const id of pathToIds.get(row.path)||[])map.set(id,row.signedUrl);}
+  }
+  if(signedCoverCache.size>5000)for(const [path,value] of signedCoverCache)if(value.expiresAt<=now)signedCoverCache.delete(path);
   return map;
 }
 
 export async function uploadCover(bookId,file){if(!file)throw new Error('Elegí una imagen.');const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=`${libraryOwner}/books/${bookId}-${Date.now()}.${ext}`;const {error}=await supabase.storage.from('biblioteca-portadas').upload(path,file,{upsert:true,contentType:file.type||'image/jpeg'});if(error)throw error;await updateBook(bookId,{portada:path});return path}
-export async function removeStoredCover(path){if(!path||/^https?:\/\//i.test(path))return;const {error}=await supabase.storage.from('biblioteca-portadas').remove([path]);if(error)throw error}
+export async function removeStoredCover(path){if(!path||/^https?:\/\//i.test(path))return;const {error}=await supabase.storage.from('biblioteca-portadas').remove([path]);if(error)throw error;signedCoverCache.delete(path)}
