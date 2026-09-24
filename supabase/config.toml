@@ -6,3 +6,8 @@ extra_search_path = ["public", "extensions"]
 max_rows = 1000
 [db]
 major_version = 17
+
+[functions.send-reminders]
+# El cron no tiene sesión de usuario. La función valida un secreto interno generado
+# en la base de datos antes de ejecutar cualquier envío.
+verify_jwt = false
