@@ -4,6 +4,7 @@ import {dayKey} from './domain.js';
 import {holidayOn,holidayStatusText} from './paraguay-holidays.js';
 import {activeWorkBlock} from './work-context.js';
 import {priorityAreaForDayMode} from './selectors.js';
+import {catalogBook} from './library-bridge.js';
 import {retireLegacyBooks} from './legacy-book-retirement.js';
 
 const modal=document.querySelector('#modal');
@@ -46,6 +47,14 @@ function enhanceWaterHistory(){
  wrap.dataset.enhanced='true';
 }
 
+function snapshotCatalogReferences(){
+ for(const kind of ['reading','quote'])for(const record of rec(kind)){
+  if(!String(record.bookId||'').startsWith('lib:')||record.bookTitle)continue;
+  const book=catalogBook(record.bookId);if(!book)continue;
+  const {id,...data}=record;db.put(kind,{...data,bookTitle:book.titulo||'',bookAuthor:book.autor||''},id);
+ }
+}
+
 function retireLegacyBookUi(){
  const shell=document.querySelector('.legacy-reading-tools-primary');
  if(shell){
@@ -59,7 +68,7 @@ function retireLegacyBookUi(){
  document.querySelectorAll('[data-action="new-book"],[data-action="edit-book"],[data-action="search-result"][data-kind="book"]').forEach(node=>node.remove());
 }
 
-function run(){queued=false;observer.disconnect();try{installStyles();retireLegacyBooks(db);prioritizeContext();installGuide();enrichSettingsInstall();decorateHolidayToday();enhanceWaterHistory();retireLegacyBookUi();}finally{observer.takeRecords();observe();}}
+function run(){queued=false;observer.disconnect();try{installStyles();retireLegacyBooks(db);snapshotCatalogReferences();prioritizeContext();installGuide();enrichSettingsInstall();decorateHolidayToday();enhanceWaterHistory();retireLegacyBookUi();}finally{observer.takeRecords();observe();}}
 const nextFrame=globalThis.requestAnimationFrame?cb=>requestAnimationFrame(cb):cb=>setTimeout(cb,16);
 function schedule(){if(queued)return;queued=true;nextFrame(run);}
 
