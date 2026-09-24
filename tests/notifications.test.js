@@ -31,14 +31,18 @@ test('dispatcher respeta seguridad, modos de día y suscripciones vencidas',asyn
  assert.match(fn,/\.gt\('id',lastId\)/);
 });
 
-test('migración activa cron, guarda secretos fuera de public y limpia deduplicación vieja',async()=>{
+test('migración activa cron, protege secretos y da solo permisos de servidor necesarios',async()=>{
  const sql=await read('supabase/migrations/20260924010000_complete_notifications.sql');
+ const grants=await read('supabase/migrations/20260924010500_notification_service_role.sql');
  const config=await read('supabase/config.toml');
  assert.match(sql,/create extension if not exists pg_cron/i);
  assert.match(sql,/private\.notification_runtime/);
  assert.match(sql,/habits-send-reminders/);
  assert.match(sql,/habits-push-cleanup/);
  assert.match(sql,/90 days/);
+ assert.match(grants,/push_subscriptions to service_role/i);
+ assert.match(grants,/push_deliveries to service_role/i);
+ assert.match(grants,/entries to service_role/i);
  assert.match(config,/\[functions\.send-reminders\]/);
  assert.match(config,/verify_jwt = false/);
 });
