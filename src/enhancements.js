@@ -7,7 +7,7 @@ import {priorityAreaForDayMode} from './selectors.js';
 
 const modal=document.querySelector('#modal');
 let queued=false;
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rec=k=>db.records(k);
 
 function installStyles(){
