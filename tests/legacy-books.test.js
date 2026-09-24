@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {legacyBookRetirementPlan} from '../src/legacy-book-retirement.js';
+import {legacyBookRetirementPlan,retireLegacyBooks} from '../src/legacy-book-retirement.js';
 
 test('retira libros legados sin perder títulos de sesiones y citas',()=>{
  const plan=legacyBookRetirementPlan({
@@ -35,4 +35,22 @@ test('no toca referencias de la Biblioteca nueva y cuenta archivos previos sin d
  assert.equal(plan.quoteUpdates.length,0);
  assert.equal(plan.settings.legacyBookArchiveCount,2);
  assert.equal(plan.settings.legacyFinishedBooks,1);
+});
+
+test('retireLegacyBooks elimina el kind book pero conserva un archivo interno',()=>{
+ const rows=new Map([
+  ['settings',{kind:'settings',data:{name:'Ile'}}],
+  ['book-1',{kind:'book',data:{title:'Libro viejo',author:'Autora',status:'finished'}}],
+  ['reading-1',{kind:'reading',data:{bookId:'book-1',minutes:20,date:'2026-09-20'}}]
+ ]);
+ const db={
+  records(kind){return [...rows].flatMap(([id,row])=>row.kind===kind?[{...row.data,id}]:[]);},
+  put(kind,data,id){rows.set(id,{kind,data:{...data}});return id;}
+ };
+ assert.equal(retireLegacyBooks(db),1);
+ assert.equal(db.records('book').length,0);
+ assert.equal(db.records('legacyBookArchive').length,1);
+ assert.equal(db.records('reading')[0].bookTitle,'Libro viejo');
+ assert.equal(db.records('reading')[0].bookId,'');
+ assert.equal(db.records('settings')[0].legacyFinishedBooks,1);
 });
