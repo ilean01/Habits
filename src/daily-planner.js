@@ -23,7 +23,8 @@ function isTodayScreen(){
 
 function currentPlan(date){return planForDate(db.records(DAILY_PLAN_KIND),date);}
 function savePlan(date,mutate){
- const next=normalizeDailyPlan(mutate({...currentPlan(date),priorities:[...currentPlan(date).priorities]})||currentPlan(date),date);
+ const base=currentPlan(date),draft={...base,priorities:[...base.priorities]};
+ const next=normalizeDailyPlan(mutate(draft)||draft,date);
  db.put(DAILY_PLAN_KIND,next,plannerRecordId(date));
 }
 
@@ -101,8 +102,14 @@ function mount(){
  if(old)old.outerHTML=html;else content.querySelector('.planner-mode-switch')?.insertAdjacentHTML('afterend',html);
 }
 
-function scheduleMount(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;mount();});}
 const observer=new MutationObserver(scheduleMount);
+function scheduleMount(){
+ if(queued)return;queued=true;
+ queueMicrotask(()=>{
+  queued=false;observer.disconnect();
+  try{mount();}finally{observer.observe(document.body,{childList:true,subtree:true});}
+ });
+}
 observer.observe(document.body,{childList:true,subtree:true});
 window.addEventListener('pageshow',scheduleMount);
 scheduleMount();
