@@ -37,13 +37,17 @@ test('GitHub Pages no publica si Playwright no pasa',async()=>{
  assert.match(workflow,/needs\.validate\.result == 'success'/);
 });
 
-test('la Biblioteca nueva es el único catálogo funcional del shell',async()=>{
- const enhancements=await read('src/enhancements.js');
- const retirement=await read('src/legacy-book-retirement.js');
- assert.match(enhancements,/retireLegacyBooks\(db\)/);
- assert.match(enhancements,/Sesiones y citas de lectura/);
- assert.match(enhancements,/\['new-book','edit-book'\]/);
- assert.match(enhancements,/shell\.before\(embed\)/);
+test('la Biblioteca nueva es el único catálogo visible del shell sin parche posterior',async()=>{
+ const [main,index,retirement]=await Promise.all([read('src/main.js'),read('index.html'),read('src/legacy-book-retirement.js')]);
+ const start=main.indexOf('function unifiedLibraryView()');
+ const end=main.indexOf('function libraryView()',start);
+ const unified=main.slice(start,end);
+ assert.ok(start>=0&&end>start,'la vista unificada debe existir antes del código legado pendiente de retirar');
+ assert.match(unified,/habits-library-embed/);
+ assert.match(unified,/readingCompanionView\(\)/);
+ assert.doesNotMatch(unified,/libraryView\(\)/);
+ assert.match(main,/function readingCompanionView\(\)[\s\S]*Sesiones y citas de lectura/);
+ assert.doesNotMatch(index,/enhancements\.js/);
  assert.match(retirement,/legacyBookArchive/);
  assert.match(retirement,/bookTitle/);
  assert.match(retirement,/legacyBookId/);
