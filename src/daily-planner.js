@@ -5,7 +5,7 @@ import {effectiveDayMode} from './day-modes.js';
 import {authorizeEventSave} from './event-service.js';
 import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,nextHour,normalizeDailyPlan,DAILY_PLAN_KIND} from './daily-planner-domain.js';
 
-const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
 const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
 let queued=false;
@@ -69,11 +69,11 @@ function plannerHtml(date){
  return `<section class="daily-planner" data-planner-date="${date}"><div class="planner-paper">
   <header class="planner-paper-header"><div><p class="planner-kicker">Mi día</p><h2>${esc(weekdayName(date))}</h2><p class="planner-date-detail">${esc(prettyDate(date))}</p></div><div class="planner-header-side">${weekStrip(date)}<button class="planner-print" data-planner-action="print">Imprimir mi día</button></div></header>
   <div class="planner-grid">
-   <main class="planner-main">
+   <div class="planner-main">
     <section class="planner-section planner-priorities"><div class="planner-section-title"><h3>Prioridades de hoy</h3><small>máximo 3</small></div><div class="planner-priority-list">${plan.priorities.map((value,i)=>`<label class="planner-priority"><span class="planner-priority-dot" aria-hidden="true"></span><input class="planner-line-input" data-plan-field="priority" data-index="${i}" maxlength="180" value="${esc(value)}" placeholder="Prioridad ${i+1}"></label>`).join('')}</div></section>
     <section class="planner-section planner-gratitude"><div class="planner-section-title"><h3>Gratitud</h3></div><textarea class="planner-lined-textarea" data-plan-field="gratitude" maxlength="4000" placeholder="Hoy agradezco…">${esc(plan.gratitude)}</textarea></section>
     <section class="planner-section planner-schedule-section"><div class="planner-section-title"><h3>Agenda</h3><small>06:00–21:00</small></div>${scheduleHtml(events,date)}</section>
-   </main>
+   </div>
    <aside class="planner-side">
     <section class="planner-section planner-habit-section"><div class="planner-section-title"><h3>Tracker de hábitos</h3><small>mismos hábitos de Habits</small></div>${habitsHtml(date)}</section>
     <section class="planner-section planner-task-section"><div class="planner-section-title"><h3>Checklist</h3><small>tareas de hoy</small></div>${tasksHtml(date)}</section>
