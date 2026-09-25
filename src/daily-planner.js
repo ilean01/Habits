@@ -8,18 +8,12 @@ import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,next
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
 const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
-let queued=false;
 
 const settings=()=>db.records('settings')[0]||{};
 const areaName=id=>db.records('area').find(a=>a.id===id)?.name||'Personal';
-const plannerMode=()=>settings().todayLayout==='planner'?'planner':'dashboard';
+export const plannerMode=()=>settings().todayLayout==='planner'?'planner':'dashboard';
 const prettyDate=date=>parseDay(date).toLocaleDateString('es-PY',{day:'numeric',month:'long',year:'numeric'});
 const weekdayName=date=>parseDay(date).toLocaleDateString('es-PY',{weekday:'long'});
-
-function isTodayScreen(){
- const crumb=document.querySelector('.breadcrumb strong')?.textContent?.trim();
- return crumb==='Mi día'&&!!document.querySelector('.day-hero')&&!!document.querySelector('.dashboard-grid');
-}
 
 function currentPlan(date){return planForDate(db.records(DAILY_PLAN_KIND),date);}
 function savePlan(date,mutate){
@@ -64,7 +58,7 @@ function tasksHtml(date){
  return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">${task.done?'✓':'✓'}</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:esc(areaName(task.area))}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
 }
 
-function plannerHtml(date){
+export function plannerHtml(date=dayKey()){
  const plan=currentPlan(date),events=plannerEvents(db.records('event'),date);
  return `<section class="daily-planner" data-planner-date="${date}"><div class="planner-paper">
   <header class="planner-paper-header"><div><p class="planner-kicker">Mi día</p><h2>${esc(weekdayName(date))}</h2><p class="planner-date-detail">${esc(prettyDate(date))}</p></div><div class="planner-header-side">${weekStrip(date)}<button class="planner-print" data-planner-action="print">Imprimir mi día</button></div></header>
@@ -83,36 +77,14 @@ function plannerHtml(date){
  </div></section>`;
 }
 
-function switchHtml(mode){return `<div class="planner-mode-switch" role="region" aria-label="Vista de Mi día"><span>Elegí cómo querés ver tu día. La app recuerda esta opción en tu cuenta.</span><div class="segmented" role="group" aria-label="Vista"><button data-planner-action="mode" data-mode="dashboard" class="${mode==='dashboard'?'active':''}" aria-pressed="${mode==='dashboard'}">Dashboard</button><button data-planner-action="mode" data-mode="planner" class="${mode==='planner'?'active':''}" aria-pressed="${mode==='planner'}">Agenda del día</button></div></div>`;}
+export function plannerSwitchHtml(mode=plannerMode()){
+ return `<div class="planner-mode-switch" role="region" aria-label="Vista de Mi día"><span>Elegí cómo querés ver tu día. La app recuerda esta opción en tu cuenta.</span><div class="segmented" role="group" aria-label="Vista"><button data-planner-action="mode" data-mode="dashboard" class="${mode==='dashboard'?'active':''}" aria-pressed="${mode==='dashboard'}">Dashboard</button><button data-planner-action="mode" data-mode="planner" class="${mode==='planner'?'active':''}" aria-pressed="${mode==='planner'}">Agenda del día</button></div></div>`;
+}
 
-function mount(){
- if(!isTodayScreen())return;
- const content=document.querySelector('.content'),heading=content?.querySelector('.page-heading'),hero=content?.querySelector('.day-hero'),dashboard=content?.querySelector('.dashboard-grid');
- if(!content||!heading||!hero||!dashboard)return;
+export function dailyPlannerLayout(dashboardHtml,date=dayKey()){
  const mode=plannerMode();
- let toggle=content.querySelector('.planner-mode-switch');
- if(!toggle){heading.insertAdjacentHTML('afterend',switchHtml(mode));toggle=content.querySelector('.planner-mode-switch');}
- else toggle.outerHTML=switchHtml(mode);
- const old=content.querySelector('.daily-planner');
- if(mode==='dashboard'){
-  hero.hidden=false;dashboard.hidden=false;old?.remove();return;
- }
- hero.hidden=true;dashboard.hidden=true;
- const html=plannerHtml(dayKey());
- if(old)old.outerHTML=html;else content.querySelector('.planner-mode-switch')?.insertAdjacentHTML('afterend',html);
+ return `${plannerSwitchHtml(mode)}${mode==='planner'?plannerHtml(date):dashboardHtml}`;
 }
-
-const observer=new MutationObserver(scheduleMount);
-function scheduleMount(){
- if(queued)return;queued=true;
- queueMicrotask(()=>{
-  queued=false;observer.disconnect();
-  try{mount();}finally{observer.observe(document.body,{childList:true,subtree:true});}
- });
-}
-observer.observe(document.body,{childList:true,subtree:true});
-window.addEventListener('pageshow',scheduleMount);
-scheduleMount();
 
 function ensureDialog(){
  let dialog=document.querySelector('#planner-quick-dialog');
