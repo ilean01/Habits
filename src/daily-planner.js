@@ -5,7 +5,7 @@ import {effectiveDayMode} from './day-modes.js';
 import {authorizeEventSave} from './event-service.js';
 import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,nextHour,normalizeDailyPlan,DAILY_PLAN_KIND} from './daily-planner-domain.js';
 
-const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
 const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
 
@@ -33,35 +33,48 @@ function eventButton(event,date){
 }
 
 function scheduleHtml(events,date){
- const byHour=eventsByHour(events);
- return `<div class="planner-schedule" aria-label="Agenda horaria">${hours.map(hour=>`<div class="planner-hour-row"><time>${hour}:00</time><div class="planner-hour-content">${(byHour.get(hour)||[]).map(event=>eventButton(event,date)).join('')}<button class="planner-hour-add" data-planner-action="event-at" data-time="${hour}:00" aria-label="Agregar evento a las ${hour}:00">+</button></div></div>`).join('')}</div>`;
+ const {grouped,allDay}=eventsByHour(events);
+ return `<div class="planner-schedule">
+  ${allDay.length?`<div class="planner-all-day"><small>Todo el día</small><div class="planner-hour-content">${allDay.map(e=>eventButton(e,date)).join('')}</div></div>`:''}
+  ${hours.map(hour=>{const rows=grouped.get(hour)||[];return `<div class="planner-hour"><span class="planner-hour-label">${hour}</span><div class="planner-hour-content">${rows.length?rows.map(e=>eventButton(e,date)).join(''):`<span class="planner-empty-slot">&nbsp;</span>`}</div><button class="planner-hour-add" data-planner-action="event-at" data-time="${hour}:00" aria-label="Agregar evento a las ${hour}:00">+</button></div>`;}).join('')}
+ </div>`;
 }
 
-function checklistHtml(tasks){
- return tasks.length?`<div class="planner-task-list">${tasks.map(task=>`<label class="planner-task ${task.done?'done':''}"><input type="checkbox" data-planner-action="task" data-id="${esc(task.id)}" ${task.done?'checked':''}><span><strong>${esc(task.name)}</strong><small>${esc(areaName(task.area))}${task.due?` · ${esc(task.due)}`:''}</small></span></label>`).join('')}</div>`:'<p class="planner-empty">No hay tareas pendientes para hoy.</p>';
+function habitsHtml(date){
+ const s=settings(),mode=effectiveDayMode(s,date),logs=db.records('log');
+ const habits=effectiveHabitsForDate(db.records('habit').sort((a,b)=>(a.order||0)-(b.order||0)),date,mode);
+ if(mode==='descanso')return '<p class="planner-empty-note">Día de descanso: hoy no hay hábitos obligatorios y las rachas quedan protegidas.</p>';
+ if(!habits.length)return '<p class="planner-empty-note">No hay hábitos programados para hoy.</p>';
+ return `<div class="planner-habits">${habits.map(h=>{
+  const state=habitStatus(h,logs,date),action=state.hydration?'water-custom':'habit-action';
+  const extra=state.hydration?'':`data-id="${esc(h.id)}" data-date="${esc(date)}"`;
+  const detail=state.hydration?`${(state.value/1000).toLocaleString('es-PY')} / ${(state.target/1000).toLocaleString('es-PY')} L`:state.weekly?`${state.weekly.done}/${state.weekly.target} esta semana`:h.type==='check'?(state.skip?'Pausa de hoy':areaName(h.area)):`${state.value||0} / ${h.target} ${esc(h.unit||'')}`;
+  return `<div class="planner-habit-row"><button class="planner-check-button ${state.done?'done':state.skip?'paused':''}" data-action="${action}" ${extra} aria-label="${state.done?'Revisar':state.hydration?'Registrar agua':'Registrar'} ${esc(h.name)}">${state.done?'✓':state.skip?'–':'✓'}</button><button class="planner-row-main" data-action="edit-habit" data-id="${esc(h.id)}"><strong>${esc(h.name)}</strong><small>${detail}</small></button></div>`;
+ }).join('')}</div>`;
 }
 
-function habitsHtml(habits,logs,date){
- return habits.length?`<div class="planner-habit-list">${habits.map(h=>{const status=habitStatus(h,logs,date);return `<button class="planner-habit ${status.done?'done':''}" data-action="habit-action" data-id="${esc(h.id)}" data-date="${esc(date)}"><span>${status.done?'✓':'○'}</span><div><strong>${esc(h.name)}</strong><small>${esc(areaName(h.area))}</small></div></button>`;}).join('')}</div>`:'<p class="planner-empty">No hay hábitos programados.</p>';
+function tasksHtml(date){
+ const tasks=plannerTasks(db.records('task'),date);
+ return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">${task.done?'✓':'✓'}</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:esc(areaName(task.area))}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
 }
 
-function plannerHtml(date){
- const plan=currentPlan(date),tasks=plannerTasks(db.records('task'),date),events=plannerEvents(db.records('event'),date),dayMode=effectiveDayMode(settings(),date),habits=effectiveHabitsForDate(db.records('habit'),date,dayMode),logs=db.records('log');
- return `<section class="daily-planner" data-planner-date="${esc(date)}">
-  <header class="planner-hero"><div><p class="planner-eyebrow">AGENDA DEL DÍA</p><h1>${esc(weekdayName(date))}</h1><p>${esc(prettyDate(date))}</p></div><div class="planner-actions"><button class="button outline" data-planner-action="print">Imprimir A4</button></div></header>
-  ${weekStrip(date)}
-  <div class="planner-paper">
-   <div class="planner-left">
-    <section class="planner-section planner-priorities"><div class="planner-section-title"><h3>Mis 3 prioridades</h3><small>lo importante primero</small></div>${plan.priorities.map((value,i)=>`<label><span>${i+1}</span><input data-plan-field="priority" data-index="${i}" value="${esc(value)}" maxlength="180" placeholder="Prioridad ${i+1}"></label>`).join('')}</section>
-    <section class="planner-section"><div class="planner-section-title"><h3>Tareas</h3><small>hoy y vencidas</small></div>${checklistHtml(tasks)}</section>
-    <section class="planner-section"><div class="planner-section-title"><h3>Hábitos</h3><small>tu rutina real</small></div>${habitsHtml(habits,logs,date)}</section>
-    <section class="planner-section planner-gratitude"><div class="planner-section-title"><h3>Hoy agradezco…</h3></div><textarea data-plan-field="gratitude" maxlength="1000" placeholder="Algo pequeño también cuenta…">${esc(plan.gratitude)}</textarea></section>
+export function plannerHtml(date=dayKey()){
+ const plan=currentPlan(date),events=plannerEvents(db.records('event'),date);
+ return `<section class="daily-planner" data-planner-date="${date}"><div class="planner-paper">
+  <header class="planner-paper-header"><div><p class="planner-kicker">Mi día</p><h2>${esc(weekdayName(date))}</h2><p class="planner-date-detail">${esc(prettyDate(date))}</p></div><div class="planner-header-side">${weekStrip(date)}<button class="planner-print" data-planner-action="print">Imprimir mi día</button></div></header>
+  <div class="planner-grid">
+   <div class="planner-main">
+    <section class="planner-section planner-priorities"><div class="planner-section-title"><h3>Prioridades de hoy</h3><small>máximo 3</small></div><div class="planner-priority-list">${plan.priorities.map((value,i)=>`<label class="planner-priority"><span class="planner-priority-dot" aria-hidden="true"></span><input class="planner-line-input" data-plan-field="priority" data-index="${i}" maxlength="180" value="${esc(value)}" placeholder="Prioridad ${i+1}"></label>`).join('')}</div></section>
+    <section class="planner-section planner-gratitude"><div class="planner-section-title"><h3>Gratitud</h3></div><textarea class="planner-lined-textarea" data-plan-field="gratitude" maxlength="4000" placeholder="Hoy agradezco…">${esc(plan.gratitude)}</textarea></section>
+    <section class="planner-section planner-schedule-section"><div class="planner-section-title"><h3>Agenda</h3><small>06:00–21:00</small></div>${scheduleHtml(events,date)}</section>
    </div>
-   <div class="planner-right">
-    <section class="planner-section planner-agenda"><div class="planner-section-title"><h3>Mi agenda</h3><small>06:00 – 21:00</small></div>${scheduleHtml(events,date)}</section>
-    <section class="planner-section planner-notes"><div class="planner-section-title"><h3>Notas / cosas que no quiero olvidar</h3></div><textarea class="planner-lined-textarea" data-plan-field="notes" maxlength="10000" placeholder="Escribí libremente…">${esc(plan.notes)}</textarea><small class="planner-save-hint">Se guarda automáticamente al salir del campo.</small></section>
-   </div>
-  </div></section>`;
+   <aside class="planner-side">
+    <section class="planner-section planner-habit-section"><div class="planner-section-title"><h3>Tracker de hábitos</h3><small>mismos hábitos de Habits</small></div>${habitsHtml(date)}</section>
+    <section class="planner-section planner-task-section"><div class="planner-section-title"><h3>Checklist</h3><small>tareas de hoy</small></div>${tasksHtml(date)}</section>
+   </aside>
+   <section class="planner-section planner-notes"><div class="planner-section-title"><h3>Notas / cosas que no quiero olvidar</h3></div><textarea class="planner-lined-textarea" data-plan-field="notes" maxlength="10000" placeholder="Escribí libremente…">${esc(plan.notes)}</textarea><small class="planner-save-hint">Se guarda automáticamente al salir del campo.</small></section>
+  </div>
+ </div></section>`;
 }
 
 export function plannerSwitchHtml(mode=plannerMode()){
@@ -112,10 +125,17 @@ document.addEventListener('change',event=>{
 document.addEventListener('submit',event=>{
  const form=event.target.closest('[data-planner-form]');if(!form)return;
  event.preventDefault();
- if(form.dataset.plannerForm==='event'){
-  const fd=new FormData(form),date=dayKey(),data={name:String(fd.get('name')||'').trim(),date,time:fd.get('time'),end:fd.get('end'),area:fd.get('area')||'personal',repeat:'none'};
-  const verdict=authorizeEventSave(db.records('event'),data);
-  if(!verdict.ok&&!confirm(verdict.message+' ¿Querés guardar igualmente?'))return;
-  db.put('event',data);form.closest('dialog')?.close();
+ const data=new FormData(form),kind=form.dataset.plannerForm;
+ if(kind==='task'){
+  const name=String(data.get('name')||'').trim();if(!name)return;
+  db.put('task',{name,area:'personal',due:dayKey(),priority:'media',projectId:'',note:'',done:false});
+  return;
+ }
+ if(kind==='event'){
+  const name=String(data.get('name')||'').trim();if(!name)return;
+  const candidate={name,area:String(data.get('area')||'personal'),date:dayKey(),repeat:'none',time:String(data.get('time')||''),end:String(data.get('end')||''),until:'',reminderMinutes:'',location:'',note:''};
+  const decision=authorizeEventSave(candidate,db.records('event'),{days:180,confirmConflict:message=>window.confirm(`${message} ¿Querés guardar igualmente?`)});
+  if(!decision.allowed)return;
+  db.put('event',candidate);form.closest('dialog')?.close();
  }
 });
