@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+
+const path='src/main.js';
+let source=fs.readFileSync(path,'utf8');
+function replaceOnce(from,to,label){
+ const count=source.split(from).length-1;
+ if(count!==1)throw new Error(`${label}: se esperó 1 coincidencia y hubo ${count}`);
+ source=source.replace(from,to);
+}
+
+replaceOnce("import './calendar-indicators.css';","import './calendar-indicators.css';\nimport './nutrition-summary.css';",'css nutricion');
+replaceOnce("import {nutritionView,nutritionAction} from './nutrition.js';","import {nutritionView,nutritionAction,nutritionSummaryView} from './nutrition.js';",'import nutricion');
+replaceOnce("function todayView(){return dailyPlannerLayout(todayDashboardView(),dayKey());}","function todayView(){const today=dayKey();return dailyPlannerLayout(todayDashboardView(),today,nutritionSummaryView({esc,btn,date:today}));}",'resumen Mi dia');
+replaceOnce("const day=dayDetailData({date:d,journals:rec('journal'),photos:rec('photo'),dailyPlans:rec('dailyPlan'),tasks:rec('task'),readings:rec('reading'),logs:rec('log')});","const day=dayDetailData({date:d,journals:rec('journal'),photos:rec('photo'),dailyPlans:rec('dailyPlan'),tasks:rec('task'),readings:rec('reading'),logs:rec('log'),meals:rec('meal')});",'datos ficha');
+replaceOnce(" const readingRows=day.readings.map(r=>`<button class=\"day-detail-item\" data-action=\"library\">${icon('BookOpen')}<span><strong>${esc(readingTitle(r))}</strong><small>${Number(r.minutes)||0} min de lectura</small></span></button>`).join('');"," const readingRows=day.readings.map(r=>`<button class=\"day-detail-item\" data-action=\"library\">${icon('BookOpen')}<span><strong>${esc(readingTitle(r))}</strong><small>${Number(r.minutes)||0} min de lectura</small></span></button>`).join('');\n const mealRows=day.nutrition.meals.map(m=>`<button class=\"day-detail-meal\" data-action=\"food-view\" data-id=\"${esc(m.id)}\"><span><strong>${esc(m.label||m.mealTypeLabel)}</strong><small>${esc(m.mealTypeLabel)}</small></span><b>≈ ${Math.round(Number(m.totals?.calories)||0)} kcal</b></button>`).join('');",'filas comidas');
+replaceOnce("  ${day.hasReflection?`<section class=\"day-detail-section\"><div class=\"day-detail-section-head\"><div><p class=\"day-detail-label\">Tu espacio</p><h3>Lo que quisiste guardar</h3></div></div>${reflections?`<div class=\"day-detail-reflections\">${reflections}</div>`:''}</section>`:''}","  ${day.hasNutrition?`<section class=\"day-detail-section day-detail-nutrition\"><div class=\"day-detail-section-head\"><div><p class=\"day-detail-label\">Alimentación</p><h3>Lo que comiste este día</h3></div><span class=\"day-detail-count\">${day.nutrition.count} ${day.nutrition.count===1?'comida':'comidas'}</span></div><div class=\"day-detail-nutrition-grid\"><span><small>Energía</small><strong>≈ ${day.nutrition.totals.calories} kcal</strong></span><span><small>Proteína</small><strong>${day.nutrition.totals.protein} g</strong></span><span><small>Carbohidratos</small><strong>${day.nutrition.totals.carbs} g</strong></span><span><small>Grasas</small><strong>${day.nutrition.totals.fat} g</strong></span></div><div class=\"day-detail-meal-list\">${mealRows}</div><p class=\"muted small\">Valores aproximados basados en tus registros revisados.</p></section>`:''}\n  ${day.hasReflection?`<section class=\"day-detail-section\"><div class=\"day-detail-section-head\"><div><p class=\"day-detail-label\">Tu espacio</p><h3>Lo que quisiste guardar</h3></div></div>${reflections?`<div class=\"day-detail-reflections\">${reflections}</div>`:''}</section>`:''}",'alimentacion ficha');
+
+fs.writeFileSync(path,source);
