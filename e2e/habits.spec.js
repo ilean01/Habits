@@ -6,39 +6,39 @@ async function enterDemo(page){
  await expect(page.getByRole('heading',{name:/Buen|Buenas|Mirá|Un nuevo|Todavía/}).first()).toBeVisible();
 }
 
-test('notebook: navegación principal, progreso, diario y más son coherentes',async({page},testInfo)=>{
+test('notebook: navegación principal, progreso, diario y tareas son coherentes',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
  await enterDemo(page);
  const sidebar=page.locator('.sidebar');
  await expect(sidebar.getByRole('button',{name:/Progreso/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Mi diario/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Biblioteca/i})).toBeVisible();
- await expect(sidebar.getByRole('button',{name:/Más/i})).toBeVisible();
+ await expect(sidebar.getByRole('button',{name:/Tareas/i})).toBeVisible();
  await sidebar.getByRole('button',{name:/Progreso/i}).click();
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
  await expect(page.getByText(/PROMEDIO DE AGUA/i)).toBeVisible();
  await sidebar.getByRole('button',{name:/Mi diario/i}).click();
  await expect(page.getByText(/Qué te gustaría recordar de hoy/i)).toBeVisible();
- await sidebar.getByRole('button',{name:/Más/i}).click();
- await expect(page.getByRole('heading',{name:'Más'})).toBeVisible();
+ await sidebar.getByRole('button',{name:/Tareas/i}).click();
+ await expect(page.getByRole('heading',{name:'Tareas',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
 });
 
-test('móvil: Biblioteca es destino directo y Más conserva áreas, progreso, diario y Para después',async({page},testInfo)=>{
+test('móvil: Biblioteca es destino directo y Tareas conserva áreas, progreso, diario y Para después',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='mobile','Escenario móvil');
  await enterDemo(page);
  const nav=page.locator('.mobile-nav');
- for(const label of ['Mi día','Calendario','Biblioteca','Más'])await expect(nav.getByRole('button',{name:new RegExp(label,'i')})).toBeVisible();
+ for(const label of ['Mi día','Calendario','Biblioteca','Tareas'])await expect(nav.getByRole('button',{name:new RegExp(label,'i')})).toBeVisible();
  await expect(nav.getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
  await expect(nav.getByRole('button',{name:/Progreso/i})).toHaveCount(0);
- await nav.getByRole('button',{name:/Más/i}).click();
+ await nav.getByRole('button',{name:/Tareas/i}).click();
  await expect(page.getByRole('button',{name:'Mis áreas'})).toBeVisible();
  await expect(page.getByRole('button',{name:'Progreso'})).toBeVisible();
  await expect(page.getByRole('button',{name:'Mi diario'})).toBeVisible();
  await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
  await page.getByRole('button',{name:'Progreso'}).click();
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
- await nav.getByRole('button',{name:/Más/i}).click();
+ await nav.getByRole('button',{name:/Tareas/i}).click();
  await page.getByRole('button',{name:'Para después'}).click();
  await expect(page.getByText(/Tareas activas sin fecha, guardadas sin presión/i)).toBeVisible();
 });
