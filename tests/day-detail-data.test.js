@@ -14,6 +14,7 @@ test('la ficha diaria reúne planner, ánimo, tareas, agua, lectura y gym sin me
    {id:'a1',date,achievement:true,text:'Terminé el trabajo',at:'2026-09-25T18:00:00Z'},
    {id:'other',date:'2026-09-24',mood:1,text:'Otro día'}
   ],
+  photos:[{id:'general-photo',date,path:'u/day.jpg',bucket:'day-photos',category:'general',caption:'Un recuerdo',at:'2026-09-25T17:00:00Z'}],
   tasks:[{id:'t1',name:'Una',due:date,done:true,priority:'alta'},{id:'t2',name:'Dos',due:date,done:false,priority:'media'},{id:'t3',name:'Otro día',due:'2026-09-24',done:true}],
   readings:[{id:'r1',date,minutes:18,bookTitle:'Libro A',at:'2026-09-25T10:00:00Z'},{id:'r2',date,minutes:12,bookTitle:'Libro B',at:'2026-09-25T21:00:00Z'}],
   logs:[{id:'w1',date,hydration:true,milliliters:750},{id:'w2',date,hydration:true,milliliters:500},{id:'old',date:'2026-09-24',hydration:true,milliliters:2000}]
@@ -28,7 +29,9 @@ test('la ficha diaria reúne planner, ánimo, tareas, agua, lectura y gym sin me
  assert.equal(data.waterLiters,1.25);
  assert.equal(data.readingMinutes,30);
  assert.equal(data.readings.length,2);
+ assert.equal(data.dayPhotos.length,2);
  assert.equal(data.workoutPhotos.length,1);
+ assert.equal(data.hasPhotos,true);
  assert.equal(data.bodyLog.weight,80.4);
  assert.equal(data.achievements.length,1);
  assert.equal(data.hasReflection,true);
@@ -42,7 +45,9 @@ test('una fecha vacía devuelve una ficha limpia sin datos falsos',()=>{
  assert.equal(data.tasks.length,0);
  assert.equal(data.waterLiters,0);
  assert.equal(data.readingMinutes,0);
+ assert.equal(data.dayPhotos.length,0);
  assert.equal(data.workoutPhotos.length,0);
+ assert.equal(data.hasPhotos,false);
  assert.equal(data.hasReflection,false);
  assert.equal(data.hasWellbeing,false);
 });
