@@ -31,7 +31,7 @@ export function inferMealType(meal={}){
 }
 
 export function nutritionForDate(meals=[],date=''){
- const rows=meals.filter(m=>m?.date===date).map(m=>({...m,mealType:inferMealType(m)})).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+ const rows=meals.filter(m=>m?.date===date).map(m=>{const mealType=inferMealType(m);return {...m,mealType,mealTypeLabel:mealTypeLabel(mealType)};}).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
  const totals=rows.reduce((sum,m)=>({
   calories:sum.calories+(Number(m.totals?.calories)||0),
   protein:sum.protein+(Number(m.totals?.protein)||0),
