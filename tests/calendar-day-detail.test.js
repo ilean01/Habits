@@ -10,7 +10,8 @@ test('Calendario usa una ficha del día única y limpia',async()=>{
  assert.match(main,/day-detail-glance/);
  assert.match(main,/Prioridades/);
  assert.match(main,/Lectura/);
- assert.match(main,/Gym, cuerpo y fotos/);
+ assert.match(main,/Fotos y bienestar/);
+ assert.match(main,/Momentos, gym y cuerpo/);
  assert.match(main,/data-day-detail/);
  assert.match(main,/Ficha del día/);
  assert.match(main,/dayDetailView\(date\)/);
