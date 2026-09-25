@@ -15,7 +15,7 @@ export function normalizeFoodAnalysis(value){
  const totals=foods.reduce((t,f)=>({calories:t.calories+f.calories,protein:t.protein+f.protein,carbs:t.carbs+f.carbs,fat:t.fat+f.fat}),{calories:0,protein:0,carbs:0,fat:0});
  return {foods,totals:{calories:Math.round(totals.calories),protein:Math.round(totals.protein*10)/10,carbs:Math.round(totals.carbs*10)/10,fat:Math.round(totals.fat*10)/10},notes:String(value?.notes||'').slice(0,500)};
 }
-function dataUrl(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onerror=()=>reject(new Error('No se pudo leer la foto.'));r.onload=()=>resolve(r.result);r.readAsDataURL(file);});}
+function imageDataUrl(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo abrir la foto. Probá con otra imagen.'));};img.onload=()=>{try{const max=1600;const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);const out=canvas.toDataURL('image/jpeg',0.86);URL.revokeObjectURL(url);resolve(out);}catch(e){URL.revokeObjectURL(url);reject(e);}};img.src=url;});}
 function validate(file){if(!file||!file.size)throw new Error('Elegí una foto.');if(file.size>6*1024*1024)throw new Error('La foto supera 6 MB.');if(file.type&&!file.type.startsWith('image/'))throw new Error('Elegí un archivo de imagen.');}
 export function nutritionView({esc,btn}){
  const meals=db.records('meal').filter(m=>m.date===dayKey()).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
@@ -32,7 +32,7 @@ export async function nutritionAction(a,el,{showModal,input,esc,toast,modal}){
   showModal('Analizar comida',`<form><p>Tomá una foto clara del plato o elegí una de tu galería.</p>${input('Foto','photo','','file','accept="image/*" capture="environment" required')}<button class="button primary wide" type="submit">Analizar con Groq</button><p class="muted small">La foto se usa para el análisis y no se guarda con el registro.</p></form>`,async f=>{
    const file=f.get('photo');validate(file);const b=modal.querySelector('button[type=submit]');b.disabled=true;b.textContent='Analizando…';
    try{
-    const image=await dataUrl(file);const {data,error}=await db.supabase.functions.invoke('food-ai',{body:{image}});if(error)throw error;if(data?.error)throw new Error(data.error);
+    const image=await imageDataUrl(file);const {data,error}=await db.supabase.functions.invoke('food-ai',{body:{image}});if(error){let message=error.message;try{const body=await error.context?.json();message=body?.error||message;}catch{}throw new Error(message);}if(data?.error)throw new Error(data.error);
     const result=normalizeFoodAnalysis(data);if(!result.foods.length)throw new Error('No pude identificar alimentos.');
     showModal('Revisar análisis',review(result,esc),form=>{
      const foods=[];for(let i=0;i<Number(form.get('count'));i++)foods.push({name:form.get('name_'+i),portion:form.get('portion_'+i),grams:Number(form.get('grams_'+i)),calories:Number(form.get('calories_'+i)),protein:Number(form.get('protein_'+i)),carbs:Number(form.get('carbs_'+i)),fat:Number(form.get('fat_'+i))});
