@@ -49,3 +49,16 @@ test('Supabase acepta kind photo y mantiene el bucket privado',()=>{
  assert.match(sql,/values \('day-photos','day-photos',false/);
  assert.match(sql,/auth\.uid\(\)::text/);
 });
+
+test('gym, ficha diaria y calendario consumen el sistema común',()=>{
+ const gym=fs.readFileSync(new URL('../src/gym.js',import.meta.url),'utf8');
+ const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+ const extras=fs.readFileSync(new URL('../src/extras.js',import.meta.url),'utf8');
+ assert.match(gym,/allDayPhotos\(db\.records\('photo'\), db\.records\('journal'\)\)/);
+ assert.match(gym,/db\.put\('photo'/);
+ assert.doesNotMatch(gym,/storage\.from\('workout-photos'\)\.upload/);
+ assert.match(main,/photos:rec\('photo'\)/);
+ assert.match(main,/hydrateDayPhotos/);
+ assert.match(main,/day\.dayPhotos/);
+ assert.match(extras,/dailyPlan','photo/);
+});
