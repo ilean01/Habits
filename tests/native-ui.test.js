@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {installBannerHtml,installHelpHtml,todayUiContext,waterDaysHtml} from '../src/native-ui.js';
 
 test('la guía de instalación se renderiza sin depender de parches del DOM',()=>{
@@ -24,4 +25,12 @@ test('el gráfico de agua nace con sus barras y etiquetas',()=>{
  assert.match(html,/--water-level:75%/);
  assert.match(html,/1,5 L/);
  assert.match(html,/aria-label="2026-09-25: 1,5 litros"/);
+});
+
+test('la aplicación ya no carga el parche global enhancements.js',async()=>{
+ const [html,main]=await Promise.all([readFile(new URL('../index.html',import.meta.url),'utf8'),readFile(new URL('../src/main.js',import.meta.url),'utf8')]);
+ assert.doesNotMatch(html,/enhancements\.js/);
+ assert.match(main,/installBannerHtml\(\)/);
+ assert.match(main,/waterDaysHtml\(water,prettyDate\)/);
+ assert.match(main,/todayUiContext\(/);
 });
