@@ -1,0 +1,33 @@
+name: Refactor day detail story
+
+on:
+  push:
+    branches:
+      - calendar-day-story
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: calendar-day-story
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Apply refactor
+        run: node scripts/refactor-day-detail-story.mjs
+      - name: Commit day detail story
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Completar historia de la ficha diaria"
+          git push origin HEAD:calendar-day-story
