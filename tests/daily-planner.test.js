@@ -41,7 +41,8 @@ test('vista planner está conectada a Habits, respaldo, impresión y migración'
  ]);
  assert.doesNotMatch(index,/src\/daily-planner\.js/);
  assert.match(main,/import \{dailyPlannerLayout\} from '\.\/daily-planner\.js'/);
- assert.match(main,/function todayView\(\)\{return dailyPlannerLayout\(todayDashboardView\(\),dayKey\(\)\);\}/);
+ assert.match(main,/function todayView\(\)\{const today=dayKey\(\);return dailyPlannerLayout\(todayDashboardView\(\),today,nutritionSummaryView/);
+ assert.match(ui,/dailyPlannerLayout\(dashboardHtml,date=dayKey\(\),summaryHtml=''/);
  assert.doesNotMatch(ui,/MutationObserver/);
  assert.match(ui,/data-action=\"event-options\"/);
  assert.match(ui,/data-action=\"task-done\"/);

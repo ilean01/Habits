@@ -81,9 +81,9 @@ export function plannerSwitchHtml(mode=plannerMode()){
  return `<div class="planner-mode-switch" role="region" aria-label="Vista de Mi día"><span>Elegí cómo querés ver tu día. La app recuerda esta opción en tu cuenta.</span><div class="segmented" role="group" aria-label="Vista"><button data-planner-action="mode" data-mode="dashboard" class="${mode==='dashboard'?'active':''}" aria-pressed="${mode==='dashboard'}">Dashboard</button><button data-planner-action="mode" data-mode="planner" class="${mode==='planner'?'active':''}" aria-pressed="${mode==='planner'}">Agenda del día</button></div></div>`;
 }
 
-export function dailyPlannerLayout(dashboardHtml,date=dayKey()){
+export function dailyPlannerLayout(dashboardHtml,date=dayKey(),summaryHtml=''){
  const mode=plannerMode();
- return `${plannerSwitchHtml(mode)}${mode==='planner'?plannerHtml(date):dashboardHtml}`;
+ return `${plannerSwitchHtml(mode)}${summaryHtml}${mode==='planner'?plannerHtml(date):dashboardHtml}`;
 }
 
 function ensureDialog(){

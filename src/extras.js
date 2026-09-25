@@ -6,7 +6,7 @@ import {activeWorkBlock} from './work-context.js';
 import {effectiveDayMode} from './planning.js';
 export function validateBackup(value){
  if(!value||value.version!==1||!value.records||Array.isArray(value.records)||typeof value.records!=='object')throw new Error('Este archivo no es un respaldo válido de Habits.');
- const allowed=new Set(['settings','area','habit','log','event','eventLog','task','project','book','reading','quote','journal','timer','word','dailyPlan','photo']);
+ const allowed=new Set(['settings','area','habit','log','event','eventLog','task','project','book','reading','quote','journal','timer','word','dailyPlan','photo','meal']);
  const records=Object.entries(value.records);if(records.length>30000)throw new Error('El respaldo supera los 30.000 registros.');
  for(const [id,r] of records)if(!id||id.length>200||['__proto__','constructor','prototype'].includes(id)||!r||r.id!==id||!allowed.has(r.kind)||!r.data||typeof r.data!=='object'||Array.isArray(r.data))throw new Error('El respaldo contiene registros inválidos.');
  return records.map(([,r])=>r).filter(r=>!r.deleted);
