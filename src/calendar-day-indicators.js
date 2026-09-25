@@ -8,18 +8,18 @@ const MOODS={
  5:{emoji:'🤩',label:'Con mucha energía'}
 };
 
-export function calendarDayIndicators({date,journals=[],tasks=[],logs=[],eventLogs=[],habitDone=0}={}){
- const day=dayDetailData({date,journals,tasks,logs,dailyPlans:[],readings:[]});
+export function calendarDayIndicators({date,journals=[],photos=[],tasks=[],logs=[],eventLogs=[],habitDone=0}={}){
+ const day=dayDetailData({date,journals,photos,tasks,logs,dailyPlans:[],readings:[]});
  const mood=MOODS[day.mood]||null;
- const photos=day.workoutPhotos.length;
+ const photoCount=day.dayPhotos.length;
  const completedEvents=eventLogs.filter(row=>row?.date===date).length;
  const completed=Math.max(0,Number(habitDone)||0)+day.tasksDone+completedEvents;
  return {
   mood,
   waterLiters:day.waterLiters,
-  photos,
+  photos:photoCount,
   completed,
-  hasAny:!!(mood||day.waterLiters||photos||completed)
+  hasAny:!!(mood||day.waterLiters||photoCount||completed)
  };
 }
 

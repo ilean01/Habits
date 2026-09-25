@@ -13,13 +13,14 @@ test('los indicadores resumen ánimo, agua, fotos y completados de una sola fech
    {id:'photo',date,workoutPhoto:true,path:'u/gym.jpg',at:'2026-09-25T19:00:00Z'},
    {id:'old',date:'2026-09-24',mood:1}
   ],
+  photos:[{id:'general-photo',date,path:'u/day.jpg',category:'general'}],
   tasks:[{id:'t1',due:date,done:true},{id:'t2',due:date,done:false},{id:'t3',due:'2026-09-24',done:true}],
   logs:[{id:'w1',date,hydration:true,milliliters:1250},{id:'old-water',date:'2026-09-24',hydration:true,milliliters:2000}],
   eventLogs:[{id:'e1',date,eventId:'event-1'},{id:'old-event',date:'2026-09-24',eventId:'event-2'}]
  });
  assert.deepEqual(info.mood,{emoji:'😊',label:'Muy bien'});
  assert.equal(info.waterLiters,1.25);
- assert.equal(info.photos,1);
+ assert.equal(info.photos,2);
  assert.equal(info.completed,4);
  assert.equal(info.hasAny,true);
 });
