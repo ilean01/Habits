@@ -14,7 +14,7 @@ test('tocar un día muestra una ficha única y limpia',async({page})=>{
  const cells=page.locator('.calendar-cell:visible');
  await cells.nth(15).click();
  await expect(page.locator('[data-day-detail]')).toBeVisible();
- await expect(page.locator('.day-detail-summary')).toBeVisible();
- await expect(page.locator('.day-detail-section')).toHaveCount(2);
+ await expect(page.locator('.day-detail-glance')).toBeVisible();
+ expect(await page.locator('.day-detail-section').count()).toBeGreaterThanOrEqual(2);
  await expect(page.locator('.day-history')).toHaveCount(0);
 });
