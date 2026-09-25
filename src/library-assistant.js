@@ -55,7 +55,7 @@ function injectStyle(){
 .library-ai-panel *{box-sizing:border-box}.library-ai-body{display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}.library-ai-messages{flex:1;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}.library-ai-message{min-width:0;max-width:100%;flex-shrink:0}.library-ai-bubble{font:14px/1.5 system-ui,-apple-system,sans-serif;max-width:100%;min-width:0;overflow-wrap:anywhere;word-break:normal}.library-ai-head strong{font-size:17px}.library-ai-head p{font-size:12px}.library-ai-message small{font-size:11px}.library-ai-suggestions{flex-shrink:0;flex-wrap:wrap;overflow:visible;max-width:100%}.library-ai-chip{font:12px/1.3 system-ui;min-height:40px;white-space:normal;text-align:left}.library-ai-form{min-width:0;grid-template-columns:minmax(0,1fr) auto}.library-ai-input{width:100%;min-width:0;font:16px/1.4 system-ui;min-height:44px}.library-ai-send{font:600 14px/1.3 system-ui;min-height:44px}.library-ai-close{min-width:44px;min-height:44px}.library-ai-mode{display:flex;align-items:center;gap:8px;padding:8px 12px;font:12px/1.4 system-ui}.library-ai-mode input{width:18px;height:18px;flex-shrink:0}
 @media(max-width:700px){.library-ai-panel{inset:auto 8px 68px 8px;width:auto;height:min(600px,calc(100dvh - 88px));max-height:calc(100dvh - 88px)}.library-ai-launch{right:10px;bottom:12px}}
 `;
-  document.head.append(style);
+  style.textContent+=`\n.library-ai-launch{display:none!important}\n[data-assistant-host]{max-width:1500px;margin:0 auto;padding:0 24px 28px}\n.library-ai-panel,.library-ai-panel.open{position:relative;display:grid;inset:auto;width:100%;height:min(560px,70vh);max-height:none;border-radius:18px;z-index:auto}\n@media(min-width:1050px){[data-assistant-host]{position:fixed;right:18px;top:126px;width:390px;padding:0;z-index:20}.library-ai-panel,.library-ai-panel.open{height:calc(100dvh - 150px);max-height:720px}.lib-main{padding-right:430px}}\n@media(max-width:1049px){[data-assistant-host]{padding:0 24px 28px}.library-ai-panel,.library-ai-panel.open{height:min(520px,65vh)}}\n@media(max-width:700px){[data-assistant-host]{padding:0 14px 24px}.library-ai-panel,.library-ai-panel.open{position:relative;inset:auto;width:100%;height:min(500px,68vh);max-height:none}}\n`;\n  document.head.append(style);
 }
 
 export function mountLibraryAssistant(host,{getSnapshot}={}){
@@ -67,20 +67,16 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
   if(libraryRoot)new MutationObserver(()=>loadSnapshot.invalidate()).observe(libraryRoot,{childList:true});
   window.addEventListener('focus',()=>loadSnapshot.invalidate());
   const launch=document.createElement('button');
-  launch.type='button';launch.className='library-ai-launch';launch.dataset.libraryAi='launch';launch.textContent='✦ Bibliotecaria';
+  launch.type='button';launch.className='library-ai-launch';launch.dataset.libraryAi='launch';launch.textContent='✦ Bibliotecaria';launch.hidden=true;
   const panel=document.createElement('aside');
-  panel.className='library-ai-panel';panel.dataset.libraryAi='panel';panel.setAttribute('aria-label','Bibliotecaria');
-  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Busca en todo tu catálogo sin cargar los libros uno por uno.</p></div><button type="button" class="library-ai-close" aria-label="Cerrar">×</button></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode> Usar IA externa (comparte la pregunta y solo datos relevantes)</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Título, autor, género, ISBN o una pregunta…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
+  panel.className='library-ai-panel open';panel.dataset.libraryAi='panel';panel.setAttribute('aria-label','Bibliotecaria');
+  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Busca en todo tu catálogo sin cargar los libros uno por uno.</p></div></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode> Usar IA externa (comparte la pregunta y solo datos relevantes)</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Título, autor, género, ISBN o una pregunta…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
   host.append(launch,panel);
   const messages=panel.querySelector('.library-ai-messages');
   const input=panel.querySelector('.library-ai-input');
   const send=panel.querySelector('.library-ai-send');
   addMessage(messages,'assistant','Puedo buscar en todo el catálogo, contar libros por autor o género, consultar sinopsis guardadas, préstamos y lecturas, o sugerirte qué leer.','Índice local optimizado');
-  launch.setAttribute('aria-expanded','false');
-  launch.onclick=()=>{panel.classList.toggle('open');launch.setAttribute('aria-expanded',String(panel.classList.contains('open')));if(panel.classList.contains('open'))input.focus();};
-  const close=()=>{panel.classList.remove('open');launch.setAttribute('aria-expanded','false');launch.focus();};
-  panel.querySelector('.library-ai-close').onclick=close;
-  panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}});
+  launch.setAttribute('aria-expanded','true');
   panel.querySelectorAll('.library-ai-chip').forEach(btn=>btn.onclick=()=>{input.value=btn.textContent;input.focus();});
   panel.querySelector('form').onsubmit=async event=>{
     event.preventDefault();
@@ -97,6 +93,6 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
         addMessage(messages,'assistant','La IA externa no está disponible. Esta respuesta usa solo el catálogo:\n\n'+answerLocally(message,snapshot),`Consulta local · ${count.toLocaleString('es-PY')} libros`);
       }
     }catch(error){addMessage(messages,'assistant',error?.message||'No pude consultar la biblioteca.');}
-    finally{send.disabled=false;panel.removeAttribute('aria-busy');if(panel.isConnected&&panel.classList.contains('open'))input.focus();}
+    finally{send.disabled=false;panel.removeAttribute('aria-busy');if(panel.isConnected)input.focus();}
   };
 }
