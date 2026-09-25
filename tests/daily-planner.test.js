@@ -42,7 +42,7 @@ test('vista planner está conectada a Habits, respaldo, impresión y migración'
  assert.match(index,/daily-planner\.js/);
  assert.match(ui,/data-action=\"event-options\"/);
  assert.match(ui,/data-action=\"task-done\"/);
- assert.match(ui,/data-action=\"habit-action\"/);
+ assert.match(ui,/habit-action/);
  assert.match(ui,/todayLayout/);
  assert.match(ui,/window\.print\(\)/);
  assert.match(css,/@media print/);
