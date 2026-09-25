@@ -36,10 +36,13 @@ test('agenda horaria reutiliza eventos recurrentes del calendario',()=>{
 });
 
 test('vista planner está conectada a Habits, respaldo, impresión y migración',async()=>{
- const [ui,css,index,extras,migration]=await Promise.all([
-  read('src/daily-planner.js'),read('src/daily-planner.css'),read('index.html'),read('src/extras.js'),read('supabase/migrations/20260924221500_daily_planner.sql')
+ const [ui,css,index,main,extras,migration]=await Promise.all([
+  read('src/daily-planner.js'),read('src/daily-planner.css'),read('index.html'),read('src/main.js'),read('src/extras.js'),read('supabase/migrations/20260924221500_daily_planner.sql')
  ]);
- assert.match(index,/daily-planner\.js/);
+ assert.doesNotMatch(index,/src\/daily-planner\.js/);
+ assert.match(main,/import \{dailyPlannerLayout\} from '\.\/daily-planner\.js'/);
+ assert.match(main,/function todayView\(\)\{return dailyPlannerLayout\(todayDashboardView\(\),dayKey\(\)\);\}/);
+ assert.doesNotMatch(ui,/MutationObserver/);
  assert.match(ui,/data-action=\"event-options\"/);
  assert.match(ui,/data-action=\"task-done\"/);
  assert.match(ui,/habit-action/);
