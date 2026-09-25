@@ -23,7 +23,6 @@ function simplifyTasksScreen(){
  if(title?.textContent.trim()==='Más')title.textContent='Tareas';
  if(subtitle)subtitle.textContent='Pendientes, para después y proyectos personales, sin mezclar tus áreas.';
  heading?.querySelector('.eyebrow')?.replaceChildren(document.createTextNode('ORGANIZÁ LO QUE TENÉS QUE HACER'));
- document.querySelector('.mobile-more-shortcuts')?.remove();
  const planningTab=tabs.querySelector('[data-action="space-tab"][data-tab="planning"]');
  if(planningTab?.classList.contains('selected')){
   tabs.querySelector('[data-action="space-tab"][data-tab="tareas"]')?.click();
