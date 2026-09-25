@@ -5,7 +5,7 @@ import {effectiveDayMode} from './day-modes.js';
 import {authorizeEventSave} from './event-service.js';
 import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,nextHour,normalizeDailyPlan,DAILY_PLAN_KIND} from './daily-planner-domain.js';
 
-const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
 const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
 let queued=false;
