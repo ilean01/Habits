@@ -4,13 +4,14 @@
 //   medidas: {bodyLog:true, date, weight, waist, hips, chest, arm, fat, text, at}
 import {dayKey, parseDay} from './domain.js';
 import * as db from './store.js';
+import {allDayPhotos,makePhotoData,DAY_PHOTO_BUCKET} from './day-photos.js';
+import {hydrateDayPhotos,uploadDayPhoto,removeDayPhotoFile} from './photo-storage.js';
 
 export const GYM_AREA = 'salud';
 const ANGLES = [['frente','De frente'],['perfil','De perfil'],['espalda','De espalda'],['otra','Otra']];
 const MEASURES = [['weight','Peso','kg'],['waist','Cintura','cm'],['hips','Cadera','cm'],['chest','Pecho','cm'],['arm','Brazo','cm'],['fat','Grasa corporal','%']];
-const urlCache = new Map();
 
-export const photos = () => db.records('journal').filter(r => r.workoutPhoto && r.path).sort((a, b) => b.date.localeCompare(a.date) || (b.at || '').localeCompare(a.at || ''));
+export const photos = () => allDayPhotos(db.records('photo'), db.records('journal')).filter(r => r.category === 'workout');
 export const bodyLogs = () => db.records('journal').filter(r => r.bodyLog).sort((a, b) => a.date.localeCompare(b.date) || (a.at || '').localeCompare(b.at || ''));
 export const isGymHabit = h => !!h && (h.area === GYM_AREA || /gym|gimnas|entren/i.test(h.name || '')) && (h.icon === 'Dumbbell' || /gym|gimnas|entren/i.test(h.name || ''));
 
@@ -35,7 +36,7 @@ function weightChart(esc) {
 
 function photoTile(p, esc, btn) {
   const angle = ANGLES.find(a => a[0] === p.angle)?.[1] || '';
-  return `<figure class="gym-photo"><div class="gym-photo-img" data-gym-photo="${esc(p.path)}"><span>Cargando…</span></div><figcaption><strong>${esc(niceDate(p.date))}</strong>${angle ? ` · ${esc(angle)}` : ''}${p.text ? `<small>${esc(p.text)}</small>` : ''}${btn('Quitar', 'gym-photo-delete', `data-id="${esc(p.id)}"`, 'text-button danger small')}</figcaption></figure>`;
+  return `<figure class="gym-photo"><div class="gym-photo-img" data-day-photo="${esc(p.path)}" data-photo-bucket="${esc(p.bucket)}" data-photo-alt="Foto de gym"><span>Cargando…</span></div><figcaption><strong>${esc(niceDate(p.date))}</strong>${angle ? ` · ${esc(angle)}` : ''}${p.text ? `<small>${esc(p.text)}</small>` : ''}${btn('Quitar', 'gym-photo-delete', `data-id="${esc(p.id)}"`, 'text-button danger small')}</figcaption></figure>`;
 }
 
 function comparePair(dates = photoDates()) {
@@ -51,7 +52,7 @@ function comparePanel(esc, btn) {
   const option = sel => dates.map(d => `<option value="${esc(d)}" ${d === sel ? 'selected' : ''}>${esc(niceDate(d))}</option>`).join('');
   const side = d => {
     const ps = photos().filter(p => p.date === d), w = lastMeasure('weight', d);
-    return `<div class="gym-compare-side">${ps.map(p => `<div class="gym-photo-img" data-gym-photo="${esc(p.path)}"><span>Cargando…</span></div>`).join('')}<p><strong>${esc(niceDate(d))}</strong><br><small>${w ? `Peso: ${esc(fmt(num(w.weight), 'kg'))}${w.date !== d ? ` (registrado el ${esc(niceDate(w.date))})` : ''}` : 'Sin peso registrado hasta ese día'}</small></p></div>`;
+    return `<div class="gym-compare-side">${ps.map(p => `<div class="gym-photo-img" data-day-photo="${esc(p.path)}" data-photo-bucket="${esc(p.bucket)}" data-photo-alt="Foto de gym"><span>Cargando…</span></div>`).join('')}<p><strong>${esc(niceDate(d))}</strong><br><small>${w ? `Peso: ${esc(fmt(num(w.weight), 'kg'))}${w.date !== d ? ` (registrado el ${esc(niceDate(w.date))})` : ''}` : 'Sin peso registrado hasta ese día'}</small></p></div>`;
   };
   const wa = lastMeasure('weight', a), wb = lastMeasure('weight', b);
   const diff = wa && wb ? Number(wb.weight) - Number(wa.weight) : null;
@@ -72,19 +73,7 @@ export function gymView({esc, btn, icon}) {
 }
 
 export async function hydrateGymPhotos() {
-  const slots = [...document.querySelectorAll('[data-gym-photo]')];
-  if (!slots.length) return;
-  if (db.info().demo || !db.supabase) { slots.forEach(s => s.innerHTML = '<span>Foto disponible con tu cuenta</span>'); return; }
-  const now = Date.now(), missing = [...new Set(slots.map(s => s.dataset.gymPhoto))].filter(p => !(urlCache.get(p)?.until > now));
-  if (missing.length) {
-    const {data} = await db.supabase.storage.from('workout-photos').createSignedUrls(missing, 3600);
-    for (const row of data || []) if (row?.path && row.signedUrl) urlCache.set(row.path, {url:row.signedUrl, until:now + 55 * 60000});
-  }
-  for (const s of document.querySelectorAll('[data-gym-photo]')) {
-    const u = urlCache.get(s.dataset.gymPhoto)?.url;
-    if (u && !s.querySelector('img')) s.innerHTML = `<img src="${u}" alt="Foto del entrenamiento" loading="lazy">`;
-    else if (!u) s.innerHTML = '<span>No se pudo cargar</span>';
-  }
+  return hydrateDayPhotos();
 }
 
 async function shrink(file) {
@@ -101,11 +90,8 @@ function photoForm({showModal, input, textarea, esc, toast, modal}, {title = 'Fo
     if (db.info().demo) throw new Error('Iniciá sesión para guardar fotos privadas.');
     const file = f.get('photo'); if (!file?.size) throw new Error('Elegí una foto.');
     const blob = await shrink(file);
-    const {data:{user}} = await db.supabase.auth.getUser(); if (!user) throw new Error('Iniciá sesión de nuevo.');
-    const path = `${user.id}/${crypto.randomUUID()}.jpg`;
-    const {error} = await db.supabase.storage.from('workout-photos').upload(path, blob, {contentType:'image/jpeg'});
-    if (error) throw new Error('No se pudo subir la foto. Revisá la conexión.');
-    db.put('journal', {workoutPhoto:true, path, angle:f.get('angle') || 'frente', text:String(f.get('text') || ''), date:f.get('date'), at:new Date().toISOString()});
+    const uploaded = await uploadDayPhoto(blob, {bucket:DAY_PHOTO_BUCKET, extension:'jpg', contentType:'image/jpeg'});
+    db.put('photo', makePhotoData({date:f.get('date'), path:uploaded.path, bucket:uploaded.bucket, category:'workout', angle:f.get('angle') || 'frente', caption:String(f.get('text') || '')}));
     modal.close(); toast('Foto guardada. ¡Qué bueno ver tu avance!');
   });
 }
@@ -136,8 +122,8 @@ export async function gymAction(a, el, helpers) {
   if (a === 'gym-photo-delete') {
     const p = photos().find(r => r.id === el.dataset.id); if (!p) return true;
     showModal('Quitar foto', `<p>La foto se borra de tu espacio privado. No se puede deshacer.</p><form><div class="modal-footer"><button type="button" class="button outline" data-action="close">Cancelar</button><button type="submit" class="button primary">Quitar esta foto</button></div></form>`, async () => {
-      if (!db.info().demo) { const {error} = await db.supabase.storage.from('workout-photos').remove([p.path]); if (error) throw error; }
-      urlCache.delete(p.path); db.remove(p.id); modal.close(); toast('Foto quitada.');
+      if (!db.info().demo) await removeDayPhotoFile(p);
+      db.remove(p.id); modal.close(); toast('Foto quitada.');
     });
     return true;
   }
