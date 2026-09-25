@@ -37,13 +37,12 @@ test('GitHub Pages no publica si Playwright no pasa',async()=>{
  assert.match(workflow,/needs\.validate\.result == 'success'/);
 });
 
-test('la Biblioteca nueva es el único catálogo funcional del shell',async()=>{
- const enhancements=await read('src/enhancements.js');
- const retirement=await read('src/legacy-book-retirement.js');
- assert.match(enhancements,/retireLegacyBooks\(db\)/);
- assert.match(enhancements,/Sesiones y citas de lectura/);
- assert.match(enhancements,/\['new-book','edit-book'\]/);
- assert.match(enhancements,/shell\.before\(embed\)/);
+test('la Biblioteca nueva es el único catálogo visible del shell sin parche posterior',async()=>{
+ const [main,index,retirement]=await Promise.all([read('src/main.js'),read('index.html'),read('src/legacy-book-retirement.js')]);
+ assert.match(main,/function unifiedLibraryView\(\)[\s\S]*habits-library-embed[\s\S]*readingCompanionView\(\)/);
+ assert.match(main,/function readingCompanionView\(\)[\s\S]*Sesiones y citas de lectura/);
+ assert.doesNotMatch(main,/function unifiedLibraryView\(\)[\s\S]{0,500}libraryView\(\)/);
+ assert.doesNotMatch(index,/enhancements\.js/);
  assert.match(retirement,/legacyBookArchive/);
  assert.match(retirement,/bookTitle/);
  assert.match(retirement,/legacyBookId/);
