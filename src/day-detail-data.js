@@ -1,16 +1,18 @@
 import {waterTotal} from './hydration.js';
 import {planForDate} from './daily-planner-domain.js';
-import {diaryEntries,workoutPhotos,bodyMeasurements,achievements,englishPractices} from './selectors.js';
+import {diaryEntries,bodyMeasurements,achievements,englishPractices} from './selectors.js';
+import {photosForDate} from './day-photos.js';
 
 const byTime=(a,b)=>String(a.at||'').localeCompare(String(b.at||''));
 const newest=rows=>rows.slice().sort(byTime).at(-1)||null;
 
-export function dayDetailData({date,journals=[],dailyPlans=[],tasks=[],readings=[],logs=[]}={}){
+export function dayDetailData({date,journals=[],photos=[],dailyPlans=[],tasks=[],readings=[],logs=[]}={}){
  const plan=planForDate(dailyPlans,date);
  const diary=newest(diaryEntries(journals).filter(r=>r.date===date));
  const dayTasks=tasks.filter(t=>t?.due===date).slice().sort((a,b)=>Number(a.done)-Number(b.done)||({alta:0,media:1,baja:2}[a.priority]??1)-({alta:0,media:1,baja:2}[b.priority]??1)||(a.name||'').localeCompare(b.name||''));
  const dayReadings=readings.filter(r=>r?.date===date).slice().sort(byTime);
- const photos=workoutPhotos(journals).filter(r=>r.date===date&&r.path).slice().sort(byTime);
+ const dayPhotos=photosForDate({photos,journals,date}).slice().sort(byTime);
+ const workoutPhotos=dayPhotos.filter(r=>r.category==='workout');
  const body=newest(bodyMeasurements(journals).filter(r=>r.date===date));
  const dayAchievements=achievements(journals).filter(r=>r.date===date).slice().sort(byTime);
  const practices=englishPractices(journals).filter(r=>r.date===date).slice().sort(byTime);
@@ -29,11 +31,13 @@ export function dayDetailData({date,journals=[],dailyPlans=[],tasks=[],readings=
   readings:dayReadings,
   readingMinutes,
   waterLiters,
-  workoutPhotos:photos,
+  dayPhotos,
+  workoutPhotos,
   bodyLog:body,
   achievements:dayAchievements,
   englishPractices:practices,
   hasReflection:!!(priorities.length||plan.gratitude||plan.notes||diary?.text),
-  hasWellbeing:!!(Number(diary?.mood)||waterLiters||body||photos.length)
+  hasPhotos:dayPhotos.length>0,
+  hasWellbeing:!!(Number(diary?.mood)||waterLiters||body||workoutPhotos.length)
  };
 }
