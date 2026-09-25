@@ -35,7 +35,7 @@ export async function nutritionAction(a,el,{showModal,input,esc,toast,modal}){
     const image=await dataUrl(file);const {data,error}=await db.supabase.functions.invoke('food-ai',{body:{image}});if(error)throw error;if(data?.error)throw new Error(data.error);
     const result=normalizeFoodAnalysis(data);if(!result.foods.length)throw new Error('No pude identificar alimentos.');
     showModal('Revisar análisis',review(result,esc),form=>{
-     const foods=[];for(let i=0;i<Number(form.get('count'));i++)foods.push({name:form.get('name_'+i),portion:form.get('portion_'+i),grams:Number(form.get('grams_'+i)),calories:Number(form.get('calories_'+i)),protein:Number(form.get('protein_'+i)),carbs:Number(form.get('carbs_'+i)),fat:Number(form.get('fat_'+i)});
+     const foods=[];for(let i=0;i<Number(form.get('count'));i++)foods.push({name:form.get('name_'+i),portion:form.get('portion_'+i),grams:Number(form.get('grams_'+i)),calories:Number(form.get('calories_'+i)),protein:Number(form.get('protein_'+i)),carbs:Number(form.get('carbs_'+i)),fat:Number(form.get('fat_'+i))});
      const clean=normalizeFoodAnalysis({foods,notes:result.notes});db.put('meal',{date:dayKey(),at:new Date().toISOString(),label:String(form.get('label')||'Comida').slice(0,80),foods:clean.foods,totals:clean.totals,estimated:true,source:'groq-photo'});modal.dataset.dirty='false';modal.close();toast('Comida guardada · ≈ '+clean.totals.calories+' kcal');
     });
    }catch(e){toast('No se pudo analizar: '+(e?.message||'error'));b.disabled=false;b.textContent='Analizar con Groq';}
