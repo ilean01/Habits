@@ -21,13 +21,11 @@ function moodSection(date){
 }
 
 function mountMood(){
- const planner=document.querySelector('.daily-planner'),side=planner?.querySelector('.planner-side');
- if(!planner||!side)return;
+ const content=document.querySelector('.content'),planner=content?.querySelector('.daily-planner'),existing=content?.querySelector('.planner-mood-section');
+ if(!planner){existing?.remove();return;}
+ if(existing)return;
  const date=planner.dataset.plannerDate||dayKey();
- const existing=side.querySelector('.planner-mood-section');
- const html=moodSection(date);
- if(existing)existing.outerHTML=html;
- else side.querySelector('.planner-habit-section')?.insertAdjacentHTML('afterend',html);
+ planner.insertAdjacentHTML('beforebegin',moodSection(date));
 }
 
 const observer=new MutationObserver(()=>{
