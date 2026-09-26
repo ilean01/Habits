@@ -13,7 +13,7 @@ test('demo UI preserves navigation, diary, incremental water, habit fields and c
  for(const key of ['indexedDB','IDBKeyRange','IDBRequest','IDBOpenDBRequest','IDBDatabase','IDBTransaction','IDBObjectStore','IDBIndex','IDBCursor','IDBCursorWithValue'])if(globalThis[key])Object.defineProperty(w,key,{value:globalThis[key],configurable:true});
  w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};w.scrollTo=()=>{};w.confirm=()=>true;
  try{w.eval(bundle.outputFiles[0].text);const click=async selector=>{const el=w.document.querySelector(selector);assert.ok(el,selector);el.click();await sleep(20);};const water=()=>Number(String(w.document.querySelector('.water-panel strong')?.textContent||'0').replace(',','.').match(/[\d.]+/)?.[0]||0);
- await click('[data-action=demo]');await waitFor(()=>w.document.querySelectorAll('.habit-card').length===6);assert.equal(w.document.querySelectorAll('.habit-card').length,6);
+ await click('[data-action=demo]');await waitFor(()=>w.document.querySelectorAll('.habit-card').length>0);assert.ok(w.document.querySelectorAll('.habit-card').length>0,'La demo debe mostrar los hábitos programados para el día actual.');
  const start=water();await click('[data-action=water-add][data-ml="250"]');await click('[data-action=water-add][data-ml="500"]');await waitFor(()=>Math.abs(water()-(start+0.75))<0.001);assert.ok(Math.abs(water()-(start+0.75))<0.001);
  await click('.water-panel [data-action=water-remove]');await waitFor(()=>water()<start+0.75);assert.ok(water()<start+0.75);
  await click('[data-view=progress]');assert.match(w.document.body.textContent,/PROMEDIO DE AGUA/);assert.match(w.document.body.textContent,/Tu agua, día por día/);
