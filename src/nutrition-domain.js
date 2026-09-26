@@ -8,6 +8,9 @@ export const MEAL_TYPES={
 
 const round1=value=>Math.round((Number(value)||0)*10)/10;
 const clean=value=>String(value??'').trim();
+const parseDateKey=value=>{const [y,m,d]=String(value||'').split('-').map(Number);return new Date(y,m-1,d);};
+const formatDateKey=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const shiftDate=(key,delta)=>{const d=parseDateKey(key);d.setDate(d.getDate()+delta);return formatDateKey(d);};
 
 export function mealTypeLabel(type){return MEAL_TYPES[type]||MEAL_TYPES.other;}
 
@@ -47,5 +50,39 @@ export function nutritionForDate(meals=[],date=''){
   types,
   typeLabels:types.map(mealTypeLabel),
   hasData:rows.length>0
+ };
+}
+
+export function nutritionRangeStats(meals=[],endDate='',days=30){
+ const range=[7,30,90].includes(Number(days))?Number(days):30;
+ const keys=Array.from({length:range},(_,i)=>shiftDate(endDate,i-range+1));
+ const byDay=keys.map(date=>nutritionForDate(meals,date));
+ const recorded=byDay.filter(day=>day.hasData);
+ const daysWithData=recorded.length;
+ const totals=recorded.reduce((sum,day)=>({
+  calories:sum.calories+day.totals.calories,
+  protein:sum.protein+day.totals.protein,
+  carbs:sum.carbs+day.totals.carbs,
+  fat:sum.fat+day.totals.fat,
+  meals:sum.meals+day.count
+ }),{calories:0,protein:0,carbs:0,fat:0,meals:0});
+ const divisor=daysWithData||1;
+ const averages={
+  calories:daysWithData?Math.round(totals.calories/divisor):0,
+  protein:daysWithData?round1(totals.protein/divisor):0,
+  carbs:daysWithData?round1(totals.carbs/divisor):0,
+  fat:daysWithData?round1(totals.fat/divisor):0,
+  meals:daysWithData?round1(totals.meals/divisor):0
+ };
+ const maxCalories=Math.max(1,...recorded.map(day=>day.totals.calories));
+ return {
+  days:range,
+  startDate:keys[0],
+  endDate,
+  daysWithData,
+  mealsRecorded:totals.meals,
+  coverage:Math.round((daysWithData/range)*100),
+  averages,
+  byDay:byDay.map(day=>({...day,caloriePercent:day.hasData?Math.max(3,Math.round((day.totals.calories/maxCalories)*100)):0}))
  };
 }
