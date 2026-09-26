@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+const path='src/biblioteca-main.js';
+let source=fs.readFileSync(path,'utf8');
+const start='try{const access=await sessionAndAccess();';
+if(!source.includes(start))throw new Error('No se encontró el inicio async de Biblioteca.');
+source=source.replace(start,'async function initLibrary(){try{const access=await sessionAndAccess();');
+const anchor='\nsupabase.auth.onAuthStateChange';
+const count=source.split(anchor).length-1;if(count!==1)throw new Error(`auth anchor: ${count}`);
+source=source.replace(anchor,'}\nvoid initLibrary();\nsupabase.auth.onAuthStateChange');
+fs.writeFileSync(path,source);
