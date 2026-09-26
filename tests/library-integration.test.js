@@ -1,32 +1,53 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,access} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('Biblioteca embebida hereda apariencia y altura del shell de Habits',async()=>{
- const embed=await read('src/library-embed.js');
- const main=await read('src/biblioteca-main.js');
- assert.match(embed,/habits-shell/);
- assert.match(embed,/type:'appearance'/);
- assert.match(embed,/type==='resize'/);
- assert.match(main,/source:'habits-library'/);
- assert.match(main,/habitsTheme/);
- assert.match(main,/ResizeObserver/);
+test('Biblioteca se monta nativamente dentro del shell sin iframe',async()=>{
+ const [main,host,library]=await Promise.all([read('src/main.js'),read('src/library-native-host.js'),read('src/biblioteca-main.js')]);
+ assert.match(main,/mountNativeLibrary/);
+ assert.match(main,/data-library-native-host/);
+ assert.doesNotMatch(main,/mountEmbeddedLibrary/);
+ assert.doesNotMatch(main,/habits-library-frame/);
+ assert.match(host,/library-native-shell/);
+ assert.match(host,/import\('\.\/biblioteca-main\.js'\)/);
+ assert.doesNotMatch(host,/<iframe/i);
+ assert.match(library,/window\.__habitsLibraryNative===true/);
+ assert.match(library,/root\?\.contains\(el\)\|\|modal\?\.contains\(el\)/);
 });
 
-test('Biblioteca embebida elimina la segunda marca pero conserva biblioteca activa y navegación',async()=>{
- const views=await read('src/biblioteca/views.js');
- const css=await read('src/biblioteca-habits.css');
+test('Biblioteca nativa elimina segunda marca y conserva contexto y navegación completa',async()=>{
+ const [views,css]=await Promise.all([read('src/biblioteca/views.js'),read('src/library-native.css')]);
  assert.match(views,/if\(s\.embedded\)/);
  assert.match(views,/Biblioteca activa/);
  assert.match(views,/data-lib-switch/);
- assert.match(views,/Catálogo/);
- assert.match(views,/Préstamos/);
- assert.match(views,/Papelera/);
- assert.match(css,/html\.embedded-library \.lib-brand/);
- assert.match(css,/font-size:14px/);
- assert.match(css,/--lib-main:#48634d/);
+ for(const label of ['Catálogo','Estoy leyendo','Préstamos','Deseos','Leer después','Revisar','Estadísticas','Etiquetas','Papelera','Configuración'])assert.match(views,new RegExp(label));
+ assert.match(css,/\.library-native-shell \.lib-header/);
+ assert.match(css,/\.library-native-modal/);
+ assert.match(css,/\.library-native-shell \.lib-nav/);
+});
+
+test('catálogo, préstamos, Dewey, portadas, miembros, lectura y Bibliotecaria conservan sus acciones',async()=>{
+ const [library,assistant,views]=await Promise.all([read('src/biblioteca-main.js'),read('src/library-assistant.js'),read('src/biblioteca/views.js')]);
+ for(const action of ['new-book','new-loan','print-labels','cover','phone-cover','share-remove','start-reading','update-page'])assert.match(library,new RegExp(action));
+ assert.match(library,/mountLibraryAssistant/);
+ assert.match(library,/root\.append\(assistantHost\)/);
+ assert.match(library,/new URL\('biblioteca\.html',location\.href\)/);
+ assert.match(views,/biblioteca_invitar|share-form/);
+ assert.match(assistant,/Bibliotecaria|assistant/i);
+});
+
+test('Biblioteca visible ya no depende del bridge de iframe',async()=>{
+ await assert.rejects(access(new URL('../src/library-embed.js',import.meta.url)));
+ const main=await read('src/main.js');
+ const start=main.indexOf('function unifiedLibraryView()');
+ const end=main.indexOf('function libraryView()',start);
+ const unified=main.slice(start,end);
+ assert.ok(start>=0&&end>start);
+ assert.match(unified,/habits-library-native/);
+ assert.match(unified,/readingCompanionView\(\)/);
+ assert.doesNotMatch(unified,/iframe|library-embed/);
 });
 
 test('GitHub Pages no publica si Playwright no pasa',async()=>{
@@ -35,20 +56,4 @@ test('GitHub Pages no publica si Playwright no pasa',async()=>{
  assert.match(workflow,/playwright install --with-deps chromium/);
  assert.match(workflow,/needs: validate/);
  assert.match(workflow,/needs\.validate\.result == 'success'/);
-});
-
-test('la Biblioteca nueva es el único catálogo visible del shell sin parche posterior',async()=>{
- const [main,index,retirement]=await Promise.all([read('src/main.js'),read('index.html'),read('src/legacy-book-retirement.js')]);
- const start=main.indexOf('function unifiedLibraryView()');
- const end=main.indexOf('function libraryView()',start);
- const unified=main.slice(start,end);
- assert.ok(start>=0&&end>start,'la vista unificada debe existir antes del código legado pendiente de retirar');
- assert.match(unified,/habits-library-embed/);
- assert.match(unified,/readingCompanionView\(\)/);
- assert.doesNotMatch(unified,/libraryView\(\)/);
- assert.match(main,/function readingCompanionView\(\)[\s\S]*Sesiones y citas de lectura/);
- assert.doesNotMatch(index,/enhancements\.js/);
- assert.match(retirement,/legacyBookArchive/);
- assert.match(retirement,/bookTitle/);
- assert.match(retirement,/legacyBookId/);
 });
