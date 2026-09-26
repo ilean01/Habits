@@ -1,7 +1,7 @@
 import {openDB} from 'idb';
 
 const DB_NAME='habits-cache-v2';
-const DB_VERSION=1;
+const DB_VERSION=2;
 let dbPromise;
 
 function database(){
@@ -13,6 +13,10 @@ function database(){
    }
   }
   if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'owner'});
+  if(!db.objectStoreNames.contains('media')){
+   const store=db.createObjectStore('media',{keyPath:['owner','id']});
+   store.createIndex('by-owner','owner');
+  }
  }});
  return dbPromise;
 }
@@ -41,6 +45,10 @@ export const savePending=(owner,id,value)=>putValue('pending',owner,id,value);
 export const saveConflict=(owner,id,value)=>putValue('conflicts',owner,id,value);
 export const removePending=(owner,id)=>deleteValue('pending',owner,id);
 export const removeConflict=(owner,id)=>deleteValue('conflicts',owner,id);
+export const saveMedia=(owner,id,value)=>putValue('media',owner,id,value);
+export const removeMedia=(owner,id)=>deleteValue('media',owner,id);
+export async function loadMedia(owner,id){const db=await database();return (await db.get('media',[owner,id]))?.value||null;}
+export async function listMedia(owner){const db=await database();const rows=await db.getAllFromIndex('media','by-owner',owner);return rows.map(row=>({id:row.id,...row.value}));}
 
 export async function saveMeta(owner,patch){
  const db=await database();const before=await db.get('meta',owner)||{owner,lastSync:null};
@@ -49,8 +57,8 @@ export async function saveMeta(owner,patch){
 
 export async function clearOwner(owner){
  const db=await database();
- const tx=db.transaction(['records','pending','conflicts','meta'],'readwrite');
- for(const name of ['records','pending','conflicts']){
+ const tx=db.transaction(['records','pending','conflicts','media','meta'],'readwrite');
+ for(const name of ['records','pending','conflicts','media']){
   const store=tx.objectStore(name),keys=await store.index('by-owner').getAllKeys(owner);
   for(const key of keys)await store.delete(key);
  }
