@@ -50,7 +50,10 @@ test('Biblioteca usa un solo catálogo y deja las sesiones/citas como complement
  await expect(page.locator('[data-action="new-book"]')).toHaveCount(0);
  await expect(page.locator('[data-action="edit-book"]')).toHaveCount(0);
  await expect(page.getByText('Sesiones y citas de lectura')).toBeVisible();
- await expect(page.locator('.habits-library-embed + .reading-companion')).toHaveCount(1);
+ await expect(page.locator('[data-library-native-host]')).toBeVisible();
+ await expect(page.locator('[data-library-native-root]')).toHaveCount(1);
+ await expect(page.locator('[data-library-native-root] iframe')).toHaveCount(0);
+ await expect(page.locator('.habits-library-native + .reading-companion')).toHaveCount(1);
 });
 
 test('agenda avisa el choque antes de guardar el segundo evento',async({page},testInfo)=>{
