@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+let source=fs.readFileSync('src/biblioteca-main.js','utf8');
+const reloads=(source.match(/location\.reload\(\);/g)||[]).length;
+if(!reloads)throw new Error('No se encontraron recargas de Biblioteca para reemplazar.');
+source=source.replaceAll('location.reload();','await reload();');
+const coverFrom="const url=new URL(location.href);url.searchParams.set('cover',id);";
+const coverTo="const url=new URL('biblioteca.html',location.href);url.searchParams.set('cover',id);";
+if(!source.includes(coverFrom))throw new Error('No se encontró el enlace de portada por celular.');
+source=source.replace(coverFrom,coverTo);
+source=source.replace("if(embedded){window.addEventListener('message'","if(embedded&&window.parent!==window){window.addEventListener('message'");
+fs.writeFileSync('src/biblioteca-main.js',source);
