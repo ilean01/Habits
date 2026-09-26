@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {JSDOM} from 'jsdom';
+import {JSDOM,VirtualConsole} from 'jsdom';
 import 'fake-indexeddb/auto';
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -9,11 +9,13 @@ async function waitFor(check,{timeout=2500,step=20}={}){const start=Date.now();w
 
 test('demo UI preserves navigation, diary, incremental water, habit fields and calendar',async()=>{
  const bundle=await build({entryPoints:['src/main.js'],bundle:true,write:false,format:'iife',loader:{'.css':'empty'},define:{'import.meta.env':'{}'},plugins:[{name:'fake-auth',setup(b){b.onResolve({filter:/^@supabase\/supabase-js$/},()=>({path:'fake',namespace:'test'}));b.onLoad({filter:/.*/,namespace:'test'},()=>({contents:'export const createClient=()=>({auth:{onAuthStateChange(){}},removeChannel(){}});',loader:'js'}));}}]});
- const dom=new JSDOM('<div id="app"></div><dialog id="modal"></dialog><div id="toast"></div>',{url:'https://example.test/',runScripts:'outside-only'});const w=dom.window;
+ const runtimeErrors=[],virtualConsole=new VirtualConsole();virtualConsole.on('jsdomError',error=>runtimeErrors.push(error?.stack||error?.message||String(error)));
+ const dom=new JSDOM('<div id="app"></div><dialog id="modal"></dialog><div id="toast"></div>',{url:'https://example.test/',runScripts:'outside-only',virtualConsole});const w=dom.window;
+ w.addEventListener('error',event=>runtimeErrors.push(event.error?.stack||event.message||'window error'));w.addEventListener('unhandledrejection',event=>runtimeErrors.push(event.reason?.stack||event.reason?.message||String(event.reason)));
  for(const key of ['indexedDB','IDBKeyRange','IDBRequest','IDBOpenDBRequest','IDBDatabase','IDBTransaction','IDBObjectStore','IDBIndex','IDBCursor','IDBCursorWithValue'])if(globalThis[key])Object.defineProperty(w,key,{value:globalThis[key],configurable:true});
  w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};w.HTMLDialogElement.prototype.close=function(){this.open=false;};w.scrollTo=()=>{};w.confirm=()=>true;
  try{w.eval(bundle.outputFiles[0].text);const click=async selector=>{const el=w.document.querySelector(selector);assert.ok(el,selector);el.click();await sleep(20);};const water=()=>Number(String(w.document.querySelector('.water-panel strong')?.textContent||'0').replace(',','.').match(/[\d.]+/)?.[0]||0);
- await click('[data-action=demo]');await waitFor(()=>w.document.querySelectorAll('.habit-card').length===6,{timeout:15000});assert.equal(w.document.querySelectorAll('.habit-card').length,6);
+ await click('[data-action=demo]');const demoStart=Date.now();while(Date.now()-demoStart<8000&&w.document.querySelectorAll('.habit-card').length!==6&&!runtimeErrors.length)await sleep(20);assert.equal(w.document.querySelectorAll('.habit-card').length,6,`La demo no inició. Errores: ${runtimeErrors.join(' | ')||'ninguno'}. Pantalla: ${w.document.body.textContent.slice(0,700)}`);
  const start=water();await click('[data-action=water-add][data-ml="250"]');await click('[data-action=water-add][data-ml="500"]');await waitFor(()=>Math.abs(water()-(start+0.75))<0.001);assert.ok(Math.abs(water()-(start+0.75))<0.001);
  await click('.water-panel [data-action=water-remove]');await waitFor(()=>water()<start+0.75);assert.ok(water()<start+0.75);
  await click('[data-view=progress]');assert.match(w.document.body.textContent,/PROMEDIO DE AGUA/);assert.match(w.document.body.textContent,/Tu agua, día por día/);
