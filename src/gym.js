@@ -5,7 +5,7 @@
 import {dayKey, parseDay} from './domain.js';
 import * as db from './store.js';
 import {allDayPhotos,makePhotoData,DAY_PHOTO_BUCKET} from './day-photos.js';
-import {hydrateDayPhotos,uploadDayPhoto,removeDayPhotoFile} from './photo-storage.js';
+import {compressPhoto,hydrateDayPhotos,uploadDayPhoto,removeDayPhotoFile} from './photo-storage.js';
 
 export const GYM_AREA = 'salud';
 const ANGLES = [['frente','De frente'],['perfil','De perfil'],['espalda','De espalda'],['otra','Otra']];
@@ -76,21 +76,12 @@ export async function hydrateGymPhotos() {
   return hydrateDayPhotos();
 }
 
-async function shrink(file) {
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) { if (['image/jpeg','image/png','image/webp'].includes(file.type) && file.size <= 10485760) return file; throw new Error('No se pudo leer esa imagen. Probá con otra foto.'); }
-  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement('canvas'); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('No se pudo preparar la foto.')), 'image/jpeg', 0.85));
-}
-
 function photoForm({showModal, input, textarea, esc, toast, modal}, {title = 'Foto de hoy', intro = '', date = dayKey()} = {}) {
   showModal(title, `<form>${intro}${input('Fecha', 'date', date, 'date', `required max="${dayKey()}"`)}<label>Tomar o elegir una foto<input name="photo" type="file" accept="image/*" required></label><label>Tipo de foto<select name="angle">${ANGLES.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('')}</select></label>${textarea('¿Cómo te sentiste? (opcional)', 'text', '')}<p class="muted small">Solo tu cuenta puede ver estas fotos. Se achican antes de subir para que carguen rápido. Necesitás conexión.</p><div class="modal-footer"><button type="button" class="button outline" data-action="close">Ahora no</button><button class="button primary" type="submit">Guardar foto</button></div></form>`, async f => {
     if (db.info().demo) throw new Error('Iniciá sesión para guardar fotos privadas.');
     const file = f.get('photo'); if (!file?.size) throw new Error('Elegí una foto.');
-    const blob = await shrink(file);
-    const uploaded = await uploadDayPhoto(blob, {bucket:DAY_PHOTO_BUCKET, extension:'jpg', contentType:'image/jpeg'});
+    const prepared = await compressPhoto(file);
+    const uploaded = await uploadDayPhoto(prepared.blob, {bucket:DAY_PHOTO_BUCKET, extension:prepared.extension, contentType:prepared.contentType});
     db.put('photo', makePhotoData({date:f.get('date'), path:uploaded.path, bucket:uploaded.bucket, category:'workout', angle:f.get('angle') || 'frente', caption:String(f.get('text') || '')}));
     modal.close(); toast('Foto guardada. ¡Qué bueno ver tu avance!');
   });
