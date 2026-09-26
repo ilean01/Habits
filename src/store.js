@@ -18,6 +18,7 @@ const enqueue=fn=>{writeQueue=writeQueue.then(fn).catch(e=>console.warn('No se p
 const notify=()=>{invalidate();listener();};
 
 export const info=()=>({status,pending:Object.keys(cache.pending).length,conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb'});
+export const currentOwner=()=>owner;
 // Cada pantalla llama a records() decenas de veces (el calendario, más de cien). Se calcula una vez por cambio y se reutiliza.
 const byKind=new Map();
 const invalidate=()=>byKind.clear();

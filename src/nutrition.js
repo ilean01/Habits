@@ -1,7 +1,7 @@
 import * as db from './store.js';
 import {dayKey} from './domain.js';
-import {DAY_PHOTO_BUCKET,allDayPhotos,makePhotoData} from './day-photos.js';
-import {compressPhoto,hydrateDayPhotos,removeDayPhotoFile,uploadDayPhoto} from './photo-storage.js';
+import {allDayPhotos} from './day-photos.js';
+import {compressPhoto,hydrateDayPhotos,saveDayPhoto} from './photo-storage.js';
 import {MEAL_TYPES,defaultMealType,mealTypeLabel,normalizeNutritionGoals,nutritionForDate} from './nutrition-domain.js';
 
 export function normalizeFoodAnalysis(value){
@@ -56,13 +56,9 @@ export async function nutritionAction(a,el,{showModal,input,esc,toast,modal}){
     showModal('Revisar análisis',review(result,esc),async form=>{
      const foods=[];for(let i=0;i<Number(form.get('count'));i++)foods.push({name:form.get('name_'+i),portion:form.get('portion_'+i),grams:Number(form.get('grams_'+i)),calories:Number(form.get('calories_'+i)),protein:Number(form.get('protein_'+i)),carbs:Number(form.get('carbs_'+i)),fat:Number(form.get('fat_'+i))});
      const clean=normalizeFoodAnalysis({foods,notes:result.notes}),mealType=Object.hasOwn(MEAL_TYPES,String(form.get('mealType')))?String(form.get('mealType')):'other',date=String(form.get('date')||dayKey()),time=String(form.get('time')||localTime()),label=String(form.get('label')||mealTypeLabel(mealType)).slice(0,80),comment=String(form.get('comment')||'').slice(0,500),mealId=crypto.randomUUID(),photoId=crypto.randomUUID();
-     let uploaded=null;
-     try{
-      uploaded=await uploadDayPhoto(prepared.blob,{bucket:DAY_PHOTO_BUCKET,extension:prepared.extension,contentType:prepared.contentType});
-      db.put('photo',makePhotoData({date,path:uploaded.path,bucket:uploaded.bucket,category:'food',caption:label,mealId,width:prepared.width,height:prepared.height,size:prepared.size,originalSize:prepared.originalSize}),photoId);
-      db.put('meal',{date,time,at:mealAt(date,time),mealType,label,comment,foods:clean.foods,totals:clean.totals,estimated:true,source:'groq-photo',photoId,photoPath:uploaded.path,photoBucket:uploaded.bucket},mealId);
-     }catch(error){if(photoId)db.remove(photoId);if(uploaded)await removeDayPhotoFile(uploaded).catch(()=>{});throw error;}
-     modal.dataset.dirty='false';modal.close();toast(`${mealTypeLabel(mealType)} guardado · ≈ ${clean.totals.calories} kcal`);
+     const saved=await saveDayPhoto(prepared,{date,category:'food',caption:label,mealId,width:prepared.width,height:prepared.height,size:prepared.size,originalSize:prepared.originalSize},{id:photoId});
+     db.put('meal',{date,time,at:mealAt(date,time),mealType,label,comment,foods:clean.foods,totals:clean.totals,estimated:true,source:'groq-photo',photoId},mealId);
+     modal.dataset.dirty='false';modal.close();toast(`${mealTypeLabel(mealType)} guardado · ≈ ${clean.totals.calories} kcal${saved.pending?' · foto pendiente de subir':''}`);
     });
    }catch(e){toast('No se pudo analizar: '+(e?.message||'error'));b.disabled=false;b.textContent='Analizar con Groq';}
   });return true;
