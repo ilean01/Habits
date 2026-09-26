@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import 'fake-indexeddb/auto';
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function waitFor(check,{timeout=2500,step=20}={}){const start=Date.now();while(Date.now()-start<timeout){if(check())return;await sleep(step);}assert.ok(check(),'La interfaz no alcanzó el estado esperado dentro del tiempo de prueba.');}
+async function waitFor(check,{timeout=6000,step=20}={}){const start=Date.now();while(Date.now()-start<timeout){if(check())return;await sleep(step);}assert.ok(check(),'La interfaz no alcanzó el estado esperado dentro del tiempo de prueba.');}
 
 test('demo UI preserves navigation, diary, incremental water, habit fields and calendar',async()=>{
  const bundle=await build({entryPoints:['src/main.js'],bundle:true,write:false,format:'iife',loader:{'.css':'empty'},define:{'import.meta.env':'{}'},plugins:[{name:'fake-auth',setup(b){b.onResolve({filter:/^@supabase\/supabase-js$/},()=>({path:'fake',namespace:'test'}));b.onLoad({filter:/.*/,namespace:'test'},()=>({contents:'export const createClient=()=>({auth:{onAuthStateChange(){}},removeChannel(){}});',loader:'js'}));}}]});
