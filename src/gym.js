@@ -4,8 +4,8 @@
 //   medidas: {bodyLog:true, date, weight, waist, hips, chest, arm, fat, text, at}
 import {dayKey, parseDay} from './domain.js';
 import * as db from './store.js';
-import {allDayPhotos,makePhotoData,DAY_PHOTO_BUCKET} from './day-photos.js';
-import {compressPhoto,hydrateDayPhotos,uploadDayPhoto,removeDayPhotoFile} from './photo-storage.js';
+import {allDayPhotos} from './day-photos.js';
+import {compressPhoto,hydrateDayPhotos,saveDayPhoto,deleteDayPhoto} from './photo-storage.js';
 
 export const GYM_AREA = 'salud';
 const ANGLES = [['frente','De frente'],['perfil','De perfil'],['espalda','De espalda'],['otra','Otra']];
@@ -77,13 +77,12 @@ export async function hydrateGymPhotos() {
 }
 
 function photoForm({showModal, input, textarea, esc, toast, modal}, {title = 'Foto de hoy', intro = '', date = dayKey()} = {}) {
-  showModal(title, `<form>${intro}${input('Fecha', 'date', date, 'date', `required max="${dayKey()}"`)}<label>Tomar o elegir una foto<input name="photo" type="file" accept="image/*" required></label><label>Tipo de foto<select name="angle">${ANGLES.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('')}</select></label>${textarea('¿Cómo te sentiste? (opcional)', 'text', '')}<p class="muted small">Solo tu cuenta puede ver estas fotos. Se achican antes de subir para que carguen rápido. Necesitás conexión.</p><div class="modal-footer"><button type="button" class="button outline" data-action="close">Ahora no</button><button class="button primary" type="submit">Guardar foto</button></div></form>`, async f => {
+  showModal(title, `<form>${intro}${input('Fecha', 'date', date, 'date', `required max="${dayKey()}"`)}<label>Tomar o elegir una foto<input name="photo" type="file" accept="image/*" required></label><label>Tipo de foto<select name="angle">${ANGLES.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('')}</select></label>${textarea('¿Cómo te sentiste? (opcional)', 'text', '')}<p class="muted small">Solo tu cuenta puede ver estas fotos. Se achican antes de subir. Si no hay conexión, quedan guardadas en este dispositivo hasta que vuelva.</p><div class="modal-footer"><button type="button" class="button outline" data-action="close">Ahora no</button><button class="button primary" type="submit">Guardar foto</button></div></form>`, async f => {
     if (db.info().demo) throw new Error('Iniciá sesión para guardar fotos privadas.');
     const file = f.get('photo'); if (!file?.size) throw new Error('Elegí una foto.');
     const prepared = await compressPhoto(file);
-    const uploaded = await uploadDayPhoto(prepared.blob, {bucket:DAY_PHOTO_BUCKET, extension:prepared.extension, contentType:prepared.contentType});
-    db.put('photo', makePhotoData({date:f.get('date'), path:uploaded.path, bucket:uploaded.bucket, category:'workout', angle:f.get('angle') || 'frente', caption:String(f.get('text') || '')}));
-    modal.close(); toast('Foto guardada. ¡Qué bueno ver tu avance!');
+    const saved = await saveDayPhoto(prepared,{date:f.get('date'),category:'workout',angle:f.get('angle')||'frente',caption:String(f.get('text')||'')});
+    modal.close(); toast(saved.pending?'Foto guardada en este dispositivo. Se subirá cuando vuelva internet.':'Foto guardada. ¡Qué bueno ver tu avance!');
   });
 }
 
@@ -113,8 +112,7 @@ export async function gymAction(a, el, helpers) {
   if (a === 'gym-photo-delete') {
     const p = photos().find(r => r.id === el.dataset.id); if (!p) return true;
     showModal('Quitar foto', `<p>La foto se borra de tu espacio privado. No se puede deshacer.</p><form><div class="modal-footer"><button type="button" class="button outline" data-action="close">Cancelar</button><button type="submit" class="button primary">Quitar esta foto</button></div></form>`, async () => {
-      if (!db.info().demo) await removeDayPhotoFile(p);
-      db.remove(p.id); modal.close(); toast('Foto quitada.');
+      await deleteDayPhoto(p); modal.close(); toast('Foto quitada.');
     });
     return true;
   }

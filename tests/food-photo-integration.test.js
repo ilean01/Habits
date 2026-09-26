@@ -12,14 +12,15 @@ test('una foto de comida usa el sistema común y cuenta en el Calendario',()=>{
  assert.equal(photoCountForDate({photos:[photo],journals:[],date:'2026-09-26'}),1);
 });
 
-test('Groq conserva la foto privada y enlaza meal con photo',async()=>{
+test('Groq conserva la foto privada, admite offline y enlaza meal con photo',async()=>{
  const nutrition=await read('src/nutrition.js');
  assert.match(nutrition,/compressPhoto\(file\)/);
- assert.match(nutrition,/uploadDayPhoto\(prepared\.blob/);
+ assert.match(nutrition,/saveDayPhoto\(prepared/);
  assert.match(nutrition,/category:'food'/);
  assert.match(nutrition,/mealId/);
  assert.match(nutrition,/photoId/);
- assert.match(nutrition,/photoPath:uploaded\.path/);
+ assert.match(nutrition,/photoId},mealId/);
+ assert.match(nutrition,/saved\.pending/);
  assert.match(nutrition,/name="time"/);
  assert.match(nutrition,/name="comment"/);
  assert.doesNotMatch(nutrition,/todavía no se guarda con el registro/);
