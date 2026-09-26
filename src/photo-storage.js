@@ -40,6 +40,29 @@ export async function hydrateDayPhotos(root=document){
  }
 }
 
+export async function compressPhoto(file,{maxDimension=1600,quality=.85,maxInputBytes=20*1024*1024}={}){
+ if(!file?.size)throw new Error('Elegí una foto.');
+ if(file.size>maxInputBytes)throw new Error('La foto es demasiado grande. Elegí una de hasta 20 MB.');
+ if(file.type&&!file.type.startsWith('image/'))throw new Error('Elegí un archivo de imagen.');
+ const bitmap=typeof createImageBitmap==='function'?await createImageBitmap(file).catch(()=>null):null;
+ if(!bitmap){
+  if(['image/jpeg','image/png','image/webp'].includes(file.type)&&file.size<=10*1024*1024){
+   const extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+   return {blob:file,extension,contentType:file.type,originalSize:file.size,size:file.size,width:null,height:null};
+  }
+  throw new Error('No se pudo preparar esa imagen. Probá con otra foto.');
+ }
+ try{
+  const scale=Math.min(1,maxDimension/Math.max(bitmap.width,bitmap.height));
+  const width=Math.max(1,Math.round(bitmap.width*scale)),height=Math.max(1,Math.round(bitmap.height*scale));
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('No se pudo preparar la foto.');
+  ctx.drawImage(bitmap,0,0,width,height);
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(v=>v?resolve(v):reject(new Error('No se pudo preparar la foto.')),'image/jpeg',quality));
+  return {blob,extension:'jpg',contentType:'image/jpeg',originalSize:file.size,size:blob.size,width,height};
+ }finally{bitmap.close?.();}
+}
+
 export async function uploadDayPhoto(blob,{bucket=DAY_PHOTO_BUCKET,extension='jpg',contentType='image/jpeg'}={}){
  if(db.info().demo)throw new Error('Iniciá sesión para guardar fotos privadas.');
  const {data:{user}}=await db.supabase.auth.getUser();

@@ -33,8 +33,20 @@ export function inferMealType(meal={}){
  return at&&!Number.isNaN(at.getTime())?defaultMealType(at):'other';
 }
 
+export function mealTime(meal={}){
+ if(/^\d{2}:\d{2}$/.test(clean(meal.time)))return clean(meal.time);
+ const at=meal.at?new Date(meal.at):null;
+ if(!at||Number.isNaN(at.getTime()))return '';
+ return `${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`;
+}
+
+export function normalizeNutritionGoals(value={}){
+ const number=key=>{const n=Number(value?.[key]);return Number.isFinite(n)&&n>0?round1(n):null;};
+ return {calories:number('calories'),protein:number('protein'),carbs:number('carbs'),fat:number('fat')};
+}
+
 export function nutritionForDate(meals=[],date=''){
- const rows=meals.filter(m=>m?.date===date).map(m=>{const mealType=inferMealType(m);return {...m,mealType,mealTypeLabel:mealTypeLabel(mealType)};}).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+ const rows=meals.filter(m=>m?.date===date).map(m=>{const mealType=inferMealType(m);return {...m,mealType,mealTypeLabel:mealTypeLabel(mealType),time:mealTime(m)};}).sort((a,b)=>String(a.time||a.at||'').localeCompare(String(b.time||b.at||'')));
  const totals=rows.reduce((sum,m)=>({
   calories:sum.calories+(Number(m.totals?.calories)||0),
   protein:sum.protein+(Number(m.totals?.protein)||0),
@@ -74,7 +86,13 @@ export function nutritionRangeStats(meals=[],endDate='',days=30){
   fat:daysWithData?round1(totals.fat/divisor):0,
   meals:daysWithData?round1(totals.meals/divisor):0
  };
+ const macroCalories={protein:totals.protein*4,carbs:totals.carbs*4,fat:totals.fat*9};
+ const macroTotal=macroCalories.protein+macroCalories.carbs+macroCalories.fat;
+ const proteinPct=macroTotal?Math.round(macroCalories.protein/macroTotal*100):0;
+ const carbsPct=macroTotal?Math.round(macroCalories.carbs/macroTotal*100):0;
+ const macroDistribution={protein:proteinPct,carbs:carbsPct,fat:macroTotal?Math.max(0,100-proteinPct-carbsPct):0};
  const maxCalories=Math.max(1,...recorded.map(day=>day.totals.calories));
+ const maxProtein=Math.max(1,...recorded.map(day=>day.totals.protein));
  return {
   days:range,
   startDate:keys[0],
@@ -82,7 +100,25 @@ export function nutritionRangeStats(meals=[],endDate='',days=30){
   daysWithData,
   mealsRecorded:totals.meals,
   coverage:Math.round((daysWithData/range)*100),
+  totals:{calories:Math.round(totals.calories),protein:round1(totals.protein),carbs:round1(totals.carbs),fat:round1(totals.fat)},
   averages,
-  byDay:byDay.map(day=>({...day,caloriePercent:day.hasData?Math.max(3,Math.round((day.totals.calories/maxCalories)*100)):0}))
+  macroDistribution,
+  byDay:byDay.map(day=>({...day,
+   caloriePercent:day.hasData?Math.max(3,Math.round((day.totals.calories/maxCalories)*100)):0,
+   proteinPercent:day.hasData?Math.max(3,Math.round((day.totals.protein/maxProtein)*100)):0
+  }))
+ };
+}
+
+export function nutritionGoalProgress(averages={},value={}){
+ const goals=normalizeNutritionGoals(value);
+ const percent=(current,target)=>target?Math.max(0,Math.round((Number(current)||0)/target*100)):null;
+ return {
+  goals,
+  configured:Object.values(goals).some(v=>v!==null),
+  calories:percent(averages.calories,goals.calories),
+  protein:percent(averages.protein,goals.protein),
+  carbs:percent(averages.carbs,goals.carbs),
+  fat:percent(averages.fat,goals.fat)
  };
 }
