@@ -1,0 +1,31 @@
+name: Apply HCI simplification
+
+on:
+  push:
+    branches:
+      - fix/hci-less-cards-buttons-empty-states
+    paths:
+      - .github/workflows/apply-hci-simplification.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/hci-less-cards-buttons-empty-states
+      - name: Apply HCI simplification
+        run: python scripts/apply_hci_simplification.py
+      - name: Remove one-shot patch helpers
+        run: rm scripts/apply_hci_simplification.py .github/workflows/apply-hci-simplification.yml
+      - name: Commit integrated change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate HCI simplification"
+          git push origin HEAD:fix/hci-less-cards-buttons-empty-states
