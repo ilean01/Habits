@@ -12,9 +12,12 @@ test('Ficha del día tiene diseño dedicado para notebook e iPhone',async()=>{
  assert.match(css,/min-height:54px/);
 });
 
-test('Ficha móvil ofrece regreso directo al calendario',async()=>{
+test('Ficha móvil vuelve al calendario sin cambiar la ruta hash',async()=>{
  const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
  assert.match(main,/import '\.\/day-detail-responsive\.css';/);
- assert.match(main,/class="day-detail-back" href="#calendar-month"/);
+ assert.match(main,/class="day-detail-back" data-action="calendar-top"/);
+ assert.match(main,/if\(a==='calendar-top'\)/);
+ assert.match(main,/scrollIntoView/);
+ assert.doesNotMatch(main,/href="#calendar-month"/);
  assert.match(main,/id="calendar-month"/);
 });
