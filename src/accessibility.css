@@ -45,3 +45,99 @@ body:has(dialog[open]),body:has(.library-ai-panel.open){overflow:hidden}
 }
 @media (prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 html.quiet *,html.quiet *::before,html.quiet *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+
+/* Densidad adaptativa: notebook/PC aprovecha mejor el espacio; touch conserva objetivos grandes. */
+@media (min-width:761px) and (pointer:fine){
+ :root{--touch:36px}
+ html.large{--touch:44px}
+
+ html:not(.large) .sidebar{width:210px;padding:24px 16px 16px}
+ html:not(.large) .sidebar .brand{padding:0 8px;margin-bottom:28px}
+ html:not(.large) .sidebar-label{margin:0 10px 9px}
+ html:not(.large) .sidebar nav{gap:3px}
+ html:not(.large) .nav-link{padding:9px 12px;gap:10px}
+ html:not(.large) .sidebar-quote{padding:18px 10px 12px}
+ html:not(.large) .brand{font-size:28px;gap:8px}
+ html:not(.large) .brand-mark{width:29px;height:29px;border-radius:9px}
+ html:not(.large) .brand-mark svg{width:18px}
+
+ html:not(.large) .topbar{height:64px;padding:0 30px;gap:13px}
+ html:not(.large) .content{padding:24px 30px 20px}
+ html:not(.large) .page-heading{margin-bottom:20px;gap:16px}
+ html:not(.large) .page-heading h1{font-size:34px;line-height:1.18}
+ html:not(.large) .page-heading .eyebrow{margin-bottom:6px}
+ html:not(.large) .sun-glyph{font-size:26px;margin-left:10px}
+
+ html:not(.large) .button{padding:9px 13px;min-height:36px;gap:7px}
+ html:not(.large) .icon-button{width:36px;height:36px;min-width:36px;min-height:36px}
+ html:not(.large) .profile-button{min-width:36px;min-height:36px}
+ html:not(.large) .avatar{width:31px;height:31px;font-size:15px}
+ html:not(.large) .chip{padding:6px 9px;min-height:32px}
+ html:not(.large) .text-button{min-height:32px;padding:5px 0}
+
+ html:not(.large) .day-hero{grid-template-columns:minmax(0,1fr) 150px;gap:24px;padding:20px 24px 18px;margin-bottom:22px}
+ html:not(.large) .day-hero h2{font-size:25px;margin-bottom:8px}
+ html:not(.large) .day-hero p:not(.eyebrow){margin-bottom:12px}
+ html:not(.large) .progress-ring{width:132px;height:132px;padding:7px}
+ html:not(.large) .progress-ring strong{font-size:30px}
+ html:not(.large) .progress-ring strong small{font-size:18px}
+ html:not(.large) .progress-ring b{margin-top:7px;padding-top:7px}
+
+ html:not(.large) .dashboard-grid{grid-template-columns:minmax(0,1fr) 278px;gap:20px}
+ html:not(.large) .section-title{margin-bottom:12px}
+ html:not(.large) .section-title h2{font-size:20px}
+ html:not(.large) .filter-bar{margin-bottom:12px}
+ html:not(.large) .habit-grid{gap:10px}
+ html:not(.large) .habit-card{padding:12px 12px 0;min-height:172px}
+ html:not(.large) .habit-top{margin-bottom:9px}
+ html:not(.large) .habit-icon{width:34px;height:34px;border-radius:9px}
+ html:not(.large) .habit-card h3{min-height:31px;margin-bottom:4px}
+ html:not(.large) .habit-card>p{margin-bottom:10px}
+ html:not(.large) .habit-bottom{min-height:38px;padding:5px 0}
+ html:not(.large) .panel{padding:16px;margin-bottom:14px}
+ html:not(.large) .panel h2{font-size:20px}
+ html:not(.large) .agenda-panel .section-title h2{font-size:19px}
+ html:not(.large) .mini-week{margin-bottom:12px}
+ html:not(.large) .mini-week button{min-height:58px;padding:6px 2px 4px;gap:5px}
+ html:not(.large) .agenda-list{margin:10px 0 14px}
+ html:not(.large) .event-card{margin-bottom:12px}
+ html:not(.large) .reading-panel h3{font-size:18px}
+ html:not(.large) .reflection-card{padding:15px}
+ html:not(.large) .timeline-section{margin-top:20px}
+ html:not(.large) .timeline{padding:16px}
+ html:not(.large) .timeline-item{gap:11px;padding-bottom:14px}
+
+ html:not(.large) dialog{padding:20px;max-height:min(86dvh,760px)}
+ html:not(.large) dialog .modal-heading{margin-bottom:14px}
+ html:not(.large) dialog form{gap:11px}
+
+ html:not(.large) .library-native-shell .lib-button,
+ html:not(.large) .library-native-shell .lib-nav button,
+ html:not(.large) .library-native-shell .lib-chip,
+ html:not(.large) .library-native-shell .lib-back,
+ html:not(.large) .library-native-shell .lib-icon-button{min-height:36px!important}
+ html:not(.large) .library-native-shell .lib-icon-button{min-width:36px!important;width:36px!important;height:36px!important}
+ html:not(.large) .library-native-shell .lib-main{padding-top:10px!important;padding-bottom:24px!important}
+ html:not(.large) .library-native-shell .lib-integrated-context{padding:9px 11px!important;margin-bottom:8px!important}
+ html:not(.large) .library-native-shell .lib-nav{padding-bottom:8px!important}
+ html:not(.large) .library-native-shell .lib-nav button{padding:5px 8px!important;min-height:32px!important}
+ html:not(.large) .library-native-shell .lib-page-head{margin-bottom:12px!important}
+ html:not(.large) .library-native-shell .lib-page-head h1{font-size:22px!important}
+ html:not(.large) .library-native-shell .lib-panel{padding:12px!important}
+ html:not(.large) .library-native-shell .lib-stat{padding:10px!important}
+ html:not(.large) .library-native-shell .lib-stats-mini{margin-bottom:10px!important}
+ html:not(.large) .library-native-shell .lib-grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr))!important;gap:9px!important}
+ html:not(.large) .library-native-shell .lib-book-body{padding:9px!important}
+ html:not(.large) .library-native-shell .lib-row{padding:7px 8px!important}
+ html:not(.large) .library-native-shell .lib-table th,
+ html:not(.large) .library-native-shell .lib-table td{padding:7px!important}
+}
+
+/* En dispositivos táctiles se conserva la superficie mínima cómoda incluso si otro CSS carga después. */
+@media (pointer:coarse),(max-width:760px){
+ :root{--touch:44px}
+ .button,.nav-link,.area-link,.icon-button,.profile-button,.chip,.habit-check,.text-button{min-height:44px!important}
+ .icon-button,.profile-button{min-width:44px!important}
+ .library-native-shell .lib-button,.library-native-shell .lib-nav button,.library-native-shell .lib-chip,.library-native-shell .lib-back,.library-native-shell .lib-icon-button{min-height:44px!important}
+ .library-native-shell .lib-icon-button{min-width:44px!important;width:44px!important;height:44px!important}
+}
