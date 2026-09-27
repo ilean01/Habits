@@ -22,3 +22,11 @@ test('la caché puede invalidarse al cambiar la biblioteca',async()=>{
  load.invalidate();
  assert.equal((await load()).version,2);
 });
+
+ test('una respuesta anterior no reemplaza el catálogo después de cambiar de biblioteca',async()=>{
+ let resolveOld,calls=0;
+ const load=createSnapshotCache(()=>++calls===1?new Promise(resolve=>{resolveOld=resolve;}):Promise.resolve({owner:'new'}));
+ const old=load();await Promise.resolve();load.invalidate();
+ assert.equal((await load()).owner,'new');resolveOld({owner:'old'});await old;
+ assert.equal(load.peek().owner,'new');assert.equal((await load()).owner,'new');
+ });

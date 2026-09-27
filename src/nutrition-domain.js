@@ -35,6 +35,9 @@ export function inferMealType(meal={}){
 
 export function mealTime(meal={}){
  if(/^\d{2}:\d{2}$/.test(clean(meal.time)))return clean(meal.time);
+ const source=String(meal.at||'');
+ const recorded=source.match(/^\d{4}-\d{2}-\d{2}T(\d{2}:\d{2})(?::[\d.]+)?[+-]\d{2}:\d{2}$/);
+ if(recorded)return recorded[1];
  const at=meal.at?new Date(meal.at):null;
  if(!at||Number.isNaN(at.getTime()))return '';
  return `${String(at.getHours()).padStart(2,'0')}:${String(at.getMinutes()).padStart(2,'0')}`;
