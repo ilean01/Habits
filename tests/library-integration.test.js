@@ -38,16 +38,18 @@ test('catálogo, préstamos, Dewey, portadas, miembros, lectura y Bibliotecaria 
  assert.match(assistant,/Bibliotecaria|assistant/i);
 });
 
-test('Biblioteca visible ya no depende del bridge de iframe',async()=>{
+test('Biblioteca visible ya no depende del bridge ni conserva libraryView legado',async()=>{
  await assert.rejects(access(new URL('../src/library-embed.js',import.meta.url)));
  const main=await read('src/main.js');
  const start=main.indexOf('function unifiedLibraryView()');
- const end=main.indexOf('function libraryView()',start);
+ const end=main.indexOf('function vocabView()',start);
  const unified=main.slice(start,end);
  assert.ok(start>=0&&end>start);
  assert.match(unified,/habits-library-native/);
  assert.match(unified,/readingCompanionView\(\)/);
  assert.doesNotMatch(unified,/iframe|library-embed/);
+ assert.doesNotMatch(main,/function libraryView\(/);
+ assert.doesNotMatch(main,/rec\('book'\)/);
 });
 
 test('GitHub Pages no publica si Playwright no pasa',async()=>{
