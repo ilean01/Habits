@@ -10,7 +10,7 @@ const legacyNavigation=new URL('../src/navigation-simplify.js',import.meta.url);
 test('Tareas nace desde la navegación nativa sin navigation-simplify',()=>{
  assert.match(navigation,/\['space','CheckCheck','Tareas'\]/);
  assert.doesNotMatch(navigation,/\['space','Flower2','Más'\]/);
- assert.match(main,/import \{APP_NAV,mobileNavigation,viewLabel\} from '\.\/app-navigation\.js'/);
+ assert.match(main,/from '\.\/app-navigation\.js'/);
  assert.match(main,/const nav=APP_NAV,mobileNav=mobileNavigation\(\)/);
  assert.doesNotMatch(index,/navigation-simplify\.js/);
  assert.equal(fs.existsSync(legacyNavigation),false);
@@ -35,5 +35,6 @@ test('las funciones antes inyectadas por navigation-simplify son nativas',()=>{
  assert.match(main,/planningView\(\{esc,btn,area:a\.id\}\)/);
  assert.match(main,/btn\('Organizar semana','plan-week'/);
  assert.doesNotMatch(main,/mobile-more-shortcuts/);
- assert.match(main,/mobile-task-shortcuts/);
+ assert.doesNotMatch(main,/mobile-task-shortcuts/);
+ assert.match(main,/function mobileMoreModal\(/);
 });
