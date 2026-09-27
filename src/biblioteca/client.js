@@ -23,3 +23,5 @@ export async function ensureConfig(){
   const {error}=await supabase.rpc('biblioteca_asegurar_config');
   if(error)throw error;
 }
+
+export function resetLibraryContext(){currentUser=null;libraryOwner=null;canWrite=false;}

@@ -1,60 +1,236 @@
-import {supabase,currentUser,libraryOwner} from './client.js';
+import { supabase, currentUser, libraryOwner } from "./client.js";
 
-const T={books:'biblioteca_libros',readings:'biblioteca_lecturas',finished:'biblioteca_lecturas_finalizadas',people:'biblioteca_personas',loans:'biblioteca_prestamos',config:'biblioteca_config'};
+const T = {
+  books: "biblioteca_libros",
+  readings: "biblioteca_lecturas",
+  finished: "biblioteca_lecturas_finalizadas",
+  people: "biblioteca_personas",
+  loans: "biblioteca_prestamos",
+  config: "biblioteca_config",
+};
 
-async function fetchAll(table,select='*',order='id',ascending=true){
-  const all=[];let from=0;
-  while(true){
-    let q=supabase.from(table).select(select).eq('owner_id',libraryOwner).range(from,from+499);
-    if(order)q=q.order(order,{ascending});
-    if(order!=='id'&&table!==T.config)q=q.order('id');
-    const {data,error}=await q;if(error)throw error;
-    all.push(...(data||[]));if(!data||data.length<500)break;from+=500;
+const tableCache=new Map(), signedCache=new Map();
+export function invalidateLibraryData(){tableCache.clear();}
+export function clearLibraryCache(){tableCache.clear();signedCache.clear();}
+function invalidate(table){for(const key of tableCache.keys())if(key.endsWith(':'+table))tableCache.delete(key);}
+async function fetchAll(table, select = "*", order = "id", ascending = true) {
+  const owner=libraryOwner,key=(currentUser?.id||'')+':'+owner+':'+table,cached=tableCache.get(key);
+  if(cached&&Date.now()-cached.at<30000)return cached.rows;
+  const all = [];
+  let from = 0;
+  while (true) {
+    let q = supabase
+      .from(table)
+      .select(select)
+      .eq("owner_id", owner)
+      .range(from, from + 499);
+    if (order) q = q.order(order, { ascending });
+    if (order !== "id" && table !== T.config) q = q.order("id");
+    const { data, error } = await q;
+    if (error) throw error;
+    all.push(...(data || []));
+    if (!data || data.length < 500) break;
+    from += 500;
   }
+  tableCache.set(key,{at:Date.now(),rows:all});
   return all;
 }
 
-export async function loadAll(){
-  const [books,readings,finished,people,loans,config]=await Promise.all([
-    fetchAll(T.books,'*','id'),fetchAll(T.readings,'*','fecha',false),fetchAll(T.finished,'*','fecha_fin',false),fetchAll(T.people,'*','nombre'),fetchAll(T.loans,'*','id',false),fetchAll(T.config,'*','clave')
+export async function loadAll({force=false}={}) {
+  if(force)invalidateLibraryData();
+  const owner=libraryOwner,user=currentUser?.id;
+  const [books, readings, finished, people, loans, config] = await Promise.all([
+    fetchAll(T.books, "*", "id"),
+    fetchAll(T.readings, "*", "fecha", false),
+    fetchAll(T.finished, "*", "fecha_fin", false),
+    fetchAll(T.people, "*", "nombre"),
+    fetchAll(T.loans, "*", "id", false),
+    fetchAll(T.config, "*", "clave"),
   ]);
-  return {books,readings,finished,people,loans,config};
+  if(owner!==libraryOwner||user!==currentUser?.id)throw new Error('La biblioteca cambió durante la carga. Volvé a intentarlo.');
+  return { books, readings, finished, people, loans, config };
 }
 
-export async function insertBook(data){const {data:row,error}=await supabase.from(T.books).insert({...data,owner_id:libraryOwner}).select().single();if(error)throw error;return row}
-export async function updateBook(id,data){const {data:row,error}=await supabase.from(T.books).update(data).eq('id',id).select().single();if(error)throw error;return row}
-export const deleteBookSoft=id=>updateBook(id,{eliminado:true,fecha_eliminado:new Date().toISOString()});
-export const restoreBook=id=>updateBook(id,{eliminado:false,fecha_eliminado:null});
-export async function deleteBookForever(id){const {error}=await supabase.from(T.books).delete().eq('id',id);if(error)throw error}
+export async function insertBook(data) {
+  const { data: row, error } = await supabase
+    .from(T.books)
+    .insert({ ...data, owner_id: libraryOwner })
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.books);
+  return row;
+}
+export async function updateBook(id, data) {
+  const previous=Object.hasOwn(data,'portada')?await bookCover(id):null;
+  const { data: row, error } = await supabase
+    .from(T.books)
+    .update(data)
+    .eq("id", id).eq("owner_id",libraryOwner)
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.books);
+  if(previous&&previous!==data.portada)await deferCleanup(previous);
+  return row;
+}
+export const deleteBookSoft = (id) =>
+  updateBook(id, {
+    eliminado: true,
+    fecha_eliminado: new Date().toISOString(),
+  });
+export const restoreBook = (id) =>
+  updateBook(id, { eliminado: false, fecha_eliminado: null });
+export async function deleteBookForever(id) {
+  const previous=await bookCover(id);
+  const { error } = await supabase.from(T.books).delete().eq("id", id).eq("owner_id",libraryOwner);
+  if (error) throw error;
+  invalidate(T.books);
+  await deferCleanup(previous);
+}
 
-export async function insertReading(data){const {data:row,error}=await supabase.from(T.readings).insert({...data,owner_id:libraryOwner}).select().single();if(error)throw error;return row}
-export async function insertFinished(data){const {data:row,error}=await supabase.from(T.finished).insert({...data,owner_id:libraryOwner}).select().single();if(error)throw error;return row}
-export async function upsertPerson(name,extra={}){const n=String(name||'').trim();if(!n)return null;const {data,error}=await supabase.from(T.people).upsert({owner_id:libraryOwner,nombre:n,...extra},{onConflict:'owner_id,nombre'}).select().single();if(error)throw error;return data}
-export async function insertLoan(data){const {data:row,error}=await supabase.from(T.loans).insert({...data,owner_id:libraryOwner}).select().single();if(error)throw error;return row}
-export async function updateLoan(id,data){const {data:row,error}=await supabase.from(T.loans).update(data).eq('id',id).select().single();if(error)throw error;return row}
-export async function deleteLoan(id){const {error}=await supabase.from(T.loans).delete().eq('id',id);if(error)throw error}
+export async function insertReading(data) {
+  const { data: row, error } = await supabase
+    .from(T.readings)
+    .insert({ ...data, owner_id: libraryOwner })
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.readings);
+  return row;
+}
+export async function insertFinished(data) {
+  const { data: row, error } = await supabase
+    .from(T.finished)
+    .insert({ ...data, owner_id: libraryOwner })
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.finished);
+  return row;
+}
+export async function upsertPerson(name, extra = {}) {
+  const n = String(name || "").trim();
+  if (!n) return null;
+  const { data, error } = await supabase
+    .from(T.people)
+    .upsert(
+      { owner_id: libraryOwner, nombre: n, ...extra },
+      { onConflict: "owner_id,nombre" },
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.people);
+  return data;
+}
+export async function insertLoan(data) {
+  const { data: row, error } = await supabase
+    .from(T.loans)
+    .insert({ ...data, owner_id: libraryOwner })
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.loans);
+  return row;
+}
+export async function updateLoan(id, data) {
+  const { data: row, error } = await supabase
+    .from(T.loans)
+    .update(data)
+    .eq("id", id).eq("owner_id",libraryOwner)
+    .select()
+    .single();
+  if (error) throw error;
+  invalidate(T.loans);
+  return row;
+}
+export async function deleteLoan(id) {
+  const { error } = await supabase.from(T.loans).delete().eq("id", id).eq("owner_id",libraryOwner);
+  if (error) throw error;
+  invalidate(T.loans);
+}
 
-export async function saveConfig(values){const rows=Object.entries(values).map(([clave,valor])=>({owner_id:libraryOwner,clave,valor:String(valor??'')}));const {error}=await supabase.from(T.config).upsert(rows,{onConflict:'owner_id,clave'});if(error)throw error}
+export async function saveConfig(values) {
+  const rows = Object.entries(values).map(([clave, valor]) => ({
+    owner_id: libraryOwner,
+    clave,
+    valor: String(valor ?? ""),
+  }));
+  const { error } = await supabase
+    .from(T.config)
+    .upsert(rows, { onConflict: "owner_id,clave" });
+  if (error) throw error;
+  invalidate(T.config);
+}
 
-const signedCoverCache=new Map();
-const SIGNED_COVER_TTL=50*60*1000;
-export async function signedCoverMap(books){
-  const map=new Map(),pathToIds=new Map(),missing=new Set(),now=Date.now();
-  for(const b of books){
-    const p=String(b.portada||'').trim();if(!p)continue;
-    if(/^https?:\/\//i.test(p)){map.set(b.id,p);continue;}
-    if(!pathToIds.has(p))pathToIds.set(p,[]);pathToIds.get(p).push(b.id);
-    const cached=signedCoverCache.get(p);
-    if(cached&&cached.expiresAt>now)map.set(b.id,cached.url);else missing.add(p);
+export async function signedCoverMap(books) {
+  const map = new Map(),
+    paths = [];
+  const idsByPath=new Map();
+  for (const b of books) {
+    const p = String(b.portada || "").trim();
+    if (!p) continue;
+    if (/^https?:\/\//i.test(p)) map.set(b.id, p);
+    else {idsByPath.set(p,[...(idsByPath.get(p)||[]),b.id]);const cached=signedCache.get(p);if(cached&&cached.until>Date.now())map.set(b.id,cached.url);else if(!paths.includes(p))paths.push(p);}
   }
-  const paths=[...missing];
-  for(let i=0;i<paths.length;i+=100){
-    const chunk=paths.slice(i,i+100),{data,error}=await supabase.storage.from('biblioteca-portadas').createSignedUrls(chunk,3600);if(error)continue;
-    for(const row of data||[]){if(!row?.path||!row?.signedUrl)continue;signedCoverCache.set(row.path,{url:row.signedUrl,expiresAt:now+SIGNED_COVER_TTL});for(const id of pathToIds.get(row.path)||[])map.set(id,row.signedUrl);}
+  for (let i = 0; i < paths.length; i += 100) {
+    const chunk = paths.slice(i, i + 100);
+    const { data, error } = await supabase.storage
+      .from("biblioteca-portadas")
+      .createSignedUrls(chunk, 3600);
+    if (error) continue;
+    for (const row of data || []) {
+      if (!row?.path || !row?.signedUrl) continue;
+      signedCache.set(row.path,{url:row.signedUrl,until:Date.now()+3300000});
+      for(const id of idsByPath.get(row.path)||[])map.set(id,row.signedUrl);
+    }
   }
-  if(signedCoverCache.size>5000)for(const [path,value] of signedCoverCache)if(value.expiresAt<=now)signedCoverCache.delete(path);
   return map;
 }
 
-export async function uploadCover(bookId,file){if(!file)throw new Error('Elegí una imagen.');const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=`${libraryOwner}/books/${bookId}-${Date.now()}.${ext}`;const {error}=await supabase.storage.from('biblioteca-portadas').upload(path,file,{upsert:true,contentType:file.type||'image/jpeg'});if(error)throw error;await updateBook(bookId,{portada:path});return path}
-export async function removeStoredCover(path){if(!path||/^https?:\/\//i.test(path))return;const {error}=await supabase.storage.from('biblioteca-portadas').remove([path]);if(error)throw error;signedCoverCache.delete(path)}
+export async function uploadCover(bookId, file) {
+  if (!file) throw new Error("Elegí una imagen.");
+  const ext =
+    (file.name.split(".").pop() || "jpg")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${libraryOwner}/books/${bookId}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("biblioteca-portadas")
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    });
+  if (error) throw error;
+  try{await replaceCover(bookId,path);}catch(error){await deferCleanup(path);throw error;}
+  return path;
+}
+export async function removeStoredCover(path) {
+  if (!path || /^https?:\/\//i.test(path)) return;
+  const { error } = await supabase.storage
+    .from("biblioteca-portadas")
+    .remove([path]);
+  if (error) throw error;
+}
+
+async function bookCover(id){const {data,error}=await supabase.from(T.books).select('portada').eq('id',id).eq('owner_id',libraryOwner).single();if(error)throw error;return data.portada;}
+async function cleanupCover(path){
+ if(!path||/^https?:\/\//i.test(path))return;
+ const {count,error}=await supabase.from(T.books).select('id',{count:'exact',head:true}).eq('owner_id',libraryOwner).eq('portada',path);
+ if(error)throw error;if(!count)await removeStoredCover(path);
+}
+export async function replaceCover(id,path){return updateBook(id,{portada:path});}
+const cleanupKey=()=>`habits:cover-cleanup:${libraryOwner}`;
+function pendingCleanup(){try{return JSON.parse(localStorage.getItem(cleanupKey())||'[]');}catch{return [];}}
+function rememberCleanup(paths){try{localStorage.setItem(cleanupKey(),JSON.stringify(paths));}catch{}}
+async function deferCleanup(path){
+ if(!path||/^https?:\/\//i.test(path))return;
+ try{await cleanupCover(path);}catch{rememberCleanup([...new Set([...pendingCleanup(),path])]);globalThis.dispatchEvent?.(new CustomEvent('library:cleanup-warning'));}
+}
+export async function retryCoverCleanup(){
+ const owner=libraryOwner,left=[];
+ for(const path of pendingCleanup()){if(owner!==libraryOwner)return;try{await cleanupCover(path);}catch{left.push(path);}}
+ if(owner===libraryOwner)rememberCleanup(left);
+ return left.length;
+}

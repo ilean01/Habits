@@ -81,6 +81,11 @@ export async function sync(){
    changed=true;
    if(!data.ok){cache.conflicts[id]={id,local:cache.pending[id]||p,remote:data.entry};delete cache.pending[id];}
    else if(cache.pending[id]?.op===p.op){cache.records[id]=data.entry;delete cache.pending[id];newest=newerSync(newest,data.entry?.updated_at);}
+   else if(cache.pending[id]){
+    // A later local edit builds on this acknowledged write, not on its old revision.
+    cache.pending[id]={...cache.pending[id],expected:data.entry.rev,rev:data.entry.rev};
+    cache.records[id]={...cache.records[id],rev:data.entry.rev};
+   }
    persistId(id);broadcast(id);
   }
   const remote=[];let offset=0;
@@ -100,7 +105,7 @@ export async function sync(){
   // Solo se vuelve a dibujar la pantalla si llegó algo nuevo o cambió el estado; antes se redibujaba todo dos veces cada 20 segundos.
   if(changed||status!==before)notify();
  }catch(e){if(owner===currentOwner){status='error';console.warn('No se pudo sincronizar:',e.message);notify();}}
- finally{syncing=false;}
+ finally{syncing=false;if(owner===currentOwner&&status==='pending')queueMicrotask(()=>void sync());}
 }
 
 if(bus)bus.onmessage=e=>{const m=e.data;if(!owner||m?.source===tabId||m?.owner!==owner||!m.id)return;

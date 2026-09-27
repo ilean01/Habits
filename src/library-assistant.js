@@ -12,15 +12,16 @@ export function compactContext(message,data){
   const loans=data.loans.filter(l=>l.activo);
   const relevant=relevantBooks(message,data,16);
   const recommendations=books.filter(b=>(!b.estado_lectura||b.estado_lectura==='no_leido')&&!loans.some(l=>l.libro_id===b.id)).sort((a,b)=>Number(b.proxima_lectura)-Number(a.proxima_lectura)||Number(b.favorito)-Number(a.favorito)||Number(b.rating||0)-Number(a.rating||0)||(a.paginas||99999)-(b.paginas||99999)).slice(0,12);
-  const bookShape=b=>({title:clip(b.titulo,180),author:clip(b.autor,120),genre:clip(b.genero,80),dewey:clip(b.dewey,40),pages:b.paginas,state:b.estado_lectura,favorite:!!b.favorito,next:!!b.proxima_lectura,rating:Number(b.rating||0),description:clip(b.descripcion,650),notes:clip(b.observaciones,280)});
+  const bookShape=b=>({title:clip(b.titulo,180),author:clip(b.autor,120),genre:clip(b.genero,80),dewey:clip(b.dewey,40),pages:b.paginas,state:b.estado_lectura,favorite:!!b.favorito,next:!!b.proxima_lectura,rating:Number(b.rating||0),description:clip(b.descripcion,650)});
   return {
-    library_name:data.library?.nombre||'Mi biblioteca',
+    library_name:'Biblioteca',
     stats:{catalog:books.length,wishlist:data.books.filter(b=>!b.eliminado&&b.lista==='deseos').length,reading:reading.length,favorites:books.filter(b=>b.favorito).length,active_loans:loans.length},
     current_reading:reading.slice(0,12).map(b=>({title:clip(b.titulo,180),author:clip(b.autor,120),page:b.pagina_actual,pages:b.paginas,state:b.estado_lectura})),
-    active_loans:loans.slice(0,20).map(l=>({title:clip(titleForLoan(l,data),180),person:clip(l.persona,120),loaned:l.fecha_prestamo,due:l.fecha_devolucion_prevista})),
+    active_loans:loans.slice(0,20).map(l=>({title:clip(titleForLoan(l,data),180),loaned:l.fecha_prestamo,due:l.fecha_devolucion_prevista})),
     relevant_books:relevant.map(bookShape),
     recommendation_pool:relevant.length?[]:recommendations.map(bookShape)
   };
+
 }
 
 async function cloudAnswer(message,data,history=[]){
@@ -77,9 +78,9 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
   injectStyle();
 
   const loadSnapshot=createSnapshotCache(getSnapshot,{ttl:120000});
-  const libraryRoot=document.querySelector('#library-app');
-  if(libraryRoot)new MutationObserver(()=>loadSnapshot.invalidate()).observe(libraryRoot,{childList:true});
-  window.addEventListener('focus',()=>loadSnapshot.invalidate());
+  const invalidate=()=>loadSnapshot.invalidate();
+  window.addEventListener('habits:library-data-changed',invalidate);
+  window.addEventListener('focus',invalidate);
 
   const launch=document.createElement('button');
   launch.type='button';
@@ -95,7 +96,7 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
   panel.className='library-ai-panel';
   panel.dataset.libraryAi='panel';
   panel.setAttribute('aria-label','Bibliotecaria');
-  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Siempre accesible mientras recorrés tu biblioteca.</p></div><button type="button" class="library-ai-close" aria-label="Cerrar Bibliotecaria">×</button></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode checked> IA Groq activada · comparte solo la pregunta y datos relevantes</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Preguntale a tu bibliotecaria…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
+  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Siempre accesible mientras recorrés tu biblioteca.</p></div><button type="button" class="library-ai-close" aria-label="Cerrar Bibliotecaria">×</button></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode> Usar Groq · envía la pregunta, la conversación reciente y datos bibliográficos</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Preguntale a tu bibliotecaria…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
   host.append(panel,launch);
 
   const messages=panel.querySelector('.library-ai-messages');
@@ -103,6 +104,9 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
   const send=panel.querySelector('.library-ai-send');
   const closeButton=panel.querySelector('.library-ai-close');
   const conversation=[];
+  let contextVersion=0;
+  const reset=()=>{contextVersion++;loadSnapshot.invalidate();conversation.length=0;messages.replaceChildren();panel.querySelector('[data-cloud-mode]').checked=false;addMessage(messages,'assistant','Biblioteca actualizada. Empezamos una conversación nueva.');};
+  window.addEventListener('habits:library-context-changed',reset);
   const remember=(role,content)=>{conversation.push({role,content:String(content).slice(0,1200)});if(conversation.length>10)conversation.splice(0,conversation.length-10);};
   const open=()=>{panel.classList.add('open');launch.setAttribute('aria-expanded','true');launch.setAttribute('aria-label','Bibliotecaria abierta');requestAnimationFrame(()=>input.focus());};
   const close=()=>{panel.classList.remove('open');launch.setAttribute('aria-expanded','false');launch.setAttribute('aria-label','Abrir Bibliotecaria');launch.focus();};
@@ -119,12 +123,14 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
     if(!message||send.disabled)return;
     input.value='';
     addMessage(messages,'user',message);
+    const requestVersion=contextVersion;
     const previous=conversation.slice();
     remember('user',message);
     send.disabled=true;
     panel.setAttribute('aria-busy','true');
     try{
       const snapshot=await loadSnapshot();
+      if(requestVersion!==contextVersion)return;
       const count=(snapshot.books||[]).filter(b=>!b.eliminado&&b.lista!=='deseos').length;
       if(!panel.querySelector('[data-cloud-mode]').checked){
         const local=answerLocally(message,snapshot);
@@ -134,14 +140,17 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
       }
       try{
         const cloud=await cloudAnswer(message,snapshot,previous);
+        if(requestVersion!==contextVersion)return;
         addMessage(messages,'assistant',cloud.answer,`${cloud.provider} · contexto acotado`);
         remember('assistant',cloud.answer);
       }catch(error){
+        if(requestVersion!==contextVersion)return;
         const local=answerLocally(message,snapshot);
         addMessage(messages,'assistant',`Groq no respondió (${error?.message||'error'}). Mientras tanto uso tu catálogo:\n\n${local}`,`Consulta local · ${count.toLocaleString('es-PY')} libros`);
         remember('assistant',local);
       }
     }catch(error){
+      if(requestVersion!==contextVersion)return;
       addMessage(messages,'assistant',error?.message||'No pude consultar la biblioteca.');
     }finally{
       send.disabled=false;
@@ -149,4 +158,5 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
       if(panel.isConnected&&panel.classList.contains('open'))input.focus();
     }
   };
+  return ()=>{window.removeEventListener('focus',invalidate);window.removeEventListener('habits:library-context-changed',reset);window.removeEventListener('habits:library-data-changed',invalidate);};
 }

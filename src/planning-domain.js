@@ -8,14 +8,14 @@ const activeTasks=(tasks,area)=>tasks
  .sort((a,b)=>(a.due||'9999-12-31').localeCompare(b.due||'9999-12-31')||String(a.name||'').localeCompare(String(b.name||''),'es'));
 
 export function nextAreaEvents(events,area,today=dayKey(),days=45,limit=6){
- const out=[];
+ const out=[],seen=new Map();
  for(let i=0;i<days&&out.length<limit;i++){
   const date=addDays(today,i);
   const matches=events
-   .filter(e=>e?.area===area&&occurs(e,date))
+   .filter(e=>e?.area===area&&occurs(e,date)&&(seen.get(e.id)||0)<2)
    .map(e=>eventOnDate(e,date))
    .sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')||String(a.name||'').localeCompare(String(b.name||''),'es'));
-  for(const event of matches){out.push({date,event});if(out.length>=limit)break;}
+  for(const event of matches){seen.set(event.id,(seen.get(event.id)||0)+1);out.push({date,event});if(out.length>=limit)break;}
  }
  return out;
 }

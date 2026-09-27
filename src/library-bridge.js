@@ -35,20 +35,23 @@ export async function refreshCatalog(){
       supabase.rpc('biblioteca_disponibles')
     ]);
     const active=(libraries.data||[]).find(x=>x.activa)||null;
+    if(libraries.error)throw libraries.error;
+    const selectedOwner=active?.owner_id||current;
     const today = dayKey();
     const [reading, finished, totalFinished] = await Promise.all([
       supabase.from('biblioteca_libros').select('id,titulo,autor,paginas,pagina_actual,estado_lectura,fecha_inicio')
-        .in('estado_lectura', ['leyendo','releyendo']).eq('eliminado', false).order('fecha_inicio', {ascending:false, nullsFirst:false}),
-      supabase.from('biblioteca_lecturas_finalizadas').select('libro_id').eq('fecha_fin', today),
-      supabase.from('biblioteca_libros').select('id',{count:'exact',head:true}).eq('estado_lectura','leido').eq('eliminado',false)
+        .eq('owner_id',selectedOwner).in('estado_lectura', ['leyendo','releyendo']).eq('eliminado', false).order('fecha_inicio', {ascending:false, nullsFirst:false}),
+      supabase.from('biblioteca_lecturas_finalizadas').select('libro_id').eq('owner_id',selectedOwner).eq('fecha_fin', today),
+      supabase.from('biblioteca_libros').select('id',{count:'exact',head:true}).eq('owner_id',selectedOwner).eq('estado_lectura','leido').eq('eliminado',false)
     ]);
     if(current !== owner) return;
     if(reading.error) throw reading.error;
+    if(finished.error)throw finished.error;
     if(totalFinished.error) throw totalFinished.error;
     let finishedToday = [];
     const ids = [...new Set((finished.data || []).map(r => r.libro_id))];
     if(ids.length){
-      const titles = await supabase.from('biblioteca_libros').select('id,titulo').in('id', ids);
+      const titles = await supabase.from('biblioteca_libros').select('id,titulo').eq('owner_id',selectedOwner).in('id', ids);
       if(titles.error)throw titles.error;
       finishedToday = (titles.data || []).map(b => b.titulo);
     }
@@ -73,3 +76,6 @@ export async function recordProgress(id, {page = null, finish = false, comment =
 
 window.addEventListener('focus', () => { void refreshCatalog(); });
 window.addEventListener('online', () => { void refreshCatalog(); });
+
+window.addEventListener('habits:library-data-changed',()=>{void refreshCatalog();});
+window.addEventListener('habits:library-context-changed',()=>{state=empty();notify();void refreshCatalog();});
