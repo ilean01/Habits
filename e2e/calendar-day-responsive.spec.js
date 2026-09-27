@@ -14,6 +14,17 @@ test('Ficha del día se comporta como panel en notebook y ficha móvil en teléf
  const back=page.locator('.day-detail-back');
  if(width<=650){
   await expect(back).toBeVisible();
+  const headPosition=await page.locator('.day-detail-head').evaluate(el=>getComputedStyle(el).position);
+  expect(headPosition).not.toBe('sticky');
+  const glance=page.locator('.day-detail-glance');
+  await expect(glance).toBeVisible();
+  const cards=glance.locator(':scope > div');
+  await expect(cards).toHaveCount(4);
+  await expect(cards.nth(0).locator('strong')).toBeVisible();
+  await expect(cards.nth(1).locator('strong')).toBeVisible();
+  await expect(cards.nth(1)).toContainText(/L/);
+  await expect(cards.nth(2).locator('strong')).toBeVisible();
+  await expect(cards.nth(3).locator('strong')).toBeVisible();
   await back.click();
   await expect(page.locator('#calendar-month')).toBeVisible();
   const box=await page.locator('#calendar-month').boundingBox();
