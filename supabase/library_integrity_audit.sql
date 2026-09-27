@@ -1,6 +1,6 @@
 -- Auditoría de integridad de Biblioteca. Solo lectura.
--- Producción verificada el 2026-09-26: 1.470 libros totales, 1.468 activos, 2 en papelera,
--- 0 títulos vacíos y 0 referencias huérfanas en préstamos/lecturas.
+-- Producción verificada el 2026-09-27: 1.470 libros totales, 1.468 activos, 2 en papelera,
+-- 0 referencias huérfanas en préstamos/lecturas y 0 portadas huérfanas o faltantes en Storage.
 
 select
   count(*) filter (where not eliminado) as libros_activos,
@@ -24,3 +24,18 @@ select
   (select count(*) from public.biblioteca_prestamos p left join b on b.id=p.libro_id where b.id is null) as prestamos_huerfanos,
   (select count(*) from public.biblioteca_lecturas r left join b on b.id=r.libro_id where b.id is null) as lecturas_huerfanas,
   (select count(*) from public.biblioteca_lecturas_finalizadas f left join b on b.id=f.libro_id where b.id is null) as finalizadas_huerfanas;
+
+with cover_refs as (
+  select distinct portada as path
+  from public.biblioteca_libros
+  where portada is not null and btrim(portada)<>'' and portada !~* '^https?://'
+), stored as (
+  select name as path
+  from storage.objects
+  where bucket_id='biblioteca-portadas'
+)
+select
+  (select count(*) from stored) as portadas_storage,
+  (select count(*) from cover_refs) as portadas_referenciadas,
+  (select count(*) from stored s left join cover_refs r on r.path=s.path where r.path is null) as portadas_huerfanas,
+  (select count(*) from cover_refs r left join stored s on s.path=r.path where s.path is null) as portadas_faltantes;
