@@ -17,11 +17,15 @@ test('el modo oscuro define contraste explícito para texto, formularios y panel
 });
 
 test('Progreso y agua forman parte de la vista real, no de un parche del DOM',async()=>{
- const src=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
- assert.match(src,/\['progress','ChartNoAxesColumn','Progreso'\]/);
+ const [src,navigation]=await Promise.all([
+  readFile(new URL('../src/main.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/app-navigation.js',import.meta.url),'utf8')
+ ]);
+ assert.match(navigation,/\['progress','ChartNoAxesColumn','Progreso'\]/);
  assert.match(src,/PROMEDIO DE AGUA/);
  assert.match(src,/Tu agua, día por día/);
  assert.match(src,/view==='progress'\?progressView\(\)/);
+ assert.match(src,/APP_NAV/);
 });
 
 test('la capa de accesibilidad impone blancos táctiles y texto legible',async()=>{
