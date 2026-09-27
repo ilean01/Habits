@@ -16,13 +16,16 @@ input,textarea,select{font-size:max(16px,calc(15px * var(--font-scale)))}
 .topbar{position:sticky;top:0;z-index:18}
 .topbar .profile-button{flex:0 0 auto}
 
-/* The desktop/tablet sidebar can be taller than a notebook viewport.
-   Let its content scroll, while keeping Settings pinned to its bottom edge. */
+/* One document scroll: navigation and content remain in normal flow. */
 @media (min-width:651px){
- .sidebar{height:100dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+ .sidebar{position:relative;inset:auto;height:auto;min-height:100dvh;max-height:none;overflow:visible;align-self:flex-start;flex-shrink:0;scrollbar-gutter:auto}
  .sidebar>*{flex-shrink:0}
- .sidebar>.nav-link:last-child{position:sticky;bottom:0;z-index:3;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -8px 16px color-mix(in srgb,var(--panel) 92%,transparent)}
+ .sidebar>.nav-link:last-child{position:static;background:var(--panel)}
+ .main-wrap{margin-left:0;width:auto;flex:1;min-width:0}
 }
+/* Overlays have one active scroll surface; the page behind them stays still. */
+html:has(dialog[open]),html:has(.library-ai-panel.open){overflow:hidden;scrollbar-gutter:stable}
+body:has(dialog[open]),body:has(.library-ai-panel.open){overflow:hidden}
 
 /* On phones the sidebar is hidden, so the sticky top bar keeps the
    profile/settings control permanently available above the fixed bottom nav. */

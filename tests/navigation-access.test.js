@@ -10,8 +10,8 @@ test('settings remains reachable from desktop sidebar and the persistent top bar
  assert.match(main,/Abrir perfil y ajustes/,'top bar must expose profile/settings');
  assert.match(main,/profile-button/,'top bar must render the persistent profile control');
  assert.match(css,/\.topbar\{position:sticky;top:0;z-index:/,'top bar must stay visible while scrolling');
- assert.match(css,/@media \(min-width:651px\)[\s\S]*\.sidebar\{height:100dvh;overflow-y:auto/,'sidebar must scroll on shorter desktop/tablet viewports');
- assert.match(css,/\.sidebar>\.nav-link:last-child\{position:sticky;bottom:0/,'desktop Settings entry must stay pinned to the bottom of the sidebar');
+ assert.match(css,/\.sidebar\{position:relative;inset:auto;height:auto;min-height:100dvh;max-height:none;overflow:visible/,'sidebar follows document scrolling');
+ assert.match(css,/\.sidebar>\.nav-link:last-child\{position:static/,'Settings stays in the navigation flow');
 });
 
 test('phone layout keeps the profile/settings control above the fixed navigation',async()=>{
