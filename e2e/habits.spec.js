@@ -85,7 +85,8 @@ test('agenda avisa el choque antes de guardar el segundo evento',async({page},te
 test('editor de hábito maneja la frecuencia semanal sin parche de DOM',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
  await enterDemo(page);
- await page.locator('[data-action="new-habit"]').first().click();
+ await page.locator('[data-action="create"]').click();
+ await page.locator('#modal [data-action="new-habit"]').click();
  const modal=page.locator('#modal');
  const mode=modal.locator('[name="frequencyMode"]');
  const weekly=modal.locator('[data-weekly-target]');
