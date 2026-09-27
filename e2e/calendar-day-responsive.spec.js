@@ -33,6 +33,8 @@ test('Ficha del día se comporta como panel en notebook y ficha móvil en teléf
  }else{
   await expect(back).toBeHidden();
   const position=await page.locator('[data-day-detail]').evaluate(el=>getComputedStyle(el).position);
-  if(width>=1201)expect(position).toBe('sticky');
+  if(width>=1201)expect(position).toBe('static');
+  await expect(page.locator('[data-day-detail]')).toHaveCSS('overflow-y','visible');
+  await expect(page.locator('.sidebar')).toHaveCSS('overflow-y','visible');
  }
 });

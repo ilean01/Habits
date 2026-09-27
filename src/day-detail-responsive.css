@@ -20,7 +20,7 @@
 
 @media(min-width:1201px){
  .calendar-layout{grid-template-columns:minmax(0,1fr) minmax(340px,370px);align-items:start}
- .day-detail-wrap{position:sticky;top:94px;max-height:calc(100dvh - 118px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:3px}
+ .day-detail-wrap{position:static;max-height:none;overflow:visible}
  .day-detail-card{margin-bottom:0}
  .day-detail-section{padding:22px 24px}
  .day-detail-head{padding:24px 24px 20px}
