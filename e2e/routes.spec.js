@@ -33,5 +33,5 @@ test('una ruta de área conserva el área seleccionada',async({page},testInfo)=>
  await page.goto('/#/areas/ingles');
  await enterDemo(page);
  await expect(page).toHaveURL(/#\/areas\/ingles$/);
- await expect(page.getByRole('heading',{name:'Inglés'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Inglés',exact:true})).toBeVisible();
 });
