@@ -6,7 +6,8 @@ async function enterDemo(page){
  await expect(page.locator('.day-hero')).toBeVisible();
 }
 
-test('Más agrupa las funciones secundarias en móvil',async({page})=>{
+test('Más agrupa las funciones secundarias en móvil',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='mobile','Escenario móvil');
  await enterDemo(page);
 
  await page.locator('[data-action="nav"][data-view="space"]:visible').first().click();
