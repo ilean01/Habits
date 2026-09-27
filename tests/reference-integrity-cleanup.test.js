@@ -1,7 +1,10 @@
+import 'fake-indexeddb/auto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {areaDependents,detachReferences,restoreReferences} from '../src/reference-integrity.js';
 import {staleOrphanCoverPaths} from '../src/biblioteca/cover-maintenance.js';
+import {resetLocalCacheForTests} from '../src/local-cache.js';
+import * as db from '../src/store.js';
 
 test('papelera desacopla referencias vivas y restaurar las vuelve a enlazar',()=>{
  const habit={id:'habit-1',kind:'habit',deleted:false,data:{name:'Caminar'}};
@@ -32,6 +35,24 @@ test('un área con actividades dependientes queda protegida',()=>{
  const habit={id:'h',kind:'habit',deleted:false,data:{area:'salud'}};
  assert.equal(areaDependents('salud',[area,habit]).length,1);
  assert.equal(areaDependents('otra',[area,habit]).length,0);
+});
+
+test('store aplica integridad al borrar y restaurar sin depender de la pantalla',async()=>{
+ await resetLocalCacheForTests();
+ await db.openStore('demo',()=>{});
+ try{
+  db.put('habit',{name:'Caminar',area:'salud'},'habit-x');
+  db.put('log',{habitId:'habit-x',date:'2026-09-27',status:'done'},'log-x');
+  db.remove('habit-x');
+  assert.equal(db.raw('habit-x').deleted,true);
+  assert.equal(db.records('log').find(x=>x.id==='log-x').habitId,'');
+  assert.equal(db.records('log').find(x=>x.id==='log-x').archivedHabitId,'habit-x');
+  db.restore('habit-x');
+  assert.equal(db.raw('habit-x').deleted,false);
+  assert.equal(db.records('log').find(x=>x.id==='log-x').habitId,'habit-x');
+  assert.equal(db.records('log').find(x=>x.id==='log-x').archivedHabitId,null);
+  assert.throws(()=>db.remove('salud'),/Primero mové a otra área/);
+ }finally{db.closeStore();await resetLocalCacheForTests();}
 });
 
 test('portadas huérfanas solo se limpian si son antiguas y realmente no están referenciadas',()=>{
