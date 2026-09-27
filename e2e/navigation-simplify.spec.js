@@ -6,7 +6,8 @@ async function enterDemo(page){
  await expect(page.locator('.day-hero')).toBeVisible();
 }
 
-test('Más desaparece y sus funciones quedan reubicadas',async({page})=>{
+test('Más agrupa las funciones secundarias en móvil',async({page},testInfo)=>{
+ test.skip(testInfo.project.name!=='mobile','Escenario móvil');
  await enterDemo(page);
 
  await page.locator('[data-action="nav"][data-view="space"]:visible').first().click();
@@ -16,7 +17,8 @@ test('Más desaparece y sus funciones quedan reubicadas',async({page})=>{
  await expect(page.locator('.space-tabs [data-tab="later"]')).toBeVisible();
  await expect(page.locator('.space-tabs [data-tab="proyectos"]')).toBeVisible();
 
- await page.locator('[data-action="nav"][data-view="areas"]:visible').first().click();
+ await page.getByRole('button',{name:/Más secciones/i}).click();
+ await page.locator('#modal [data-action="nav"][data-view="areas"]').click();
  await page.locator('.area-filters [data-action="area"][data-id="facultad"]').click();
  await expect(page.locator('.area-domain-planning[data-area="facultad"] #planning-facultad')).toBeVisible();
  await expect(page.locator('.area-domain-planning #planning-trabajo')).toHaveCount(0);

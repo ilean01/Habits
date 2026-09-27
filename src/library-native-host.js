@@ -1,6 +1,7 @@
 let shell=null;
 let modulePromise=null;
 let lastQuery='';
+let resumeTimer=null;
 
 function createShell(){
  const node=document.createElement('section');
@@ -31,6 +32,13 @@ async function applyQuery(query){
  lastQuery=q;
 }
 
+export function refreshMountedLibrary(){
+ if(!nativeLibraryMounted())return;
+ if(typeof document!=='undefined'&&document.visibilityState==='hidden')return;
+ clearTimeout(resumeTimer);
+ resumeTimer=setTimeout(()=>shell?.querySelector('[data-action="refresh-library"]')?.click(),180);
+}
+
 export async function mountNativeLibrary(host,{query='',bookId=''}={}){
  if(!host)return;
  if(!shell)shell=createShell();
@@ -50,3 +58,14 @@ export function detachNativeLibrary(){
 }
 
 export function nativeLibraryMounted(){return !!shell?.dataset.libraryMounted;}
+
+if(typeof window!=='undefined'){
+ window.addEventListener('online',refreshMountedLibrary);
+ window.addEventListener('focus',refreshMountedLibrary);
+ window.addEventListener('pageshow',refreshMountedLibrary);
+}
+if(typeof document!=='undefined'){
+ document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')refreshMountedLibrary();
+ });
+}

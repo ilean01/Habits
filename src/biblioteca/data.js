@@ -1,4 +1,5 @@
-import { supabase, currentUser, libraryOwner } from "./client.js";
+import { supabase, currentUser, libraryOwner, canWrite } from "./client.js";
+import { staleOrphanCoverPaths } from "./cover-maintenance.js";
 
 const T = {
   books: "biblioteca_libros",
@@ -10,8 +11,9 @@ const T = {
 };
 
 const tableCache=new Map(), signedCache=new Map();
+let orphanSweepOwner='';
 export function invalidateLibraryData(){tableCache.clear();}
-export function clearLibraryCache(){tableCache.clear();signedCache.clear();}
+export function clearLibraryCache(){tableCache.clear();signedCache.clear();orphanSweepOwner='';}
 function invalidate(table){for(const key of tableCache.keys())if(key.endsWith(':'+table))tableCache.delete(key);}
 async function fetchAll(table, select = "*", order = "id", ascending = true) {
   const owner=libraryOwner,key=(currentUser?.id||'')+':'+owner+':'+table,cached=tableCache.get(key);
@@ -186,6 +188,10 @@ export async function signedCoverMap(books) {
       for(const id of idsByPath.get(row.path)||[])map.set(id,row.signedUrl);
     }
   }
+  if(typeof window!=='undefined'&&canWrite&&libraryOwner&&orphanSweepOwner!==libraryOwner){
+    orphanSweepOwner=libraryOwner;
+    queueMicrotask(()=>retryCoverCleanup().catch(()=>{if(orphanSweepOwner===libraryOwner)orphanSweepOwner='';}));
+  }
   return map;
 }
 
@@ -215,10 +221,41 @@ export async function removeStoredCover(path) {
 }
 
 async function bookCover(id){const {data,error}=await supabase.from(T.books).select('portada').eq('id',id).eq('owner_id',libraryOwner).single();if(error)throw error;return data.portada;}
-async function cleanupCover(path){
- if(!path||/^https?:\/\//i.test(path))return;
- const {count,error}=await supabase.from(T.books).select('id',{count:'exact',head:true}).eq('owner_id',libraryOwner).eq('portada',path);
- if(error)throw error;if(!count)await removeStoredCover(path);
+async function cleanupCover(path,owner=libraryOwner){
+ if(!path||/^https?:\/\//i.test(path)||!owner||owner!==libraryOwner)return false;
+ const {count,error}=await supabase.from(T.books).select('id',{count:'exact',head:true}).eq('owner_id',owner).eq('portada',path);
+ if(error)throw error;if(count)return false;
+ if(owner!==libraryOwner)return false;
+ await removeStoredCover(path);return true;
+}
+async function referencedCoverPaths(owner){
+ const refs=new Set();let from=0;
+ while(true){
+  const {data,error}=await supabase.from(T.books).select('portada').eq('owner_id',owner).range(from,from+499);
+  if(error)throw error;
+  for(const row of data||[]){const p=String(row.portada||'').trim();if(p&&!/^https?:\/\//i.test(p))refs.add(p);}
+  if(!data||data.length<500)break;from+=500;
+ }
+ return refs;
+}
+async function storedCoverObjects(owner){
+ const folder=`${owner}/books`,objects=[];let offset=0;
+ while(true){
+  const {data,error}=await supabase.storage.from('biblioteca-portadas').list(folder,{limit:100,offset,sortBy:{column:'name',order:'asc'}});
+  if(error)throw error;
+  objects.push(...(data||[]));
+  if(!data||data.length<100)break;offset+=100;
+ }
+ return {folder,objects};
+}
+export async function cleanupOrphanCovers({minAgeMs=24*60*60*1000}={}){
+ const owner=libraryOwner;if(!owner||!canWrite)return 0;
+ const [refs,stored]=await Promise.all([referencedCoverPaths(owner),storedCoverObjects(owner)]);
+ if(owner!==libraryOwner)return 0;
+ const candidates=staleOrphanCoverPaths(stored.objects,refs,{prefix:stored.folder,minAgeMs});
+ let cleaned=0;
+ for(const path of candidates){if(owner!==libraryOwner)break;try{if(await cleanupCover(path,owner))cleaned++;}catch{} }
+ return cleaned;
 }
 export async function replaceCover(id,path){return updateBook(id,{portada:path});}
 const cleanupKey=()=>`habits:cover-cleanup:${libraryOwner}`;
@@ -230,7 +267,7 @@ async function deferCleanup(path){
 }
 export async function retryCoverCleanup(){
  const owner=libraryOwner,left=[];
- for(const path of pendingCleanup()){if(owner!==libraryOwner)return;try{await cleanupCover(path);}catch{left.push(path);}}
- if(owner===libraryOwner)rememberCleanup(left);
+ for(const path of pendingCleanup()){if(owner!==libraryOwner)return left.length;try{await cleanupCover(path,owner);}catch{left.push(path);}}
+ if(owner===libraryOwner){rememberCleanup(left);await cleanupOrphanCovers();}
  return left.length;
 }

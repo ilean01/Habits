@@ -31,12 +31,12 @@ test('móvil: Biblioteca es destino directo y Tareas conserva áreas, progreso, 
  for(const label of ['Mi día','Calendario','Biblioteca','Tareas'])await expect(nav.getByRole('button',{name:new RegExp(label,'i')})).toBeVisible();
  await expect(nav.getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
  await expect(nav.getByRole('button',{name:/Progreso/i})).toHaveCount(0);
- await nav.getByRole('button',{name:/Tareas/i}).click();
- await expect(page.getByRole('button',{name:'Mis áreas'})).toBeVisible();
- await expect(page.getByRole('button',{name:'Progreso'})).toBeVisible();
- await expect(page.getByRole('button',{name:'Mi diario'})).toBeVisible();
- await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
- await page.getByRole('button',{name:'Progreso'}).click();
+ await expect(nav.getByRole('button',{name:/Más secciones/i})).toBeVisible();
+ await nav.getByRole('button',{name:/Más secciones/i}).click();
+ await expect(page.locator('#modal').getByRole('button',{name:'Mis áreas'})).toBeVisible();
+ await expect(page.locator('#modal').getByRole('button',{name:'Progreso'})).toBeVisible();
+ await expect(page.locator('#modal').getByRole('button',{name:'Mi diario'})).toBeVisible();
+ await page.locator('#modal').getByRole('button',{name:'Progreso'}).click();
  await expect(page.getByRole('heading',{name:'Mi progreso'})).toBeVisible();
  await nav.getByRole('button',{name:/Tareas/i}).click();
  await page.getByRole('button',{name:'Para después'}).click();

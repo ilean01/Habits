@@ -54,3 +54,18 @@
 .food-review-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;background:var(--panel)}.food-review-item legend{font-weight:650;padding:0 6px}
 .food-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.food-grid label{margin:0}
 @media(max-width:650px){.food-grid{grid-template-columns:1fr}.nutrition-panel .food-entry{align-items:flex-start}}
+
+/* Navegacion simplificada: sin segundo scroll lateral y con acceso global movil. */
+@media(min-width:761px){
+ .sidebar{overflow-y:visible;overscroll-behavior:auto;padding-bottom:22px}
+ .sidebar-quote{margin-top:auto}
+ .sidebar>.nav-link:last-child{position:static;margin-top:0;border-top:1px solid var(--line);padding-top:14px}
+}
+.mobile-more-menu{display:grid;gap:9px}
+@media(max-width:760px){
+ .mobile-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-left:6px;padding-right:6px}
+ .mobile-nav button{padding-left:4px;padding-right:4px;min-width:0}
+ .mobile-more-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);min-height:52px;border-radius:9px}
+ .mobile-more-button svg{width:20px;height:20px}
+ .mobile-more-button span{font-size:9px}
+}
