@@ -31,7 +31,7 @@ async function applyQuery(query){
  lastQuery=q;
 }
 
-export async function mountNativeLibrary(host,{query=''}={}){
+export async function mountNativeLibrary(host,{query='',bookId=''}={}){
  if(!host)return;
  if(!shell)shell=createShell();
  if(shell.parentElement!==host)host.replaceChildren(shell);
@@ -42,6 +42,7 @@ export async function mountNativeLibrary(host,{query=''}={}){
  await modulePromise;
  shell.dataset.libraryMounted='true';
  await applyQuery(query);
+ if(bookId)window.dispatchEvent(new CustomEvent('habits:library-open-book',{detail:{id:Number(bookId)}}));
 }
 
 export function detachNativeLibrary(){
