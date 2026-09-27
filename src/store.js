@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 import {newRecord,starterRecords} from './domain.js';
+import {areaDependents,detachReferences,restoreReferences} from './reference-integrity.js';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
 import {loadOwner,migrateLegacyLocalStorage,saveRecord,removeRecord,savePending,saveConflict,removePending,removeConflict,saveMeta} from './local-cache.js';
 
@@ -55,8 +56,19 @@ export function put(kind,data,id=crypto.randomUUID(),deleted=false){
  if(owner!=='demo')cache.pending[id]={...r,expected:previous?.expected??r.rev,op:crypto.randomUUID()};
  persistId(id);broadcast(id);notify();if(owner!=='demo')void sync();return id;
 }
-export function remove(id){const r=cache.records[id];if(r)put(r.kind,r.data,id,true);}
-export function restore(id){const r=cache.records[id];if(r)put(r.kind,r.data,id,false);}
+function applyReferenceChanges(changes){for(const change of changes)put(change.kind,change.data,change.id);}
+export function remove(id){
+ const r=cache.records[id];if(!r)return;
+ const all=Object.values(cache.records);
+ if(r.kind==='area'&&areaDependents(id,all).length)throw new Error('Primero mové a otra área las actividades que la usan.');
+ applyReferenceChanges(detachReferences(r,all));
+ put(r.kind,r.data,id,true);
+}
+export function restore(id){
+ const r=cache.records[id];if(!r)return;
+ put(r.kind,r.data,id,false);
+ applyReferenceChanges(restoreReferences(r,Object.values(cache.records)));
+}
 export function trash(){return Object.values(cache.records).filter(r=>r.deleted);}
 
 export function resolveConflict(id,keepLocal){
