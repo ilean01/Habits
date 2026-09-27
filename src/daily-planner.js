@@ -8,6 +8,7 @@ import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,next
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
 const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
+const moods=[['😔','Difícil'],['😐','Más o menos'],['🙂','Bien'],['😊','Muy bien'],['🤩','Con mucha energía']];
 
 const settings=()=>db.records('settings')[0]||{};
 const areaName=id=>db.records('area').find(a=>a.id===id)?.name||'Personal';
@@ -15,6 +16,8 @@ export const plannerMode=()=>settings().todayLayout==='planner'?'planner':'dashb
 const prettyDate=date=>parseDay(date).toLocaleDateString('es-PY',{day:'numeric',month:'long',year:'numeric'});
 const weekdayName=date=>parseDay(date).toLocaleDateString('es-PY',{weekday:'long'});
 
+function moodForDate(date){return db.records('journal').find(j=>j.date===date&&!j.achievement&&!j.workoutPhoto&&!j.englishPractice&&Number(j.mood));}
+function moodSection(date){const selected=Number(moodForDate(date)?.mood)||0;return `<section class="planner-section planner-mood-section" aria-labelledby="planner-mood-title"><div class="planner-section-title"><h3 id="planner-mood-title">¿Cómo te sentís hoy?</h3><small>elegí un emoji</small></div><div class="planner-moods" role="radiogroup" aria-label="Cómo te sentís hoy">${moods.map(([emoji,label],i)=>{const value=i+1,chosen=selected===value;return `<button type="button" class="planner-mood ${chosen?'chosen':''}" data-action="mood" data-mood="${value}" role="radio" aria-checked="${chosen}" aria-label="${label}: ${value} de 5"><span aria-hidden="true">${emoji}</span><small>${label}</small></button>`;}).join('')}</div><p class="planner-mood-note">Tu respuesta se guarda en el mismo registro de ánimo de Mi día y Mi diario.</p></section>`;}
 function currentPlan(date){return planForDate(db.records(DAILY_PLAN_KIND),date);}
 function savePlan(date,mutate){
  const base=currentPlan(date),draft={...base,priorities:[...base.priorities]};
@@ -62,6 +65,7 @@ export function plannerHtml(date=dayKey()){
  const plan=currentPlan(date),events=plannerEvents(db.records('event'),date);
  return `<section class="daily-planner" data-planner-date="${date}"><div class="planner-paper">
   <header class="planner-paper-header"><div><p class="planner-kicker">Mi día</p><h2>${esc(weekdayName(date))}</h2><p class="planner-date-detail">${esc(prettyDate(date))}</p></div><div class="planner-header-side">${weekStrip(date)}<button class="planner-print" data-planner-action="print">Imprimir mi día</button></div></header>
+  ${moodSection(date)}
   <div class="planner-grid">
    <div class="planner-main">
     <section class="planner-section planner-priorities"><div class="planner-section-title"><h3>Prioridades de hoy</h3><small>máximo 3</small></div><div class="planner-priority-list">${plan.priorities.map((value,i)=>`<label class="planner-priority"><span class="planner-priority-dot" aria-hidden="true"></span><input class="planner-line-input" data-plan-field="priority" data-index="${i}" maxlength="180" value="${esc(value)}" placeholder="Prioridad ${i+1}"></label>`).join('')}</div></section>
