@@ -88,6 +88,7 @@ test('dos dispositivos con la misma cuenta sincronizan en ambos sentidos, recupe
   await phone.sync();
   await until(()=>phone.info().pending===0,'La cola offline no se vació al reconectar');
   await until(()=>notebook.records('task')[0]?.name==='Cambio offline en iPhone','Notebook no recibió el cambio tras reconexión');
+  await until(()=>phone.info().status==='synced'&&notebook.info().status==='synced','Los dos clientes no terminaron el refresh previo');
 
   online=false;
   phone.put('task',{name:'Versión iPhone en conflicto'},'shared-task');
@@ -96,6 +97,9 @@ test('dos dispositivos con la misma cuenta sincronizan en ambos sentidos, recupe
   assert.equal(notebook.info().pending,1);
   online=true;
   await phone.sync();
+  await until(()=>remote.get('shared-task')?.data.name==='Versión iPhone en conflicto','El primer dispositivo no publicó su versión');
+  await until(()=>notebook.info().status!=='syncing','El segundo dispositivo seguía refrescando');
+  if(notebook.info().conflicts.length===0&&notebook.info().pending>0)await notebook.sync();
   await until(()=>notebook.info().conflicts.length===1,'No se detectó la edición concurrente del segundo dispositivo');
   assert.equal(remote.get('shared-task').data.name,'Versión iPhone en conflicto');
   assert.equal(notebook.info().conflicts[0].local.data.name,'Versión notebook en conflicto');
