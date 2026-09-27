@@ -1,5 +1,7 @@
 import * as db from './store.js';
 import {SUPABASE_URL} from './config.js';
+import {dayKey} from './domain.js';
+import {daySnapshot,notificationDayContext} from './day-service.js';
 
 const buildKey=import.meta.env.VITE_VAPID_PUBLIC_KEY||'';
 const functionsBase=(import.meta.env.VITE_SUPABASE_URL||SUPABASE_URL).replace(/\/$/,'');
@@ -9,6 +11,7 @@ function supported(){return typeof window!=='undefined'&&'serviceWorker' in navi
 function bytes(value){const base64=String(value||'').replace(/-/g,'+').replace(/_/g,'/');return Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')),c=>c.charCodeAt(0));}
 function sameKey(subscription,expected){const actual=subscription?.options?.applicationServerKey;if(!actual)return true;const a=new Uint8Array(actual),b=bytes(expected);return a.length===b.length&&a.every((v,i)=>v===b[i]);}
 function stateText(){if(!supported())return 'Este navegador no permite notificaciones push.';if(Notification.permission==='denied')return 'Los avisos están bloqueados por el dispositivo.';if(Notification.permission==='granted')return 'Permiso concedido en este dispositivo.';return 'Todavía no autorizaste avisos en este dispositivo.';}
+function todayContext(){const settings=db.records('settings')[0]||{};return notificationDayContext(daySnapshot({date:dayKey(),records:db.records,settings}));}
 
 async function publicKey(){
  if(cachedPublicKey)return cachedPublicKey;
@@ -24,7 +27,8 @@ async function deleteRemote(endpoint,userId){const {error}=await db.supabase.fro
 
 export function notificationsView({btn}){
  const note=supported()&&Notification.permission==='granted'?'Podés enviar un aviso de prueba para comprobar este dispositivo.':'Al activar, el navegador te va a pedir permiso.';
- return `<section class="install-help"><h3>Recordatorios</h3><p><strong>${stateText()}</strong></p><p>${note}</p><div class="settings-actions">${btn('Activar / actualizar','push-enable','','button outline')}${btn('Probar aviso ahora','push-test','','button outline')}${btn('Desactivar en este dispositivo','push-disable','','button outline')}</div><p class="muted small">Los recordatorios respetan la hora del hábito o evento, el aviso configurado, las actividades ya completadas y tus días tranquilos o de descanso.</p><p>En iPhone: Safari → Compartir → Agregar a pantalla de inicio. Abrí la app instalada y tocá “Activar / actualizar”.</p></section>`;
+ const context=todayContext(),today=context.suppressed?'Hoy es descanso: no se consideran hábitos pendientes.':context.pendingCount?`Hoy quedan ${context.pendingCount} actividades que pueden generar recordatorios según sus horarios.`:'Hoy no quedan actividades pendientes con contexto de recordatorio.';
+ return `<section class="install-help"><h3>Recordatorios</h3><p><strong>${stateText()}</strong></p><p>${note}</p><p class="muted small">${today}</p><div class="settings-actions">${btn('Activar / actualizar','push-enable','','button outline')}${btn('Probar aviso ahora','push-test','','button outline')}${btn('Desactivar en este dispositivo','push-disable','','button outline')}</div><p class="muted small">Los recordatorios respetan la hora del hábito o evento, el aviso configurado, las actividades ya completadas y tus días tranquilos o de descanso.</p><p>En iPhone: Safari → Compartir → Agregar a pantalla de inicio. Abrí la app instalada y tocá “Activar / actualizar”.</p></section>`;
 }
 
 export async function notificationsAction(a,{toast}){

@@ -15,10 +15,14 @@ test('las tomas de agua completan el hábito también para las estadísticas del
   assert.deepEqual(dayStats([h],logs,'2026-09-23'),{total:1,done:1,skipped:0,percent:100});
 });
 
-test('la Ficha del día usa habitStatus y muestra progreso parcial de agua',async()=>{
-  const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+test('la Ficha del día recibe habitStatus desde day-service y muestra progreso parcial de agua',async()=>{
+  const [main,service]=await Promise.all([
+    readFile(new URL('../src/main.js',import.meta.url),'utf8'),
+    readFile(new URL('../src/day-service.js',import.meta.url),'utf8')
+  ]);
   assert.match(main,/function dayDetailView\(d\)/);
-  assert.match(main,/status:habitStatus\(h,rec\('log'\),d\)/);
+  assert.match(main,/daySnapshot\(\{date:d,records:rec,settings:settings\(\)\}\)/);
+  assert.match(service,/status:habitStatus\(habit,logs,date\)/);
   assert.match(main,/status\.hydration/);
   assert.doesNotMatch(main,/const l=rec\('log'\)\.find\(l=>l\.habitId===h\.id&&l\.date===date\)/);
 });

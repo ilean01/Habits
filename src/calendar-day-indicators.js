@@ -1,4 +1,4 @@
-import {dayDetailData} from './day-detail-data.js';
+import {daySnapshot} from './day-service.js';
 
 const MOODS={
  1:{emoji:'😔',label:'Difícil'},
@@ -9,17 +9,17 @@ const MOODS={
 };
 
 export function calendarDayIndicators({date,journals=[],photos=[],tasks=[],logs=[],eventLogs=[],habitDone=0}={}){
- const day=dayDetailData({date,journals,photos,tasks,logs,dailyPlans:[],readings:[]});
- const mood=MOODS[day.mood]||null;
- const photoCount=day.dayPhotos.length;
- const completedEvents=eventLogs.filter(row=>row?.date===date).length;
- const completed=Math.max(0,Number(habitDone)||0)+day.tasksDone+completedEvents;
+ const source={journal:journals,photo:photos,task:tasks,log:logs,eventLog:eventLogs};
+ const day=daySnapshot({date,records:kind=>source[kind]||[],settings:{}});
+ const mood=MOODS[day.detail.mood]||null;
+ const photoCount=day.detail.dayPhotos.length;
+ const completed=Math.max(0,Number(habitDone)||0)+day.detail.tasksDone+day.eventLogs.length;
  return {
   mood,
-  waterLiters:day.waterLiters,
+  waterLiters:day.detail.waterLiters,
   photos:photoCount,
   completed,
-  hasAny:!!(mood||day.waterLiters||photoCount||completed)
+  hasAny:!!(mood||day.detail.waterLiters||photoCount||completed)
  };
 }
 

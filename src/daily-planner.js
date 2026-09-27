@@ -1,9 +1,9 @@
 import './daily-planner.css';
 import * as db from './store.js';
-import {dayKey,parseDay,effectiveHabitsForDate,habitStatus} from './domain.js';
-import {effectiveDayMode} from './day-modes.js';
+import {dayKey,parseDay} from './domain.js';
 import {authorizeEventSave} from './event-service.js';
-import {plannerRecordId,planForDate,plannerTasks,plannerEvents,eventsByHour,nextHour,normalizeDailyPlan,DAILY_PLAN_KIND} from './daily-planner-domain.js';
+import {plannerRecordId,planForDate,eventsByHour,nextHour,normalizeDailyPlan,DAILY_PLAN_KIND} from './daily-planner-domain.js';
+import {daySnapshot} from './day-service.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const weekdays=['L','M','X','J','V','S','D'];
@@ -12,12 +12,12 @@ const moods=[['😔','Difícil'],['😐','Más o menos'],['🙂','Bien'],['😊'
 
 const settings=()=>db.records('settings')[0]||{};
 const areaName=id=>db.records('area').find(a=>a.id===id)?.name||'Personal';
+const snapshot=date=>daySnapshot({date,records:db.records,settings:settings()});
 export const plannerMode=()=>settings().todayLayout==='planner'?'planner':'dashboard';
 const prettyDate=date=>parseDay(date).toLocaleDateString('es-PY',{day:'numeric',month:'long',year:'numeric'});
 const weekdayName=date=>parseDay(date).toLocaleDateString('es-PY',{weekday:'long'});
 
-function moodForDate(date){return db.records('journal').find(j=>j.date===date&&!j.achievement&&!j.workoutPhoto&&!j.englishPractice&&Number(j.mood));}
-function moodSection(date){const selected=Number(moodForDate(date)?.mood)||0;return `<section class="planner-section planner-mood-section" aria-labelledby="planner-mood-title"><div class="planner-section-title"><h3 id="planner-mood-title">¿Cómo te sentís hoy?</h3><small>elegí un emoji</small></div><div class="planner-moods" role="radiogroup" aria-label="Cómo te sentís hoy">${moods.map(([emoji,label],i)=>{const value=i+1,chosen=selected===value;return `<button type="button" class="planner-mood ${chosen?'chosen':''}" data-action="mood" data-mood="${value}" role="radio" aria-checked="${chosen}" aria-label="${label}: ${value} de 5"><span aria-hidden="true">${emoji}</span><small>${label}</small></button>`;}).join('')}</div><p class="planner-mood-note">Tu respuesta se guarda en el mismo registro de ánimo de Mi día y Mi diario.</p></section>`;}
+function moodSection(selected=0){selected=Number(selected)||0;return `<section class="planner-section planner-mood-section" aria-labelledby="planner-mood-title"><div class="planner-section-title"><h3 id="planner-mood-title">¿Cómo te sentís hoy?</h3><small>elegí un emoji</small></div><div class="planner-moods" role="radiogroup" aria-label="Cómo te sentís hoy">${moods.map(([emoji,label],i)=>{const value=i+1,chosen=selected===value;return `<button type="button" class="planner-mood ${chosen?'chosen':''}" data-action="mood" data-mood="${value}" role="radio" aria-checked="${chosen}" aria-label="${label}: ${value} de 5"><span aria-hidden="true">${emoji}</span><small>${label}</small></button>`;}).join('')}</div><p class="planner-mood-note">Tu respuesta se guarda en el mismo registro de ánimo de Mi día y Mi diario.</p></section>`;}
 function currentPlan(date){return planForDate(db.records(DAILY_PLAN_KIND),date);}
 function savePlan(date,mutate){
  const base=currentPlan(date),draft={...base,priorities:[...base.priorities]};
@@ -43,29 +43,27 @@ function scheduleHtml(events,date){
  </div>`;
 }
 
-function habitsHtml(date){
- const s=settings(),mode=effectiveDayMode(s,date),logs=db.records('log');
- const habits=effectiveHabitsForDate(db.records('habit').sort((a,b)=>(a.order||0)-(b.order||0)),date,mode);
- if(mode==='descanso')return '<p class="planner-empty-note">Día de descanso: hoy no hay hábitos obligatorios y las rachas quedan protegidas.</p>';
- if(!habits.length)return '<p class="planner-empty-note">No hay hábitos programados para hoy.</p>';
- return `<div class="planner-habits">${habits.map(h=>{
-  const state=habitStatus(h,logs,date),action=state.hydration?'water-custom':'habit-action';
+function habitsHtml(date,day){
+ if(day.mode==='descanso')return '<p class="planner-empty-note">Día de descanso: hoy no hay hábitos obligatorios y las rachas quedan protegidas.</p>';
+ if(!day.habitRows.length)return '<p class="planner-empty-note">No hay hábitos programados para hoy.</p>';
+ return `<div class="planner-habits">${day.habitRows.map(({habit:h,status:state})=>{
+  const action=state.hydration?'water-custom':'habit-action';
   const extra=state.hydration?'':`data-id="${esc(h.id)}" data-date="${esc(date)}"`;
   const detail=state.hydration?`${(state.value/1000).toLocaleString('es-PY')} / ${(state.target/1000).toLocaleString('es-PY')} L`:state.weekly?`${state.weekly.done}/${state.weekly.target} esta semana`:h.type==='check'?(state.skip?'Pausa de hoy':areaName(h.area)):`${state.value||0} / ${h.target} ${esc(h.unit||'')}`;
   return `<div class="planner-habit-row"><button class="planner-check-button ${state.done?'done':state.skip?'paused':''}" data-action="${action}" ${extra} aria-label="${state.done?'Revisar':state.hydration?'Registrar agua':'Registrar'} ${esc(h.name)}">${state.done?'✓':state.skip?'–':'✓'}</button><button class="planner-row-main" data-action="edit-habit" data-id="${esc(h.id)}"><strong>${esc(h.name)}</strong><small>${detail}</small></button></div>`;
  }).join('')}</div>`;
 }
 
-function tasksHtml(date){
- const tasks=plannerTasks(db.records('task'),date);
- return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">${task.done?'✓':'✓'}</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:esc(areaName(task.area))}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
+function tasksHtml(date,day){
+ const tasks=day.agendaTasks;
+ return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">✓</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:esc(areaName(task.area))}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
 }
 
 export function plannerHtml(date=dayKey()){
- const plan=currentPlan(date),events=plannerEvents(db.records('event'),date);
+ const day=snapshot(date),plan=day.detail.plan,events=day.events;
  return `<section class="daily-planner" data-planner-date="${date}"><div class="planner-paper">
   <header class="planner-paper-header"><div><p class="planner-kicker">Mi día</p><h2>${esc(weekdayName(date))}</h2><p class="planner-date-detail">${esc(prettyDate(date))}</p></div><div class="planner-header-side">${weekStrip(date)}<button class="planner-print" data-planner-action="print">Imprimir mi día</button></div></header>
-  ${moodSection(date)}
+  ${moodSection(day.detail.mood)}
   <div class="planner-grid">
    <div class="planner-main">
     <section class="planner-section planner-priorities"><div class="planner-section-title"><h3>Prioridades de hoy</h3><small>máximo 3</small></div><div class="planner-priority-list">${plan.priorities.map((value,i)=>`<label class="planner-priority"><span class="planner-priority-dot" aria-hidden="true"></span><input class="planner-line-input" data-plan-field="priority" data-index="${i}" maxlength="180" value="${esc(value)}" placeholder="Prioridad ${i+1}"></label>`).join('')}</div></section>
@@ -73,8 +71,8 @@ export function plannerHtml(date=dayKey()){
     <section class="planner-section planner-schedule-section"><div class="planner-section-title"><h3>Agenda</h3><small>06:00–21:00</small></div>${scheduleHtml(events,date)}</section>
    </div>
    <aside class="planner-side">
-    <section class="planner-section planner-habit-section"><div class="planner-section-title"><h3>Tracker de hábitos</h3><small>mismos hábitos de Habits</small></div>${habitsHtml(date)}</section>
-    <section class="planner-section planner-task-section"><div class="planner-section-title"><h3>Checklist</h3><small>tareas de hoy</small></div>${tasksHtml(date)}</section>
+    <section class="planner-section planner-habit-section"><div class="planner-section-title"><h3>Tracker de hábitos</h3><small>mismos hábitos de Habits</small></div>${habitsHtml(date,day)}</section>
+    <section class="planner-section planner-task-section"><div class="planner-section-title"><h3>Checklist</h3><small>tareas de hoy</small></div>${tasksHtml(date,day)}</section>
    </aside>
    <section class="planner-section planner-notes"><div class="planner-section-title"><h3>Notas / cosas que no quiero olvidar</h3></div><textarea class="planner-lined-textarea" data-plan-field="notes" maxlength="10000" placeholder="Escribí libremente…">${esc(plan.notes)}</textarea><small class="planner-save-hint">Se guarda automáticamente al salir del campo.</small></section>
   </div>

@@ -1,5 +1,5 @@
 /* Punto 7 · Ficha del día optimizada para notebook y iPhone */
-.day-detail-back{display:none}
+.day-detail-back{display:none;border:0;background:transparent;padding:0;font:inherit;cursor:pointer;text-decoration:none}
 .day-detail-card{box-shadow:0 14px 36px color-mix(in srgb,var(--text) 7%,transparent)}
 .day-detail-head{background:var(--panel)}
 .day-detail-head h2{font-size:28px;line-height:1.18}
