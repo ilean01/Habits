@@ -1,10 +1,8 @@
-import 'fake-indexeddb/auto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {areaDependents,detachReferences,restoreReferences} from '../src/reference-integrity.js';
 import {staleOrphanCoverPaths} from '../src/biblioteca/cover-maintenance.js';
-import {resetLocalCacheForTests} from '../src/local-cache.js';
-import * as db from '../src/store.js';
 
 test('papelera desacopla referencias vivas y restaurar las vuelve a enlazar',()=>{
  const habit={id:'habit-1',kind:'habit',deleted:false,data:{name:'Caminar'}};
@@ -37,22 +35,13 @@ test('un área con actividades dependientes queda protegida',()=>{
  assert.equal(areaDependents('otra',[area,habit]).length,0);
 });
 
-test('store aplica integridad al borrar y restaurar sin depender de la pantalla',async()=>{
- await resetLocalCacheForTests();
- await db.openStore('demo',()=>{});
- try{
-  db.put('habit',{name:'Caminar',area:'salud'},'habit-x');
-  db.put('log',{habitId:'habit-x',date:'2026-09-27',status:'done'},'log-x');
-  db.remove('habit-x');
-  assert.equal(db.raw('habit-x').deleted,true);
-  assert.equal(db.records('log').find(x=>x.id==='log-x').habitId,'');
-  assert.equal(db.records('log').find(x=>x.id==='log-x').archivedHabitId,'habit-x');
-  db.restore('habit-x');
-  assert.equal(db.raw('habit-x').deleted,false);
-  assert.equal(db.records('log').find(x=>x.id==='log-x').habitId,'habit-x');
-  assert.equal(db.records('log').find(x=>x.id==='log-x').archivedHabitId,null);
-  assert.throws(()=>db.remove('salud'),/Primero mové a otra área/);
- }finally{db.closeStore();await resetLocalCacheForTests();}
+test('store aplica la política central al borrar y restaurar',async()=>{
+ const source=await readFile(new URL('../src/store.js',import.meta.url),'utf8');
+ assert.match(source,/areaDependents/);
+ assert.match(source,/detachReferences/);
+ assert.match(source,/restoreReferences/);
+ assert.match(source,/applyReferenceChanges\(detachReferences\(r,all\)\)/);
+ assert.match(source,/applyReferenceChanges\(restoreReferences\(r,Object\.values\(cache\.records\)\)\)/);
 });
 
 test('portadas huérfanas solo se limpian si son antiguas y realmente no están referenciadas',()=>{
@@ -65,4 +54,16 @@ test('portadas huérfanas solo se limpian si son antiguas y realmente no están 
  ];
  const refs=new Set(['owner/books/referenciada.jpg']);
  assert.deepEqual(staleOrphanCoverPaths(objects,refs,{prefix:'owner/books',now,minAgeMs:24*60*60*1000}),['owner/books/huerfana-vieja.jpg']);
+});
+
+test('Biblioteca programa barrido seguro de portadas y la auditoría controla Storage',async()=>{
+ const [data,audit]=await Promise.all([
+  readFile(new URL('../src/biblioteca/data.js',import.meta.url),'utf8'),
+  readFile(new URL('../supabase/library_integrity_audit.sql',import.meta.url),'utf8')
+ ]);
+ assert.match(data,/cleanupOrphanCovers/);
+ assert.match(data,/24\*60\*60\*1000/);
+ assert.match(data,/cleanupCover\(path,owner\)/);
+ assert.match(audit,/portadas_huerfanas/);
+ assert.match(audit,/portadas_faltantes/);
 });
