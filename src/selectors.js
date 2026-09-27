@@ -1,4 +1,5 @@
 const text=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const localDayKey=(date=new Date())=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 
 export const diaryEntries=rows=>rows.filter(isDiaryEntry);
 export const achievements=rows=>rows.filter(r=>r?.achievement===true);
@@ -8,9 +9,15 @@ export const workoutPhotos=rows=>rows.filter(r=>r?.workoutPhoto===true);
 export const hydrationLogs=rows=>rows.filter(r=>r?.hydration===true);
 export const subjectProjects=rows=>rows.filter(r=>r?.category==='subject');
 export const personalProjects=rows=>rows.filter(r=>r?.category!=='subject');
-export const pendingTasks=rows=>rows.filter(r=>!r?.done&&!!r?.due);
-export const laterTasks=rows=>rows.filter(r=>!r?.done&&!r?.due);
-export const completedTasks=rows=>rows.filter(r=>!!r?.done);
+export function taskTemporalStatus(row,today=localDayKey()){
+ if(row?.done)return 'completed';
+ if(!row?.due)return 'later';
+ return row.due>today?'scheduled':'pending';
+}
+export const pendingTasks=(rows,today)=>rows.filter(r=>taskTemporalStatus(r,today)==='pending');
+export const scheduledTasks=(rows,today)=>rows.filter(r=>taskTemporalStatus(r,today)==='scheduled');
+export const laterTasks=(rows,today)=>rows.filter(r=>taskTemporalStatus(r,today)==='later');
+export const completedTasks=(rows,today)=>rows.filter(r=>taskTemporalStatus(r,today)==='completed');
 
 export function taskProjectOptions(rows,currentId=''){
  const personal=personalProjects(rows),current=rows.find(r=>r?.id===currentId);

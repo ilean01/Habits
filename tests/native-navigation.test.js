@@ -16,7 +16,7 @@ test('Tareas nace desde la navegación nativa sin navigation-simplify',()=>{
  assert.equal(fs.existsSync(legacyNavigation),false);
 });
 
-test('Tareas contiene solo pendientes, para después y proyectos',()=>{
+test('Tareas separa pendientes, programadas, para después y proyectos',()=>{
  const start=main.indexOf('function spaceView()');
  const end=main.indexOf('\nfunction taskList',start);
  assert.ok(start>=0&&end>start);
@@ -24,8 +24,11 @@ test('Tareas contiene solo pendientes, para después y proyectos',()=>{
  assert.match(source,/ORGANIZÁ LO QUE TENÉS QUE HACER/);
  assert.match(source,/'Tareas'/);
  assert.match(source,/\['tareas','Pendientes'\]/);
+ assert.match(source,/\['scheduled','Programadas'\]/);
  assert.match(source,/\['later','Para después'\]/);
  assert.match(source,/\['proyectos','Proyectos'\]/);
+ assert.match(source,/Tareas vencidas o para hoy/);
+ assert.match(source,/Tareas con fecha futura/);
  assert.doesNotMatch(source,/Estudio y trabajo/);
  assert.doesNotMatch(source,/data-tab=\\?"planning/);
 });
