@@ -12,7 +12,7 @@ export function validateBackup(value){
  for(const [id,r] of records)if(!id||id.length>200||['__proto__','constructor','prototype'].includes(id)||!r||r.id!==id||!allowed.has(r.kind)||!r.data||typeof r.data!=='object'||Array.isArray(r.data))throw new Error('El respaldo contiene registros inválidos.');
  return records.map(([,r])=>r).filter(r=>!r.deleted);
 }
-export function extrasView({btn}){return `<section class="panel"><h2>Un momento para vos</h2><div class="button-row">${btn('¿Qué sigue?','extra-next','','button outline')}${btn('Tengo un rato libre','extra-free','','button outline')}${btn('Cerrar mi día','extra-close','','button outline')}${btn('Clima de Asunción','extra-weather','','button outline')}</div></section>`;}
+export function extrasView({btn}){return `<section class="panel utility-panel"><details class="secondary-actions"><summary>Más opciones para hoy</summary><div class="button-row">${btn('¿Qué sigue?','extra-next','','button outline')}${btn('Tengo un rato libre','extra-free','','button outline')}${btn('Cerrar mi día','extra-close','','button outline')}${btn('Clima de Asunción','extra-weather','','button outline')}</div></details></section>`;}
 export async function extrasAction(a,el,{showModal,input,btn,esc,modal,toast}){
  if(!a.startsWith('extra-'))return false;const today=dayKey(),now=new Date(),clock=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
  const ev=d=>db.records('event').filter(e=>occurs(e,d)).map(e=>eventOnDate(e,d)).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
