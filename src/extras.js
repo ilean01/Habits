@@ -1,3 +1,4 @@
+import './dashboard-customization.js';
 import * as db from './store.js';
 import {dayKey,addDays,weekKeys,occurs,eventOnDate,flexibleWeekly,weeklyProgress,effectiveHabitsForDate,dayStats} from './domain.js';
 import {daySummary} from './daily.js';
