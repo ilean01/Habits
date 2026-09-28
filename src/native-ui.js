@@ -1,4 +1,3 @@
-import './dashboard-customization.js';
 import {dayKey} from './domain.js';
 import {holidayOn,holidayStatusText} from './paraguay-holidays.js';
 import {activeWorkBlock} from './work-context.js';
