@@ -10,6 +10,8 @@ import './photo-gallery.css';
 import './library-native.css';
 import './app-shell.css';
 import './global-recovery.js';
+import './personal-center.js';
+import './productivity-tools.js';
 import {mountNativeLibrary} from './library-native-host.js';
 import {createIcons,Sun,Check,Plus,ChevronLeft,ChevronRight,CalendarDays,LayoutDashboard,Layers,BookOpen,LibraryBig,Dumbbell,Coffee,ShowerHead,Droplets,Footprints,Heart,Moon,Flower2,BriefcaseBusiness,GraduationCap,Languages,House,Music,NotebookPen,Leaf,Settings,LogOut,ArrowUpRight,ArrowRight,MoreHorizontal,CheckCheck,Clock,Play,Pause,Square,Search,X,Trash2,Download,Cloud,CloudOff,RefreshCw,ChartNoAxesColumn,Target,Flag,RotateCcw,Mail,Lock,User,CheckCircle2,Menu,Sparkles,Camera} from 'lucide';
 import {AREAS,ICONS,PALETTE,uid,dayKey,parseDay,addDays,scheduled,occurs,dayStats,streak,elapsed,fmtDuration,weekKeys,eventOnDate,flexibleWeekly,weeklyProgress,habitStatus,effectiveHabitsForDate} from './domain.js';
