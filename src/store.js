@@ -14,11 +14,23 @@ const tabId=crypto.randomUUID();
 const bus=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('habits-local-v2'):null;
 bus?.unref?.();
 let writeQueue=Promise.resolve();
+let undoStack=[],redoStack=[],historyPaused=0;
+const SYSTEM_KINDS=new Set(['settings','timer','activity','notice']);
+const TRASHABLE_KINDS=new Set(['area','habit','event','task','project','reading','quote','journal','word','dailyPlan']);
+const KIND_LABELS={area:'área',habit:'hábito',log:'registro',event:'evento',eventLog:'evento',task:'tarea',project:'proyecto',reading:'lectura',quote:'cita',journal:'diario',word:'palabra',dailyPlan:'plan del día',photo:'foto',meal:'comida'};
 const online=()=>typeof navigator==='undefined'||navigator.onLine!==false;
 const enqueue=fn=>{writeQueue=writeQueue.then(fn).catch(e=>console.warn('No se pudo guardar la caché local:',e.message));return writeQueue;};
 const notify=()=>{invalidate();listener();};
+const cloneData=value=>value==null?value:JSON.parse(JSON.stringify(value));
+const snapshot=r=>r?{id:r.id,kind:r.kind,data:cloneData(r.data),deleted:!!r.deleted}:null;
+const snapshotEqual=(r,s)=>{
+ if(!s)return !r||!!r.deleted;
+ return !!r&&r.kind===s.kind&&!!r.deleted===!!s.deleted&&JSON.stringify(r.data||{})===JSON.stringify(s.data||{});
+};
+const recordLabel=r=>String(r?.data?.name||r?.data?.title||r?.data?.text||r?.data?.bookTitle||KIND_LABELS[r?.kind]||'elemento').trim();
+const pushUndo=op=>{if(historyPaused||SYSTEM_KINDS.has(op?.after?.kind||op?.before?.kind||''))return;undoStack.push(op);if(undoStack.length>50)undoStack.shift();redoStack=[];};
 
-export const info=()=>({status,pending:Object.keys(cache.pending).length,conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb'});
+export const info=()=>({status,pending:Object.keys(cache.pending).length,conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb',undo:undoStack.length,redo:redoStack.length});
 export const currentOwner=()=>owner;
 // Cada pantalla llama a records() decenas de veces (el calendario, más de cien). Se calcula una vez por cambio y se reutiliza.
 const byKind=new Map();
@@ -26,6 +38,8 @@ const invalidate=()=>byKind.clear();
 export function records(kind){const k=kind||'*';let list=byKind.get(k);if(!list){list=Object.values(cache.records).filter(r=>!r.deleted&&(!kind||r.kind===kind)).map(r=>({...r.data,id:r.id}));byKind.set(k,list);}return list.slice();}
 export function raw(id){return cache.records[id];}
 export function exportData(){return {version:1,exportedAt:new Date().toISOString(),records:cache.records,pending:cache.pending,conflicts:cache.conflicts};}
+export function activity(){return records('activity').sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));}
+export function historyInfo(){return {undo:undoStack.length,redo:redoStack.length,lastUndo:undoStack.at(-1)?.label||'',lastRedo:redoStack.at(-1)?.label||''};}
 
 function broadcast(id){if(!bus||!owner)return;bus.postMessage({source:tabId,owner,id,record:cache.records[id]||null,pending:cache.pending[id]||null,conflict:cache.conflicts[id]||null});}
 function persistId(id){const currentOwner=owner;if(!currentOwner)return;const record=cache.records[id],pending=cache.pending[id],conflict=cache.conflicts[id];enqueue(async()=>{
@@ -34,42 +48,93 @@ function persistId(id){const currentOwner=owner;if(!currentOwner)return;const re
  if(conflict)await saveConflict(currentOwner,id,conflict);else await removeConflict(currentOwner,id);
 });}
 
-export async function openStore(user,onChange){
- owner=user;listener=onChange;status=user==='demo'?'demo':online()?'loading':'offline';
- await migrateLegacyLocalStorage(user);
- const local=await loadOwner(user);cache={records:local.records,pending:local.pending,conflicts:local.conflicts};meta=local.meta||{owner:user,lastSync:null};
- if(user==='demo'&&Object.keys(cache.records).length===0){for(const r of starterRecords()){cache.records[r.id]=r;await saveRecord(user,r.id,r);}status='demo';notify();return;}
- notify();
- if(user!=='demo'){
-  await sync();
-  if(status==='synced'&&Object.keys(cache.records).length===0){for(const r of starterRecords())put(r.kind,r.data,r.id);await sync();}
-  channel=supabase.channel(`entries:${user}`).on('postgres_changes',{event:'*',schema:'public',table:'entries',filter:`user_id=eq.${user}`},()=>sync()).subscribe();
- }
-}
-
-export function closeStore(){if(channel){supabase.removeChannel(channel);channel=null;}owner=null;cache={records:{},pending:{},conflicts:{}};invalidate();meta={lastSync:null};listener=()=>{};status='local';}
-
-export function put(kind,data,id=crypto.randomUUID(),deleted=false){
+function writeRecord(kind,data,id=crypto.randomUUID(),deleted=false,{track=true,activityAction=true}={}){
  if(!owner)throw new Error('Iniciá sesión primero.');
  const before=cache.records[id],previous=cache.pending[id];
  const r={...newRecord(kind,data,id),rev:before?.rev||0,deleted};cache.records[id]=r;
  if(owner!=='demo')cache.pending[id]={...r,expected:previous?.expected??r.rev,op:crypto.randomUUID()};
- persistId(id);broadcast(id);notify();if(owner!=='demo')void sync();return id;
+ if(track&&!historyPaused&&!SYSTEM_KINDS.has(kind))pushUndo({type:'write',id,before:snapshot(before),after:snapshot(r),label:recordLabel(r)});
+ persistId(id);broadcast(id);notify();if(owner!=='demo')void sync();
+ if(activityAction&&!historyPaused&&!SYSTEM_KINDS.has(kind))recordActivity(before&&!before.deleted?'updated':'created',r);
+ return id;
 }
-function applyReferenceChanges(changes){for(const change of changes)put(change.kind,change.data,change.id);}
-export function remove(id){
- const r=cache.records[id];if(!r)return;
+function recordActivity(action,target,extra={}){
+ if(!owner||!target||SYSTEM_KINDS.has(target.kind))return;
+ const label=recordLabel(target),at=new Date().toISOString(),id=`activity:${at}:${crypto.randomUUID()}`;
+ writeRecord('activity',{action,targetKind:target.kind,targetId:target.id,label,at,...extra},id,false,{track:false,activityAction:false});
+}
+
+export async function openStore(user,onChange){
+ owner=user;listener=onChange;status=user==='demo'?'demo':online()?'loading':'offline';undoStack=[];redoStack=[];
+ await migrateLegacyLocalStorage(user);
+ const local=await loadOwner(user);cache={records:local.records,pending:local.pending,conflicts:local.conflicts};meta=local.meta||{owner:user,lastSync:null};
+ if(user==='demo'&&Object.keys(cache.records).length===0){historyPaused++;try{for(const r of starterRecords()){cache.records[r.id]=r;await saveRecord(user,r.id,r);}}finally{historyPaused--;}status='demo';notify();return;}
+ notify();
+ if(user!=='demo'){
+  await sync();
+  if(status==='synced'&&Object.keys(cache.records).length===0){historyPaused++;try{for(const r of starterRecords())writeRecord(r.kind,r.data,r.id,false,{track:false,activityAction:false});await sync();}finally{historyPaused--;}}
+  channel=supabase.channel(`entries:${user}`).on('postgres_changes',{event:'*',schema:'public',table:'entries',filter:`user_id=eq.${user}`},()=>sync()).subscribe();
+ }
+}
+
+export function closeStore(){if(channel){supabase.removeChannel(channel);channel=null;}owner=null;cache={records:{},pending:{},conflicts:{}};invalidate();meta={lastSync:null};listener=()=>{};status='local';undoStack=[];redoStack=[];historyPaused=0;}
+
+export function put(kind,data,id=crypto.randomUUID(),deleted=false){return writeRecord(kind,data,id,deleted);}
+function applyReferenceChanges(changes){for(const change of changes)writeRecord(change.kind,change.data,change.id,false,{track:false,activityAction:false});}
+export function remove(id,{track=true,activityAction=true}={}){
+ const r=cache.records[id];if(!r||r.deleted)return;
  const all=Object.values(cache.records);
  if(r.kind==='area'&&areaDependents(id,all).length)throw new Error('Primero mové a otra área las actividades que la usan.');
  applyReferenceChanges(detachReferences(r,all));
- put(r.kind,r.data,id,true);
+ writeRecord(r.kind,r.data,id,true,{track:false,activityAction:false});
+ if(track&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))pushUndo({type:'remove',id,before:snapshot(r),after:snapshot(cache.records[id]),label:recordLabel(r)});
+ if(activityAction&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))recordActivity('deleted',r);
 }
-export function restore(id){
- const r=cache.records[id];if(!r)return;
- put(r.kind,r.data,id,false);
+export function restore(id,{track=true,activityAction=true}={}){
+ const r=cache.records[id];if(!r||!r.deleted||r.data?.__purgedAt)return;
+ writeRecord(r.kind,r.data,id,false,{track:false,activityAction:false});
  applyReferenceChanges(restoreReferences(r,Object.values(cache.records)));
+ if(track&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))pushUndo({type:'restore',id,before:snapshot(r),after:snapshot(cache.records[id]),label:recordLabel(r)});
+ if(activityAction&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))recordActivity('restored',r);
 }
-export function trash(){return Object.values(cache.records).filter(r=>r.deleted);}
+export function trash(){return Object.values(cache.records).filter(r=>r.deleted&&TRASHABLE_KINDS.has(r.kind)&&!r.data?.__purgedAt).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''));}
+export function purge(id){
+ const r=cache.records[id];if(!r||!r.deleted||!TRASHABLE_KINDS.has(r.kind)||r.data?.__purgedAt)return false;
+ const label=recordLabel(r),at=new Date().toISOString();
+ writeRecord(r.kind,{__purgedAt:at,__purgedKind:r.kind},id,true,{track:false,activityAction:false});
+ recordActivity('purged',r,{label});return true;
+}
+export function emptyTrash(){const ids=trash().map(r=>r.id);for(const id of ids)purge(id);return ids.length;}
+
+function applySnapshot(s){
+ if(!s)return;
+ writeRecord(s.kind,s.data,s.id,s.deleted,{track:false,activityAction:false});
+}
+function ensureCurrent(op,expected){const current=cache.records[op.id];if(!snapshotEqual(current,expected))throw new Error('Ese elemento cambió en otro dispositivo. Sincronizá antes de deshacer.');}
+export function undo(){
+ const op=undoStack.at(-1);if(!op)return null;
+ ensureCurrent(op,op.after);
+ historyPaused++;try{
+  if(op.type==='remove')restore(op.id,{track:false,activityAction:false});
+  else if(op.type==='restore')remove(op.id,{track:false,activityAction:false});
+  else if(op.before)applySnapshot(op.before);
+  else remove(op.id,{track:false,activityAction:false});
+ }finally{historyPaused--;}
+ undoStack.pop();redoStack.push(op);recordActivity('undo',op.before||op.after,{label:op.label});return op;
+}
+export function redo(){
+ const op=redoStack.at(-1);if(!op)return null;
+ const current=cache.records[op.id];
+ if(op.type==='remove'){if(!snapshotEqual(current,op.before))throw new Error('Ese elemento cambió en otro dispositivo. Sincronizá antes de rehacer.');}
+ else if(op.type==='restore'){if(!current?.deleted)throw new Error('Ese elemento cambió en otro dispositivo. Sincronizá antes de rehacer.');}
+ else if(op.before){ensureCurrent(op,op.before);}else if(!current?.deleted){throw new Error('Ese elemento cambió en otro dispositivo. Sincronizá antes de rehacer.');}
+ historyPaused++;try{
+  if(op.type==='remove')remove(op.id,{track:false,activityAction:false});
+  else if(op.type==='restore')restore(op.id,{track:false,activityAction:false});
+  else applySnapshot(op.after);
+ }finally{historyPaused--;}
+ redoStack.pop();undoStack.push(op);recordActivity('redo',op.after||op.before,{label:op.label});return op;
+}
 
 export function resolveConflict(id,keepLocal){
  const c=cache.conflicts[id];if(!c)return;
