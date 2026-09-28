@@ -1,4 +1,3 @@
-import './dashboard-customization.css';
 import * as db from './store.js';
 import {DASHBOARD_WIDGETS,normalizeDashboardPreferences,moveDashboardWidget,setDashboardWidgetVisible,setDashboardColumns,resetDashboardPreferences} from './dashboard-preferences.js';
 
@@ -16,6 +15,10 @@ const selectorById={
 const widgetLabel=new Map(DASHBOARD_WIDGETS.map(widget=>[widget.id,widget.label]));
 let applyQueued=false;
 
+function ensureStyles(){
+ if(typeof document==='undefined'||document.querySelector('link[data-dashboard-customization-style]'))return;
+ const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./dashboard-customization.css',import.meta.url).href;link.dataset.dashboardCustomizationStyle='true';document.head.append(link);
+}
 function currentSettings(){return db.records('settings')[0]||{};}
 function currentPreferences(){return normalizeDashboardPreferences(currentSettings().dashboardWidgets||{});}
 function savePreferences(prefs){
@@ -77,6 +80,7 @@ function closeDialog(){document.querySelector('#dashboard-customizer')?.close();
 function scheduleApply(){if(applyQueued)return;applyQueued=true;queueMicrotask(()=>{applyQueued=false;applyDashboardCustomization();});}
 
 if(typeof document!=='undefined'){
+ ensureStyles();
  document.addEventListener('click',event=>{
   const control=event.target.closest('[data-dashboard-action]');if(!control)return;
   const action=control.dataset.dashboardAction;if(!action)return;
