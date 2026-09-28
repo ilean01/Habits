@@ -21,7 +21,7 @@ test('objetivos semanales y mensuales están integrados en Progreso',()=>{
 
 test('diagnóstico de sincronización y dispositivos usan la cuenta real sin exponer nombres técnicos',()=>{
  assert.match(main,/reliabilitySettingsView/);
- assert.match(reliability,/Comprobar sincronización/);
+ assert.match(reliability,/Comprobar conexión/);
  assert.match(reliability,/Mis dispositivos/);
  assert.match(reliability,/signOut\(\{scope:'others'\}\)/);
  assert.match(reliability,/session_id/);
