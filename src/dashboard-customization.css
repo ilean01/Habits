@@ -1,0 +1,30 @@
+.dashboard-customize-button{white-space:nowrap}
+.dashboard-widget-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.85fr);gap:22px;align-items:start;margin-top:18px}
+.dashboard-widget-grid[data-columns="one"]{grid-template-columns:minmax(0,1fr)}
+.dashboard-widget-grid[data-columns="two"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dashboard-widget{min-width:0;margin:0}
+.dashboard-widget[hidden]{display:none!important}
+.dashboard-widget[data-dashboard-widget="hero"]{grid-column:1/-1}
+.dashboard-widget[data-dashboard-widget="habits"] .habit-grid{margin-top:0}
+.dashboard-widget[data-dashboard-widget="extras"],.dashboard-widget[data-dashboard-widget="water"],.dashboard-widget[data-dashboard-widget="nutrition"],.dashboard-widget[data-dashboard-widget="agenda"]{align-self:start;background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:17px 0;margin:0}
+.dashboard-widget[data-dashboard-widget="extras"]{border-top:0;padding-top:0}
+.dashboard-all-hidden{grid-column:1/-1;min-height:180px}
+.dashboard-customizer{width:min(640px,calc(100vw - 28px));max-height:min(82vh,760px);border:1px solid var(--line);border-radius:20px;padding:0;background:var(--panel);color:var(--text)}
+.dashboard-customizer::backdrop{background:rgba(24,30,23,.42);backdrop-filter:blur(3px)}
+.dashboard-customizer-shell{display:flex;flex-direction:column;max-height:min(82vh,760px)}
+.dashboard-customizer-shell>header{display:flex;justify-content:space-between;gap:18px;padding:24px 24px 14px;border-bottom:1px solid var(--line)}
+.dashboard-customizer-shell>header h2{margin:3px 0 5px;font-family:var(--serif);font-size:26px;font-weight:500}
+.dashboard-customizer-shell>header p{margin:0;color:var(--muted)}
+.dashboard-columns{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 24px;border-bottom:1px solid var(--line);font-weight:600}
+.dashboard-columns select{min-width:180px}
+.dashboard-widget-settings{overflow:auto;padding:8px 24px}
+.dashboard-widget-setting{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:54px;border-bottom:1px solid color-mix(in srgb,var(--line) 72%,transparent)}
+.dashboard-widget-setting:last-child{border-bottom:0}
+.dashboard-widget-setting>label{display:flex;align-items:center;gap:11px;cursor:pointer;min-width:0}
+.dashboard-widget-setting>label span{font-weight:600}
+.dashboard-widget-setting>label input{width:18px;height:18px}
+.dashboard-widget-setting>div{display:flex;gap:6px;flex:0 0 auto}
+.dashboard-widget-setting .icon-button{width:38px;height:38px;min-width:38px}
+.dashboard-customizer-shell>footer{display:flex;justify-content:space-between;gap:12px;padding:16px 24px 22px;border-top:1px solid var(--line)}
+@media(max-width:900px){.dashboard-widget-grid,.dashboard-widget-grid[data-columns="two"]{grid-template-columns:minmax(0,1fr)}.dashboard-widget[data-dashboard-widget="hero"]{grid-column:auto}}
+@media(max-width:650px){.dashboard-customize-button{padding-inline:12px}.dashboard-widget-grid{gap:16px;margin-top:14px}.dashboard-widget[data-dashboard-widget="extras"],.dashboard-widget[data-dashboard-widget="water"],.dashboard-widget[data-dashboard-widget="nutrition"],.dashboard-widget[data-dashboard-widget="agenda"]{padding:15px 0}.dashboard-customizer{width:calc(100vw - 18px);max-height:86vh;border-radius:16px}.dashboard-customizer-shell{max-height:86vh}.dashboard-customizer-shell>header{padding:19px 18px 12px}.dashboard-customizer-shell>header h2{font-size:23px}.dashboard-columns{padding:14px 18px;align-items:flex-start;flex-direction:column;gap:8px}.dashboard-columns select{width:100%;min-width:0}.dashboard-widget-settings{padding:6px 18px}.dashboard-widget-setting{min-height:58px}.dashboard-customizer-shell>footer{padding:14px 18px 18px;flex-direction:column-reverse}.dashboard-customizer-shell>footer .button{width:100%}}
