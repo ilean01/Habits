@@ -1,0 +1,43 @@
+name: Apply explicit shell imports
+on:
+  push:
+    branches:
+      - cleanup/final-ui-code-cleanup
+    paths:
+      - .github/workflows/apply-import-cleanup.yml
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cleanup/final-ui-code-cleanup
+      - name: Make shell ownership explicit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          main = Path('src/main.js')
+          text = main.read_text()
+          anchor = "import './global-recovery.js';\n"
+          additions = "import './personal-center.js';\nimport './productivity-tools.js';\n"
+          if additions not in text:
+              text = text.replace(anchor, anchor + additions, 1)
+          main.write_text(text)
+
+          notifications = Path('src/notifications.js')
+          text = notifications.read_text()
+          text = text.replace("import './personal-center.js';\n", '', 1)
+          text = text.replace("import './productivity-tools.js';\n", '', 1)
+          notifications.write_text(text)
+          PY
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/apply-import-cleanup.yml
+      - name: Commit architecture cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Make shell feature ownership explicit"
+          git push
