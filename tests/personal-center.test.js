@@ -13,11 +13,11 @@ async function demoStore(){
 }
 
 test('Centro personal reúne avisos, actividad y papelera sin duplicar navegación',async()=>{
- const [center,notifications,css]=await Promise.all([read('src/personal-center.js'),read('src/notifications.js'),read('src/personal-center.css')]);
+ const [center,main,notifications,css]=await Promise.all([read('src/personal-center.js'),read('src/main.js'),read('src/notifications.js'),read('src/personal-center.css')]);
  assert.match(center,/Centro personal/);assert.match(center,/Avisos/);assert.match(center,/Actividad/);assert.match(center,/Papelera/);
  assert.match(center,/data-personal-center-button/);assert.match(center,/notice-read-all/);assert.match(center,/trash-empty/);
  assert.match(center,/metaKey/);assert.match(center,/data-action=\"trash\"/);
- assert.match(notifications,/import '\.\/personal-center\.js'/);assert.match(notifications,/db\.put\('notice'/);
+ assert.match(main,/import '\.\/personal-center\.js'/);assert.doesNotMatch(notifications,/import '\.\/personal-center\.js'/);assert.match(notifications,/db\.put\('notice'/);
  assert.match(css,/personal-badge/);assert.match(css,/@media\(max-width:650px\)/);
 });
 

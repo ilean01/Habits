@@ -12,14 +12,14 @@ test('auditoría de Biblioteca queda reproducible y no destructiva',async()=>{
  assert.doesNotMatch(sql,/\b(delete|update|insert|drop|truncate)\b/i);
 });
 
-test('Biblioteca avanzada es la única fuente de libros dentro de main',async()=>{
- const main=await read('src/main.js');
+test('Biblioteca avanzada es la única fuente de libros dentro del shell',async()=>{
+ const [main,tools]=await Promise.all([read('src/main.js'),read('src/productivity-tools.js')]);
  assert.doesNotMatch(main,/rec\('book'\)/);
  assert.doesNotMatch(main,/get\('book'/);
  assert.doesNotMatch(main,/function libraryView\(/);
  assert.doesNotMatch(main,/kind==='book'/);
- assert.match(main,/searchLibraryCatalog/);
- assert.match(main,/library-book/);
+ assert.match(tools,/searchLibraryCatalog/);
+ assert.match(tools,/library-book/);
 });
 
 test('ficha del libro usa paneles y encabezado de modal de Habits',async()=>{
@@ -33,12 +33,12 @@ test('ficha del libro usa paneles y encabezado de modal de Habits',async()=>{
 });
 
 test('búsqueda global mezcla espacio local y catálogo y abre ficha de libro',async()=>{
- const [search,main,host,library]=await Promise.all([read('src/global-search.js'),read('src/main.js'),read('src/library-native-host.js'),read('src/biblioteca-main.js')]);
+ const [search,tools,host,library]=await Promise.all([read('src/global-search.js'),read('src/productivity-tools.js'),read('src/library-native-host.js'),read('src/biblioteca-main.js')]);
  for(const kind of ['habit','event','task','project','quote','journal','word'])assert.match(search,new RegExp(`${kind}:`));
  assert.match(search,/biblioteca_libros/);
- assert.match(main,/Buscar en todo Habits/);
- assert.match(main,/searchLocalSpace/);
- assert.match(main,/searchLibraryCatalog/);
+ assert.match(tools,/Buscar en todo Habits/);
+ assert.match(tools,/searchLocalSpace/);
+ assert.match(tools,/searchLibraryCatalog/);
  assert.match(host,/habits:library-open-book/);
  assert.match(library,/habits:library-open-book/);
 });

@@ -12,10 +12,11 @@ test('library listens for remote changes from another device',async()=>{
  assert.match(source,/startLibraryRealtime\(\)/);
 });
 
-test('librarian uses Groq by default and preserves local fallback',async()=>{
+test('librarian uses the online assistant by default and preserves local fallback',async()=>{
  const source=await readFile(new URL('../src/library-assistant.js',import.meta.url),'utf8');
  assert.match(source,/data-cloud-mode checked/);
- assert.match(source,/Groq no respondió/);
+ assert.match(source,/El asistente en línea no respondió/);
  assert.match(source,/answerLocally/);
  assert.match(source,/contexto acotado/);
+ assert.doesNotMatch(source,/Groq/);
 });

@@ -1,5 +1,3 @@
-import './personal-center.js';
-import './productivity-tools.js';
 import * as db from './store.js';
 import {SUPABASE_URL} from './config.js';
 import {dayKey} from './domain.js';

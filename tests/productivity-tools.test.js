@@ -32,8 +32,8 @@ test('orden de búsqueda soporta relevancia, fecha próxima y A-Z',async()=>{
 });
 
 test('herramientas productivas reutilizan acciones nativas y son descubribles por teclado',async()=>{
- const [tools,notifications,css]=await Promise.all([readFile(new URL('../src/productivity-tools.js',import.meta.url),'utf8'),readFile(new URL('../src/notifications.js',import.meta.url),'utf8'),readFile(new URL('../src/productivity-tools.css',import.meta.url),'utf8')]);
- assert.match(notifications,/import '\.\/productivity-tools\.js'/);
+ const [tools,main,notifications,css]=await Promise.all([readFile(new URL('../src/productivity-tools.js',import.meta.url),'utf8'),readFile(new URL('../src/main.js',import.meta.url),'utf8'),readFile(new URL('../src/notifications.js',import.meta.url),'utf8'),readFile(new URL('../src/productivity-tools.css',import.meta.url),'utf8')]);
+ assert.match(main,/import '\.\/productivity-tools\.js'/);assert.doesNotMatch(notifications,/import '\.\/productivity-tools\.js'/);
  for(const action of ['new-task','new-event','new-habit','journal','achievement','water-add','water-custom','food-photo','manual-reading','new-project','new-word','new-quote','library'])assert.match(tools,new RegExp(`data-action=\\"${action}\\"`));
  assert.match(tools,/habits-focus-v1:/);assert.match(tools,/localStorage/);assert.match(tools,/focus-complete/);
  assert.match(tools,/key==='k'/);assert.match(tools,/event\.key==='Enter'/);assert.match(tools,/event\.shiftKey&&key==='f'/);assert.match(tools,/event\.altKey&&\['1','2','3','4'\]/);

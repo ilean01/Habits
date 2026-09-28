@@ -96,7 +96,7 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
   panel.className='library-ai-panel';
   panel.dataset.libraryAi='panel';
   panel.setAttribute('aria-label','Bibliotecaria');
-  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Siempre accesible mientras recorrés tu biblioteca.</p></div><button type="button" class="library-ai-close" aria-label="Cerrar Bibliotecaria">×</button></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode checked> Usar Groq · envía la pregunta, la conversación reciente y datos bibliográficos</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Preguntale a tu bibliotecaria…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
+  panel.innerHTML=`<div class="library-ai-head"><div><strong>✦ Bibliotecaria</strong><p>Siempre accesible mientras recorrés tu biblioteca.</p></div><button type="button" class="library-ai-close" aria-label="Cerrar Bibliotecaria">×</button></div><div class="library-ai-body"><div class="library-ai-messages" role="log" aria-live="polite" aria-label="Conversación"></div><div class="library-ai-suggestions"><button type="button" class="library-ai-chip">¿Qué estoy leyendo?</button><button type="button" class="library-ai-chip">¿Qué presté?</button><button type="button" class="library-ai-chip">Recomendame algo corto</button><button type="button" class="library-ai-chip">Resumen de mi biblioteca</button></div></div><label class="library-ai-mode"><input type="checkbox" data-cloud-mode checked> Usar asistente en línea · comparte la pregunta, la conversación reciente y datos bibliográficos</label><form class="library-ai-form"><input class="library-ai-input" maxlength="1600" placeholder="Preguntale a tu bibliotecaria…" aria-label="Pregunta a la Bibliotecaria"><button class="library-ai-send" type="submit">Enviar</button></form>`;
   host.append(panel,launch);
 
   const messages=panel.querySelector('.library-ai-messages');
@@ -146,7 +146,7 @@ export function mountLibraryAssistant(host,{getSnapshot}={}){
       }catch(error){
         if(requestVersion!==contextVersion)return;
         const local=answerLocally(message,snapshot);
-        addMessage(messages,'assistant',`Groq no respondió (${error?.message||'error'}). Mientras tanto uso tu catálogo:\n\n${local}`,`Consulta local · ${count.toLocaleString('es-PY')} libros`);
+        addMessage(messages,'assistant',`El asistente en línea no respondió (${error?.message||'error'}). Mientras tanto uso tu catálogo:\n\n${local}`,`Consulta local · ${count.toLocaleString('es-PY')} libros`);
         remember('assistant',local);
       }
     }catch(error){
