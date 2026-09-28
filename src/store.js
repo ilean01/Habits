@@ -153,7 +153,8 @@ export async function sync(){
  try{
   await writeQueue;
   let newest=meta.lastSync||null;
-  for(const [id,p] of Object.entries({...cache.pending})){
+  const pendingBatch=Object.entries({...cache.pending}).sort(([,a],[,b])=>Number(SYSTEM_KINDS.has(a.kind))-Number(SYSTEM_KINDS.has(b.kind)));
+  for(const [id,p] of pendingBatch){
    if(cache.conflicts[id]||cache.pending[id]?.op!==p.op)continue;
    const {data,error}=await supabase.rpc('write_entry',{p_id:id,p_kind:p.kind,p_data:p.data,p_deleted:p.deleted,p_expected:p.expected,p_op:p.op});
    if(owner!==currentOwner)return;if(error)throw error;
