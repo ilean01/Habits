@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const read=path=>fs.readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 const main=read('src/main.js');
 const productivity=read('src/productivity-tools.js');
+const notifications=read('src/notifications.js');
 const assistant=read('src/library-assistant.js');
 const reliability=read('src/reliability-center.js');
 const photos=read('src/photo-gallery.js');
@@ -18,6 +19,13 @@ test('búsqueda, registro rápido y papelera tienen una sola implementación vis
  assert.match(productivity,/export function openQuickAdd/);
  assert.match(productivity,/normal\.dataset\.action==='search'/);
  assert.match(productivity,/normal\.dataset\.action==='create'/);
+});
+
+test('el shell principal carga explícitamente sus funciones globales',()=>{
+ assert.match(main,/import '\.\/personal-center\.js'/);
+ assert.match(main,/import '\.\/productivity-tools\.js'/);
+ assert.doesNotMatch(notifications,/import '\.\/personal-center\.js'/);
+ assert.doesNotMatch(notifications,/import '\.\/productivity-tools\.js'/);
 });
 
 test('la interfaz elimina decoración sin función y reduce texto permanente redundante',()=>{
