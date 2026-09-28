@@ -31,10 +31,12 @@ test('widgets can be reordered, hidden, shown and reset without losing any widge
  assert.deepEqual(resetDashboardPreferences().order,DEFAULT_DASHBOARD_ORDER);
 });
 
-test('Mi día loads the dashboard customizer as part of the native UI',()=>{
+test('Mi día loads the dashboard customizer only through the browser app flow',()=>{
+ const extras=fs.readFileSync(new URL('../src/extras.js',import.meta.url),'utf8');
  const nativeUi=fs.readFileSync(new URL('../src/native-ui.js',import.meta.url),'utf8');
  const integration=fs.readFileSync(new URL('../src/dashboard-customization.js',import.meta.url),'utf8');
- assert.match(nativeUi,/import '\.\/dashboard-customization\.js';/);
+ assert.match(extras,/import '\.\/dashboard-customization\.js';/);
+ assert.doesNotMatch(nativeUi,/dashboard-customization/);
  assert.match(integration,/dashboardWidgets/);
  assert.match(integration,/MutationObserver/);
  assert.match(integration,/Personalizar widgets de Mi día/);
