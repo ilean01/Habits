@@ -55,8 +55,11 @@ test('iPhone reserva safe areas y oculta navegación inferior cuando aparece tec
   document.documentElement.style.setProperty('--keyboard-offset','330px');
  });
  await expect(page.locator('.mobile-nav')).toBeHidden();
- const maxHeight=await dialog.evaluate(el=>getComputedStyle(el).maxHeight);
- expect(parseFloat(maxHeight)).toBeLessThanOrEqual(500);
+ await expect(dialog).toBeVisible();
+ await expect(dialog.locator('[data-action="close"]')).toBeVisible();
+ const geometry=await dialog.evaluate(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,viewport:window.innerHeight};});
+ expect(geometry.top).toBeGreaterThanOrEqual(0);
+ expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport+1);
  await page.evaluate(()=>{document.documentElement.dataset.keyboardOpen='false';});
  await expect(page.locator('.mobile-nav')).toBeVisible();
 });
