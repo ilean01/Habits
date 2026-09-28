@@ -16,7 +16,7 @@ function ensureBell(){
  const topbar=document.querySelector('.topbar');if(!topbar)return;
  let button=topbar.querySelector('[data-personal-center-button]');
  if(!button){button=document.createElement('button');button.type='button';button.className='icon-button personal-center-button';button.dataset.personalCenterButton='true';button.dataset.personalAction='open';button.setAttribute('aria-label','Abrir centro de avisos');button.title='Avisos, actividad y papelera';const search=topbar.querySelector('[data-action="search"]');topbar.insertBefore(button,search||topbar.lastElementChild);}
- const count=unreadCount();button.innerHTML=`<span aria-hidden="true">🔔</span>${count?`<span class="personal-badge" aria-label="${count} avisos sin leer">${count>99?'99+':count}</span>`:''}`;
+ const count=unreadCount(),marker=String(count);if(button.dataset.unreadCount===marker)return;button.dataset.unreadCount=marker;button.innerHTML=`<span aria-hidden="true">🔔</span>${count?`<span class="personal-badge" aria-label="${count} avisos sin leer">${count>99?'99+':count}</span>`:''}`;
 }
 function ensureDialog(){let dialog=document.querySelector('#personal-center');if(dialog)return dialog;dialog=document.createElement('dialog');dialog.id='personal-center';dialog.className='personal-center';document.body.append(dialog);return dialog;}
 function emptyState(title,text){return `<div class="personal-empty"><strong>${esc(title)}</strong><p>${esc(text)}</p></div>`;}
