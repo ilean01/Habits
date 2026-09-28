@@ -15,7 +15,7 @@ const bus=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('habits-loc
 bus?.unref?.();
 let writeQueue=Promise.resolve();
 let undoStack=[],redoStack=[],historyPaused=0;
-const SYSTEM_KINDS=new Set(['settings','timer','activity','notice']);
+const SYSTEM_KINDS=new Set(['settings','timer','activity','notice','device']);
 const TRASHABLE_KINDS=new Set(['area','habit','event','task','project','reading','quote','journal','word','dailyPlan']);
 const KIND_LABELS={area:'área',habit:'hábito',log:'registro',event:'evento',eventLog:'evento',task:'tarea',project:'proyecto',reading:'lectura',quote:'cita',journal:'diario',word:'palabra',dailyPlan:'plan del día',photo:'foto',meal:'comida'};
 const online=()=>typeof navigator==='undefined'||navigator.onLine!==false;
