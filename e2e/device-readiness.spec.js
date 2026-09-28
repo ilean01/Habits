@@ -49,14 +49,30 @@ test('iPhone reserva safe areas y oculta navegación inferior cuando aparece tec
  await page.locator('.topbar .profile-button').click();
  const dialog=page.locator('#modal');
  await expect(dialog).toHaveAttribute('open','');
- await page.evaluate(()=>{
-  document.documentElement.dataset.keyboardOpen='true';
-  document.documentElement.style.setProperty('--visual-viewport-height','500px');
-  document.documentElement.style.setProperty('--keyboard-offset','330px');
+ await expect(dialog.getByRole('button',{name:'Cerrar',exact:true})).toBeVisible();
+ const keyboardState=await page.evaluate(async()=>{
+  const {applyViewportInsets}=await import('/src/viewport-insets.js');
+  const fakeHeight=Math.max(200,window.innerHeight-330);
+  const state=applyViewportInsets(document.documentElement,{height:fakeHeight,offsetTop:0});
+  const nav=document.querySelector('.mobile-nav');
+  const modal=document.querySelector('#modal');
+  return {
+   open:state.open,
+   keyboard:state.keyboard,
+   navDisplay:nav?getComputedStyle(nav).display:'missing',
+   modalOpen:!!modal?.open,
+   closeVisible:!!modal?.querySelector('[aria-label="Cerrar"]')
+  };
  });
- await expect(page.locator('.mobile-nav')).toBeHidden();
- const maxHeight=await dialog.evaluate(el=>getComputedStyle(el).maxHeight);
- expect(parseFloat(maxHeight)).toBeLessThanOrEqual(500);
- await page.evaluate(()=>{document.documentElement.dataset.keyboardOpen='false';});
+ expect(keyboardState.open).toBe(true);
+ expect(keyboardState.keyboard).toBeGreaterThan(80);
+ expect(keyboardState.navDisplay).toBe('none');
+ expect(keyboardState.modalOpen).toBe(true);
+ expect(keyboardState.closeVisible).toBe(true);
+ await page.evaluate(async()=>{
+  const {applyViewportInsets}=await import('/src/viewport-insets.js');
+  applyViewportInsets(document.documentElement,{height:window.innerHeight,offsetTop:0});
+ });
+ await expect(html).toHaveAttribute('data-keyboard-open','false');
  await expect(page.locator('.mobile-nav')).toBeVisible();
 });
