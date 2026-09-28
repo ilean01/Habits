@@ -1,3 +1,4 @@
+import './personal-center.js';
 import * as db from './store.js';
 import {SUPABASE_URL} from './config.js';
 import {dayKey} from './domain.js';
@@ -28,7 +29,7 @@ async function deleteRemote(endpoint,userId){const {error}=await db.supabase.fro
 export function notificationsView({btn}){
  const note=supported()&&Notification.permission==='granted'?'Podés enviar un aviso de prueba para comprobar este dispositivo.':'Al activar, el navegador te va a pedir permiso.';
  const context=todayContext(),today=context.suppressed?'Hoy es descanso: no se consideran hábitos pendientes.':context.pendingCount?`Hoy quedan ${context.pendingCount} actividades que pueden generar recordatorios según sus horarios.`:'Hoy no quedan actividades pendientes con contexto de recordatorio.';
- return `<section class="install-help"><h3>Recordatorios</h3><p><strong>${stateText()}</strong></p><p>${note}</p><p class="muted small">${today}</p><div class="settings-actions">${btn('Activar / actualizar','push-enable','','button outline')}${btn('Probar aviso ahora','push-test','','button outline')}${btn('Desactivar en este dispositivo','push-disable','','button outline')}</div><p class="muted small">Los recordatorios respetan la hora del hábito o evento, el aviso configurado, las actividades ya completadas y tus días tranquilos o de descanso.</p><p>En iPhone: Safari → Compartir → Agregar a pantalla de inicio. Abrí la app instalada y tocá “Activar / actualizar”.</p></section>`;
+ return `<section class="install-help"><h3>Recordatorios</h3><p><strong>${stateText()}</strong></p><p>${note}</p><p class="muted small">${today}</p><div class="settings-actions">${btn('Activar / actualizar','push-enable','','button outline')}${btn('Probar aviso ahora','push-test','','button outline')}${btn('Desactivar en este dispositivo','push-disable','','button outline')}</div><p class="muted small">Los recordatorios respetan la hora del hábito o evento, el aviso configurado, las actividades ya completadas y tus días tranquilos o de descanso. Los avisos enviados también quedan guardados en tu Centro personal.</p><p>En iPhone: Safari → Compartir → Agregar a pantalla de inicio. Abrí la app instalada y tocá “Activar / actualizar”.</p></section>`;
 }
 
 export async function notificationsAction(a,{toast}){
@@ -38,9 +39,10 @@ export async function notificationsAction(a,{toast}){
 
  if(a==='push-test'){
   if(Notification.permission!=='granted')throw new Error('Primero activá las notificaciones en este dispositivo.');
-  const reg=await registration();
+  const reg=await registration(),at=new Date().toISOString();
+  db.put('notice',{title:'Habits · aviso de prueba',body:'Perfecto: este dispositivo puede mostrar tus recordatorios.',date:dayKey(),view:'today',tag:`habits-test:${at}`,at,readAt:null,source:'test'},`notice:test:${crypto.randomUUID()}`);
   await reg.showNotification('Habits · aviso de prueba',{body:'Perfecto: este dispositivo puede mostrar tus recordatorios.',icon:'./icon-192.png',badge:'./icon-192.png',tag:'habits-test',data:{view:'today'}});
-  toast('Aviso de prueba enviado.');return true;
+  toast('Aviso de prueba enviado y guardado en tu Centro personal.');return true;
  }
 
  const reg=await registration();
