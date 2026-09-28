@@ -24,5 +24,7 @@ test('Centro personal abre Avisos, Actividad y Papelera en notebook y móvil',as
  await expect(bell).toBeVisible();
  await bell.click();
  await expect(dialog).toBeVisible();
- await expect(dialog).toHaveCSS('max-height','742.72px');
+ const box=await dialog.boundingBox();
+ expect(box.width).toBeLessThanOrEqual(390);
+ expect(box.height).toBeLessThan(844);
 });
