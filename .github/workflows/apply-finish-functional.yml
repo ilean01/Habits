@@ -1,0 +1,31 @@
+name: Apply finish functional block
+
+on:
+  push:
+    branches:
+      - feat/finish-functional-reliability
+    paths:
+      - .github/workflows/apply-finish-functional.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/finish-functional-reliability
+      - name: Apply integration
+        run: python scripts/apply_finish_functional.py
+      - name: Remove one-shot helpers
+        run: rm scripts/apply_finish_functional.py .github/workflows/apply-finish-functional.yml
+      - name: Commit integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate goals reliability backup and recovery"
+          git push origin HEAD:feat/finish-functional-reliability
