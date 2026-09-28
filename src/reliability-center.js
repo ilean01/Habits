@@ -19,7 +19,7 @@ export async function touchCurrentDevice({force=false}={}){
 
 export function reliabilitySettingsView({btn}){
  if(db.info().demo)return '';
- return `<section class="settings-group"><h3>Cuenta y dispositivos</h3><div class="settings-actions">${btn('Comprobar sincronización','sync-diagnostics','','button outline')}${btn('Mis dispositivos','devices','','button outline')}</div></section>`;
+ return `<section class="settings-group"><h3>Cuenta y dispositivos</h3><div class="settings-actions">${btn('Comprobar conexión','sync-diagnostics','','button outline')}${btn('Mis dispositivos','devices','','button outline')}</div></section>`;
 }
 
 async function diagnosticSnapshot(){
