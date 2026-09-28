@@ -29,8 +29,9 @@ const snapshotEqual=(r,s)=>{
 };
 const recordLabel=r=>String(r?.data?.name||r?.data?.title||r?.data?.text||r?.data?.bookTitle||KIND_LABELS[r?.kind]||'elemento').trim();
 const pushUndo=op=>{if(historyPaused||SYSTEM_KINDS.has(op?.after?.kind||op?.before?.kind||''))return;undoStack.push(op);if(undoStack.length>50)undoStack.shift();redoStack=[];};
+const visiblePending=()=>Object.values(cache.pending).filter(p=>!SYSTEM_KINDS.has(p.kind)).length;
 
-export const info=()=>({status,pending:Object.keys(cache.pending).length,conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb',undo:undoStack.length,redo:redoStack.length});
+export const info=()=>({status,pending:visiblePending(),conflicts:Object.values(cache.conflicts),demo:owner==='demo',lastSync:meta.lastSync||null,storage:'indexeddb',undo:undoStack.length,redo:redoStack.length});
 export const currentOwner=()=>owner;
 // Cada pantalla llama a records() decenas de veces (el calendario, más de cien). Se calcula una vez por cambio y se reutiliza.
 const byKind=new Map();
@@ -101,6 +102,7 @@ export function trash(){return Object.values(cache.records).filter(r=>r.deleted&
 export function purge(id){
  const r=cache.records[id];if(!r||!r.deleted||!TRASHABLE_KINDS.has(r.kind)||r.data?.__purgedAt)return false;
  const label=recordLabel(r),at=new Date().toISOString();
+ undoStack=undoStack.filter(op=>op.id!==id);redoStack=redoStack.filter(op=>op.id!==id);
  writeRecord(r.kind,{__purgedAt:at,__purgedKind:r.kind},id,true,{track:false,activityAction:false});
  recordActivity('purged',r,{label});return true;
 }
