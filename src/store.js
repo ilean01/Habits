@@ -97,7 +97,7 @@ export function restore(id,{track=true,activityAction=true}={}){
  if(track&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))pushUndo({type:'restore',id,before:snapshot(r),after:snapshot(cache.records[id]),label:recordLabel(r)});
  if(activityAction&&!historyPaused&&!SYSTEM_KINDS.has(r.kind))recordActivity('restored',r);
 }
-export function trash(){return Object.values(cache.records).filter(r=>r.deleted&&TRASHABLE_KINDS.has(r.kind)&&!r.data?.__purgedAt).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''));}
+export function trash(){return Object.values(cache.records).filter(r=>r.deleted&&TRASHABLE_KINDS.has(r.kind)&&!r.data?.__purgedAt).sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||'')));}
 export function purge(id){
  const r=cache.records[id];if(!r||!r.deleted||!TRASHABLE_KINDS.has(r.kind)||r.data?.__purgedAt)return false;
  const label=recordLabel(r),at=new Date().toISOString();
