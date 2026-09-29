@@ -24,8 +24,8 @@ input,textarea,select{font-size:max(16px,calc(15px * var(--font-scale)))}
  .main-wrap{margin-left:0;width:auto;flex:1;min-width:0}
 }
 /* Overlays have one active scroll surface; the page behind them stays still. */
-html:has(dialog[open]),html:has(.library-ai-panel.open){overflow:hidden;scrollbar-gutter:stable}
-body:has(dialog[open]),body:has(.library-ai-panel.open){overflow:hidden}
+html:has(dialog:modal),html:has(.library-ai-panel.open){overflow:hidden;scrollbar-gutter:stable}
+body:has(dialog:modal),body:has(.library-ai-panel.open){overflow:hidden}
 
 /* On phones the sidebar is hidden, so the sticky top bar keeps the
    profile/settings control permanently available above the fixed bottom nav. */
@@ -107,7 +107,7 @@ html.quiet *,html.quiet *::before,html.quiet *::after{animation:none!important;t
  html:not(.large) .timeline{padding:16px}
  html:not(.large) .timeline-item{gap:11px;padding-bottom:14px}
 
- html:not(.large) dialog{padding:20px;max-height:min(86dvh,760px)}
+ html:not(.large) dialog:not(.library-book-page){padding:20px;max-height:min(86dvh,760px)}
  html:not(.large) dialog .modal-heading{margin-bottom:14px}
  html:not(.large) dialog form{gap:11px}
 
