@@ -28,10 +28,10 @@ test('navegación principal actualiza URL y atrás restaura la vista anterior',a
  await expect(page.getByRole('heading',{name:'Tu calendario'})).toBeVisible();
 });
 
-test('una ruta de área conserva el área seleccionada',async({page},testInfo)=>{
+test('una ruta antigua de áreas vuelve de forma segura a Mi día',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
  await page.goto('/#/areas/ingles');
  await enterDemo(page);
- await expect(page).toHaveURL(/#\/areas\/ingles$/);
- await expect(page.getByRole('heading',{name:'Inglés',exact:true})).toBeVisible();
+ await expect(page).toHaveURL(/#\/today$/);
+ await expect(page.locator('.sidebar').getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
 });
