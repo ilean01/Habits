@@ -136,26 +136,26 @@ s = s.replace(
     "{query:'',kind:'',status:'',dateFrom:'',dateTo:'',sort:'relevance'}",
 )
 s = s.replace(
-    "function filterValues(root){return {query:root.querySelector('#advanced-search')?.value.trim()||'',kind:root.querySelector('[name=\"search-kind\"]')?.value||'',area:root.querySelector('[name=\"search-area\"]')?.value||'',status:",
-    "function filterValues(root){return {query:root.querySelector('#advanced-search')?.value.trim()||'',kind:root.querySelector('[name=\"search-kind\"]')?.value||'',status:",
+    ",area:root.querySelector('[name=\"search-area\"]')?.value||''",
+    "",
 )
 s = s.replace(
     "function searchMeta(row){const bits=[row.label];if(row.area)bits.push(areaName(row.area));if(row.date)",
     "function searchMeta(row){const bits=[row.label];if(row.date)",
 )
 s = s.replace(
-    "const filters={kinds:prefs.kind?[prefs.kind]:[],area:prefs.area,status:prefs.status,dateFrom:prefs.dateFrom,dateTo:prefs.dateTo,sort:prefs.sort};",
-    "const filters={kinds:prefs.kind?[prefs.kind]:[],status:prefs.status,dateFrom:prefs.dateFrom,dateTo:prefs.dateTo,sort:prefs.sort};",
+    ",area:prefs.area",
+    "",
 )
-s = s.replace("&&!prefs.area&&!prefs.status", "&&!prefs.status")
-s = re.sub(
-    r",areaOptions=\[\['','Todas las áreas'\],[\s\S]*?\.join\(''\);\n const modal=",
-    ";\n const modal=",
-    s,
-    count=1,
-)
+s = s.replace("&&!prefs.area", "")
 s = s.replace("||prefs.area", "")
-s = re.sub(r"<label>Área<select name=\"search-area\">\$\{areaOptions\}</select></label>", "", s)
+start = s.find(",areaOptions=")
+if start >= 0:
+    end = s.find(";\n const modal=", start)
+    if end < 0:
+        raise SystemExit("Could not delimit areaOptions in productivity-tools.js")
+    s = s[:start] + s[end:]
+s = s.replace('<label>Área<select name="search-area">${areaOptions}</select></label>', "")
 s = s.replace(
     "[areaName(task.area),task.due?`vence ${task.due}`:'sin fecha',task.priority==='alta'?'prioridad alta':'']",
     "[task.due?`vence ${task.due}`:'sin fecha',task.priority==='alta'?'prioridad alta':'']",
@@ -163,7 +163,7 @@ s = s.replace(
 s = s.replace("[event.time||'Todo el día',areaName(event.area)]", "[event.time||'Todo el día']")
 s = s.replace("detail:areaName(habit.area)||'Hábito de hoy'", "detail:'Hábito de hoy'")
 s = s.replace("detail:areaName(project.area)||'Proyecto'", "detail:'Proyecto'")
-for forbidden in ["search-area", "Todas las áreas", "areaName(", "<label>Área"]:
+for forbidden in ["search-area", "Todas las áreas", "areaName(", "<label>Área", "prefs.area", "areaOptions"]:
     if forbidden in s:
         raise SystemExit(f"Remaining visible area reference in productivity-tools.js: {forbidden}")
 p.write_text(s)
@@ -203,7 +203,7 @@ p.write_text(s)
 
 # Dedicated regression contract for the requested removal.
 Path("tests/remove-areas-feature.test.js").write_text(
-    """import test from 'node:test';
+    r"""import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parseRoute} from '../src/router.js';
