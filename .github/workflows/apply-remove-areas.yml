@@ -19,8 +19,9 @@ jobs:
       - name: Apply requested removal
         run: |
           python .github/scripts/fix_productivity_areas.py
+          python .github/scripts/fix_planning_areas.py
           python .github/scripts/remove_areas.py
-          rm -f .github/scripts/fix_productivity_areas.py
+          rm -f .github/scripts/fix_productivity_areas.py .github/scripts/fix_planning_areas.py
       - run: npm ci
       - run: npm test
       - run: npm run build
