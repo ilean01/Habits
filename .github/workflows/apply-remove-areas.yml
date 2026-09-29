@@ -17,7 +17,12 @@ jobs:
           node-version: 24
           cache: npm
       - name: Apply requested removal
-        run: python .github/scripts/remove_areas.py
+        run: |
+          python .github/scripts/remove_areas.py || {
+            echo '--- remaining search-area references ---'
+            grep -n -C 2 'search-area' src/productivity-tools.js || true
+            exit 1
+          }
       - run: npm ci
       - run: npm test
       - run: npm run build
