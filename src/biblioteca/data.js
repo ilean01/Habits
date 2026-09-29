@@ -63,14 +63,11 @@ export async function insertBook(data) {
   invalidate(T.books);
   return row;
 }
-export async function updateBook(id, data) {
+export async function updateBook(id, data, expected = null) {
   const previous=Object.hasOwn(data,'portada')?await bookCover(id):null;
-  const { data: row, error } = await supabase
-    .from(T.books)
-    .update(data)
-    .eq("id", id).eq("owner_id",libraryOwner)
-    .select()
-    .single();
+  let query = supabase.from(T.books).update(data).eq("id", id).eq("owner_id",libraryOwner);
+  for(const [key,value] of Object.entries(expected||{}))query=value===null||value===undefined?query.is(key,null):query.eq(key,value);
+  const { data: row, error } = await query.select().single();
   if (error) throw error;
   invalidate(T.books);
   if(previous&&previous!==data.portada)await deferCleanup(previous);
