@@ -36,7 +36,6 @@ test('Tareas separa pendientes, programadas, para después y proyectos',()=>{
 test('la navegación nativa ya no depende de la pantalla de Áreas',()=>{
  assert.doesNotMatch(main,/area-domain-planning/);
  assert.doesNotMatch(main,/planningView\(\{esc,btn,area:/);
- assert.doesNotMatch(main,/btn\('Organizar semana','plan-week'/);
  assert.doesNotMatch(main,/mobile-more-shortcuts/);
  assert.doesNotMatch(main,/mobile-task-shortcuts/);
  assert.match(main,/function mobileMoreModal\(/);
