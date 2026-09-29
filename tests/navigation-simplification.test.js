@@ -7,11 +7,11 @@ test('mobile primary and more navigation cover every app destination once', () =
   const primary=mobileNavigation().map(([id])=>id);
   const more=mobileMoreNavigation().map(([id])=>id);
   assert.deepEqual(primary,['today','calendar','library','space']);
-  assert.deepEqual(more,['areas','progress','diary']);
+  assert.deepEqual(more,['progress','diary']);
   assert.equal(new Set([...primary,...more]).size,APP_NAV.length);
 });
 
-test('desktop does not duplicate area links and mobile exposes a global More menu', async () => {
+test('desktop no expone Mis áreas y mobile conserva el menú global Más', async () => {
   const source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
   assert.doesNotMatch(source,/class="sidebar-areas"/);
   assert.match(source,/data-action="mobile-more"|,'mobile-more'/);
