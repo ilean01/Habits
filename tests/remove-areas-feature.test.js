@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {parseRoute} from '../src/router.js';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 
+// Regression contract: the removed Areas feature must not return in navigation or editing UI.
 test('Mis áreas desaparece de navegación y rutas',async()=>{
  const [nav,router,main]=await Promise.all([read('src/app-navigation.js'),read('src/router.js'),read('src/main.js')]);
  assert.doesNotMatch(nav,/Mis áreas|['\"]areas['\"]/);
