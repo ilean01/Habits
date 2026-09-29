@@ -29,7 +29,8 @@ test('notebook a 100% y 1366x768 mantiene navegación, contenido y Ajustes utili
  expect(box.y+box.height).toBeLessThanOrEqual(768);
  await expect(dialog.getByText(/Exportar mis datos/i)).toBeAttached();
  await page.locator('[data-action="close"]').first().click();
- for(const label of ['Calendario','Mis áreas','Tareas','Progreso','Mi diario','Biblioteca']){
+ await expect(page.locator('.sidebar').getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
+ for(const label of ['Calendario','Tareas','Progreso','Mi diario','Biblioteca']){
   await page.locator('.sidebar').getByRole('button',{name:new RegExp(label,'i')}).click();
   await expectNoPageOverflow(page);
  }
