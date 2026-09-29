@@ -1,5 +1,5 @@
 export const ESTADOS={no_leido:'No leído',leyendo:'Leyendo',releyendo:'Releyendo',leido:'Leído',abandonado:'Abandonado'};
-export const DEFAULT_CONFIG={nombre_biblioteca:'Mi biblioteca',color_principal:'#6f7f64',color_fondo:'#f5f1e8',color_texto:'#292823',color_tarjeta:'#fffdf8',fuente:'Georgia, serif',fuente_titulos:'Georgia, serif',fuente_botones:'Georgia, serif',tamano_texto:'16',tamano_titulos:'30',tamano_botones:'16',por_pagina:'200',mostrar_favoritos_catalogo:'1',vista_default:'cuadricula'};
+export const DEFAULT_CONFIG={nombre_biblioteca:'Mi biblioteca',color_principal:'#6f7f64',color_fondo:'#f5f1e8',color_texto:'#292823',color_tarjeta:'#fffdf8',fuente:'Georgia, serif',fuente_titulos:'Georgia, serif',fuente_botones:'Georgia, serif',tamano_texto:'16',tamano_titulos:'30',tamano_botones:'16',por_pagina:'24',mostrar_favoritos_catalogo:'1',vista_default:'cuadricula'};
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const clean=v=>{const s=String(v??'').trim();return s||null};
 export const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};

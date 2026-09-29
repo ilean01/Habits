@@ -26,3 +26,5 @@
 @media(max-width:720px){
   .library-native-shell .lib-nav{overflow:visible;flex-wrap:wrap}
 }
+
+.reading-companion .library-layout{grid-template-columns:1fr}.reading-companion{margin-bottom:24px}.reading-history,.reading-quotes{margin-top:16px}.reading-history summary,.reading-quotes summary{cursor:pointer;min-height:44px;padding:12px 0;font-weight:600}
