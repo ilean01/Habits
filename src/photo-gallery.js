@@ -15,5 +15,5 @@ export function photoGalleryView({photos=[],journals=[],filter='all',esc,btn,pre
 
 export function photoQueueStatusView({btn}={}){
  const pending=pendingPhotoCount();
- return `<section class="photo-queue-status"><div><strong>${pending?`${pending} ${pending===1?'foto pendiente':'fotos pendientes'}`:'Fotos sincronizadas'}</strong><p>${pending?'Se guardaron en este dispositivo y subirán cuando vuelva internet.':'No hay archivos esperando una conexión.'}</p></div>${pending?btn('Reintentar ahora','photo-queue-retry','','button outline'):''}</section>`;
+ return `<section class="photo-queue-status"><div><strong>${pending?`${pending} ${pending===1?'foto pendiente':'fotos pendientes'}`:'Fotos al día'}</strong><p>${pending?'Se guardaron en este dispositivo y subirán cuando vuelva internet.':'No hay archivos esperando una conexión.'}</p></div>${pending?btn('Reintentar ahora','photo-queue-retry','','button outline'):''}</section>`;
 }

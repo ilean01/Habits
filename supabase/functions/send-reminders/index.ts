@@ -29,6 +29,11 @@ async function vapid(){
  if(claimed)return {publicKey:generated.publicKey,privateKey:generated.privateKey,subject};
  const winner=await readVapid();if(!winner)throw new Error('Could not initialize VAPID keys');return winner;
 }
+async function saveNotice(userId:string,occurrence:string,payload:{title:string,body:string,date:string,view:string}){
+ const at=new Date().toISOString();
+ const {error}=await supabase.from('entries').upsert({user_id:userId,id:`notice:${occurrence}`,kind:'notice',data:{...payload,tag:occurrence,at,readAt:null,source:'reminder'},deleted:false},{onConflict:'user_id,id',ignoreDuplicates:true});
+ if(error)throw error;
+}
 
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:CORS});
@@ -59,8 +64,9 @@ Deno.serve(async req=>{
       }
       if(entries.some(l=>l.data.date===date&&((l.kind==='log'&&l.data.habitId===entry.id&&['done','skip'].includes(l.data.status))||(l.kind==='eventLog'&&l.data.eventId===entry.id))))continue;
       const occurrence=`${entry.id}:${date}:${time}`;const claim=await supabase.rpc('claim_push',{p_subscription:sub.id,p_occurrence:occurrence});if(claim.error)throw claim.error;if(!claim.data)continue;
-      const name=override.name||e.name||'Tenés una actividad',body=entry.kind==='event'?`${time} · ${name}`:name;
-      try{await webpush.sendNotification({endpoint:sub.endpoint,keys:sub.keys},JSON.stringify({title:entry.kind==='event'?'Tu agenda te espera':'Un momento para vos',body,date,view:entry.kind==='event'?'calendar':'today',tag:occurrence}),{TTL:300,urgency:'normal'});await supabase.from('push_deliveries').update({sent_at:new Date().toISOString()}).eq('subscription_id',sub.id).eq('occurrence',occurrence);sent++;}
+      const name=override.name||e.name||'Tenés una actividad',title=entry.kind==='event'?'Tu agenda te espera':'Un momento para vos',body=entry.kind==='event'?`${time} · ${name}`:name,view=entry.kind==='event'?'calendar':'today';
+      await saveNotice(sub.user_id,occurrence,{title,body,date,view});
+      try{await webpush.sendNotification({endpoint:sub.endpoint,keys:sub.keys},JSON.stringify({title,body,date,view,tag:occurrence}),{TTL:300,urgency:'normal'});await supabase.from('push_deliveries').update({sent_at:new Date().toISOString()}).eq('subscription_id',sub.id).eq('occurrence',occurrence);sent++;}
       catch(error:any){if([404,410].includes(error?.statusCode))await supabase.from('push_subscriptions').delete().eq('id',sub.id);}
      }
     }
