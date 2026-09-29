@@ -4,7 +4,7 @@ async function library(page,{writer=true}={}){
  const state={books:[{id:1,owner_id:owner,titulo:'Libro de prueba',autor:'Autora',lista:'catalogo',estado_lectura:'no_leido',paginas:120,pagina_actual:0,codigo_p:'TEST',item:1}],drafts:[],transitions:[]};
  await page.addInitScript(({owner})=>{const payload=btoa(JSON.stringify({sub:owner,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600}));localStorage.setItem('sb-hlpaaemnjjixigkhnqdq-auth-token',JSON.stringify({access_token:'eyJhbGciOiJIUzI1NiJ9.'+payload+'.test',refresh_token:'test',expires_at:Math.floor(Date.now()/1000)+3600,user:{id:owner,email:'test@example.invalid'}}));},{owner});
  await page.route('https://hlpaaemnjjixigkhnqdq.supabase.co/**',async route=>{
-  const req=route.request(),url=new URL(req.url()),path=url.pathname,method=req.method(),body=req.postDataJSON?.()||{};
+  const req=route.request(),url=new URL(req.url()),path=url.pathname,method=req.method(),body=req.headers()['content-type']?.includes('application/json')?(req.postDataJSON()||{}):{};
   const send=x=>route.fulfill({contentType:'application/json',body:JSON.stringify(x)});
   if(path.includes('/auth/v1/user'))return send({id:owner,email:'test@example.invalid'});
   if(path.includes('/rpc/')){const fn=path.split('/').at(-1);if(fn==='has_biblioteca_access')return send(true);if(fn==='biblioteca_owner')return send(owner);if(fn==='biblioteca_can_write'||fn==='biblioteca_can_manage')return send(writer);if(fn==='biblioteca_disponibles')return send([{owner_id:owner,nombre:'Biblioteca de prueba',activa:true,propia:true,rol:writer?'owner':'reader'}]);if(fn==='biblioteca_transition'){state.transitions.push(body);return send(null);}return send(fn==='biblioteca_miembros'?[]:null);}

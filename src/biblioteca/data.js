@@ -68,6 +68,7 @@ export async function updateBook(id, data, expected = null) {
   let query = supabase.from(T.books).update(data).eq("id", id).eq("owner_id",libraryOwner);
   for(const [key,value] of Object.entries(expected||{}))query=value===null||value===undefined?query.is(key,null):query.eq(key,value);
   const { data: row, error } = await query.select().single();
+  if (error?.code === "PGRST116" && expected) throw new Error("Este campo cambió en otro dispositivo. Recargá la ficha antes de reemplazarlo.");
   if (error) throw error;
   invalidate(T.books);
   if(previous&&previous!==data.portada)await deferCleanup(previous);
