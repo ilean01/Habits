@@ -10,6 +10,7 @@ test('notebook: navegación principal, progreso, diario y tareas son coherentes'
  test.skip(testInfo.project.name!=='notebook','Escenario de notebook');
  await enterDemo(page);
  const sidebar=page.locator('.sidebar');
+ await expect(sidebar.getByRole('button',{name:/Mis áreas/i})).toHaveCount(0);
  await expect(sidebar.getByRole('button',{name:/Progreso/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Mi diario/i})).toBeVisible();
  await expect(sidebar.getByRole('button',{name:/Biblioteca/i})).toBeVisible();
@@ -24,7 +25,7 @@ test('notebook: navegación principal, progreso, diario y tareas son coherentes'
  await expect(page.getByRole('button',{name:'Para después'})).toBeVisible();
 });
 
-test('móvil: Biblioteca es destino directo y Tareas conserva áreas, progreso, diario y Para después',async({page},testInfo)=>{
+test('móvil: Biblioteca es destino directo y Más conserva Progreso y Mi diario sin Mis áreas',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='mobile','Escenario móvil');
  await enterDemo(page);
  const nav=page.locator('.mobile-nav');
@@ -33,7 +34,7 @@ test('móvil: Biblioteca es destino directo y Tareas conserva áreas, progreso, 
  await expect(nav.getByRole('button',{name:/Progreso/i})).toHaveCount(0);
  await expect(nav.getByRole('button',{name:/Más secciones/i})).toBeVisible();
  await nav.getByRole('button',{name:/Más secciones/i}).click();
- await expect(page.locator('#modal').getByRole('button',{name:'Mis áreas'})).toBeVisible();
+ await expect(page.locator('#modal').getByRole('button',{name:'Mis áreas'})).toHaveCount(0);
  await expect(page.locator('#modal').getByRole('button',{name:'Progreso'})).toBeVisible();
  await expect(page.locator('#modal').getByRole('button',{name:'Mi diario'})).toBeVisible();
  await page.locator('#modal').getByRole('button',{name:'Progreso'}).click();

@@ -1,20 +1,18 @@
-const SEGMENT_TO_VIEW={today:'today',calendar:'calendar',areas:'areas',progress:'progress',diary:'diary',library:'library',tasks:'space'};
-const VIEW_TO_SEGMENT={today:'today',calendar:'calendar',areas:'areas',progress:'progress',diary:'diary',library:'library',space:'tasks'};
+const SEGMENT_TO_VIEW={today:'today',calendar:'calendar',progress:'progress',diary:'diary',library:'library',tasks:'space'};
+const VIEW_TO_SEGMENT={today:'today',calendar:'calendar',progress:'progress',diary:'diary',library:'library',space:'tasks'};
 const clean=value=>decodeURIComponent(String(value||'')).trim().replace(/^\/+|\/+$/g,'');
 const validDate=value=>/^\d{4}-\d{2}-\d{2}$/.test(value||'')?value:'';
 
 export function parseRoute(hash=globalThis.location?.hash||''){
  const raw=String(hash||'').replace(/^#/,'');const parts=raw.split('/').map(clean).filter(Boolean);
  const segment=parts[0]||'today',view=SEGMENT_TO_VIEW[segment]||'today';
- const route={view,areaId:'',date:'',bookId:'',hash:''};
- if(view==='areas')route.areaId=parts[1]||'';
+ const route={view,date:'',bookId:'',hash:''};
  if(view==='calendar')route.date=validDate(parts[1]);
  if(view==='library'&&parts[1]==='book'&&/^\d+$/.test(parts[2]||''))route.bookId=parts[2];
  route.hash=routeHash(route);return route;
 }
-export function routeHash({view='today',areaId='',date='',bookId=''}={}){
+export function routeHash({view='today',date='',bookId=''}={}){
  const segment=VIEW_TO_SEGMENT[view]||'today';
- if(view==='areas'&&areaId)return `#/areas/${encodeURIComponent(areaId)}`;
  if(view==='calendar'&&validDate(date))return `#/calendar/${date}`;
  if(view==='library'&&/^\d+$/.test(String(bookId||'')))return `#/library/book/${bookId}`;
  return `#/${segment}`;

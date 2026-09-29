@@ -21,7 +21,8 @@ test('búsqueda avanzada, registro rápido, concentración y atajos funcionan en
  const search=page.locator('#modal [data-advanced-search-root]');
  await expect(search).toBeVisible();
  await search.locator('.advanced-search-filters summary').click();
- for(const name of ['search-kind','search-area','search-status','search-from','search-to','search-sort'])await expect(search.locator(`[name="${name}"]`)).toBeVisible();
+ for(const name of ['search-kind','search-status','search-from','search-to','search-sort'])await expect(search.locator(`[name="${name}"]`)).toBeVisible();
+ await expect(search.locator('[name="search-area"]')).toHaveCount(0);
  await search.locator('#advanced-search').fill('lectura');
  await expect(search.locator('[data-search-index="0"]')).toBeVisible();
  await expect(search.locator('#advanced-search-meta')).toContainText(/coincidencia/);

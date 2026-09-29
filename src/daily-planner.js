@@ -11,7 +11,6 @@ const hours=Array.from({length:16},(_,i)=>String(i+6).padStart(2,'0'));
 const moods=[['😔','Difícil'],['😐','Más o menos'],['🙂','Bien'],['😊','Muy bien'],['🤩','Con mucha energía']];
 
 const settings=()=>db.records('settings')[0]||{};
-const areaName=id=>db.records('area').find(a=>a.id===id)?.name||'Personal';
 const snapshot=date=>daySnapshot({date,records:db.records,settings:settings()});
 export const plannerMode=()=>settings().todayLayout==='planner'?'planner':'dashboard';
 const prettyDate=date=>parseDay(date).toLocaleDateString('es-PY',{day:'numeric',month:'long',year:'numeric'});
@@ -49,14 +48,14 @@ function habitsHtml(date,day){
  return `<div class="planner-habits">${day.habitRows.map(({habit:h,status:state})=>{
   const action=state.hydration?'water-custom':'habit-action';
   const extra=state.hydration?'':`data-id="${esc(h.id)}" data-date="${esc(date)}"`;
-  const detail=state.hydration?`${(state.value/1000).toLocaleString('es-PY')} / ${(state.target/1000).toLocaleString('es-PY')} L`:state.weekly?`${state.weekly.done}/${state.weekly.target} esta semana`:h.type==='check'?(state.skip?'Pausa de hoy':areaName(h.area)):`${state.value||0} / ${h.target} ${esc(h.unit||'')}`;
+  const detail=state.hydration?`${(state.value/1000).toLocaleString('es-PY')} / ${(state.target/1000).toLocaleString('es-PY')} L`:state.weekly?`${state.weekly.done}/${state.weekly.target} esta semana`:h.type==='check'?(state.skip?'Pausa de hoy':'Hábito de hoy'):`${state.value||0} / ${h.target} ${esc(h.unit||'')}`;
   return `<div class="planner-habit-row"><button class="planner-check-button ${state.done?'done':state.skip?'paused':''}" data-action="${action}" ${extra} aria-label="${state.done?'Revisar':state.hydration?'Registrar agua':'Registrar'} ${esc(h.name)}">${state.done?'✓':state.skip?'–':'✓'}</button><button class="planner-row-main" data-action="edit-habit" data-id="${esc(h.id)}"><strong>${esc(h.name)}</strong><small>${detail}</small></button></div>`;
  }).join('')}</div>`;
 }
 
 function tasksHtml(date,day){
  const tasks=day.agendaTasks;
- return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">✓</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:esc(areaName(task.area))}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
+ return `<div class="planner-checklist">${tasks.map(task=>`<div class="planner-task-row ${task.done?'completed':''} ${!task.done&&task.due<date?'overdue':''}"><button class="planner-check-button ${task.done?'done':''}" data-action="task-done" data-id="${esc(task.id)}" aria-label="${task.done?'Reabrir':'Completar'} ${esc(task.name)}">✓</button><button class="planner-row-main" data-action="edit-task" data-id="${esc(task.id)}"><strong>${esc(task.name)}</strong><small>${!task.done&&task.due<date?`Vencida · ${esc(task.due)}`:'Para hoy'}${task.priority==='alta'?' · prioridad alta':''}</small></button></div>`).join('')||'<p class="planner-empty-note">Tu lista de hoy está libre.</p>'}</div><form class="planner-quick-task" data-planner-form="task"><input name="name" maxlength="150" placeholder="Agregar a la lista de hoy…" aria-label="Nueva tarea para hoy"><button type="submit">Agregar</button></form>`;
 }
 
 export function plannerHtml(date=dayKey()){
@@ -95,8 +94,8 @@ function ensureDialog(){
 }
 
 function openEventDialog(time){
- const date=dayKey(),dialog=ensureDialog(),areas=db.records('area'),end=nextHour(time);
- dialog.innerHTML=`<form data-planner-form="event"><h2>Agregar a la agenda</h2><p>${esc(weekdayName(date))} ${esc(prettyDate(date))}</p><label>¿Qué vas a hacer?<input name="name" required maxlength="150" autofocus placeholder="Ej.: Médico, reunión, almuerzo"></label><div class="planner-dialog-grid"><label>Hora<input name="time" type="time" value="${esc(time)}" required></label><label>Hasta<input name="end" type="time" value="${esc(end)}"></label></div><label>Área<select name="area">${areas.map(a=>`<option value="${esc(a.id)}" ${a.id==='personal'?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label><div class="planner-dialog-actions"><button type="button" class="planner-dialog-cancel" data-planner-action="close-dialog">Cancelar</button><button type="submit" class="planner-dialog-save">Guardar</button></div></form>`;
+ const date=dayKey(),dialog=ensureDialog(),end=nextHour(time);
+ dialog.innerHTML=`<form data-planner-form="event"><h2>Agregar a la agenda</h2><p>${esc(weekdayName(date))} ${esc(prettyDate(date))}</p><label>¿Qué vas a hacer?<input name="name" required maxlength="150" autofocus placeholder="Ej.: Médico, reunión, almuerzo"></label><div class="planner-dialog-grid"><label>Hora<input name="time" type="time" value="${esc(time)}" required></label><label>Hasta<input name="end" type="time" value="${esc(end)}"></label></div><div class="planner-dialog-actions"><button type="button" class="planner-dialog-cancel" data-planner-action="close-dialog">Cancelar</button><button type="submit" class="planner-dialog-save">Guardar</button></div></form>`;
  dialog.showModal();
 }
 
@@ -135,7 +134,7 @@ document.addEventListener('submit',event=>{
  }
  if(kind==='event'){
   const name=String(data.get('name')||'').trim();if(!name)return;
-  const candidate={name,area:String(data.get('area')||'personal'),date:dayKey(),repeat:'none',time:String(data.get('time')||''),end:String(data.get('end')||''),until:'',reminderMinutes:'',location:'',note:''};
+  const candidate={name,area:'personal',date:dayKey(),repeat:'none',time:String(data.get('time')||''),end:String(data.get('end')||''),until:'',reminderMinutes:'',location:'',note:''};
   const decision=authorizeEventSave(candidate,db.records('event'),{days:180,confirmConflict:message=>window.confirm(`${message} ¿Querés guardar igualmente?`)});
   if(!decision.allowed)return;
   db.put('event',candidate);form.closest('dialog')?.close();
