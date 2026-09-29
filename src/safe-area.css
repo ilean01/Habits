@@ -39,7 +39,7 @@
   bottom:calc(82px + var(--safe-bottom))!important;
   max-width:calc(100vw - max(30px,calc(var(--safe-left) + var(--safe-right) + 16px)))!important;
  }
- dialog{
+ dialog:not(.library-book-page){
   width:min(560px,calc(100vw - max(30px,calc(var(--safe-left) + var(--safe-right) + 20px))))!important;
   max-height:min(90dvh,calc(var(--visual-viewport-height) - var(--safe-top) - var(--safe-bottom) - 18px))!important;
   margin-top:max(9px,var(--safe-top));
@@ -50,7 +50,7 @@
  html[data-keyboard-open="true"] .main-wrap{padding-bottom:0!important}
  html[data-keyboard-open="true"] .content{padding-bottom:20px!important}
  html[data-keyboard-open="true"] #toast{bottom:18px!important}
- html[data-keyboard-open="true"] dialog{
+ html[data-keyboard-open="true"] dialog:not(.library-book-page){
   max-height:calc(var(--visual-viewport-height) - 12px)!important;
   margin-top:6px;
   margin-bottom:6px;

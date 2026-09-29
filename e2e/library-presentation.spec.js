@@ -1,11 +1,15 @@
 import {test,expect} from '@playwright/test';
 
 test('formulario original: flujo de página, campos legibles y bibliotecaria flotante',async({page})=>{
- await page.goto('/');
- await page.getByRole('button',{name:/Explorar la demo/i}).click();
+ await page.route('**/library-layout-test',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><meta name=viewport content="width=device-width,initial-scale=1"></head><body><main></main></body></html>'}));
+ await page.goto('/library-layout-test');
  await page.evaluate(async()=>{
+  await import('/src/style.css');
   await import('/src/biblioteca.css');
+  await import('/src/biblioteca-habits.css');
   await import('/src/library-native.css');
+  await import('/src/accessibility.css');
+  await import('/src/safe-area.css');
   const {bookEditorHtml}=await import('/src/biblioteca/book-editor.js');
   const fixture=document.createElement('section');fixture.className='library-native-shell';
   fixture.innerHTML=`<div id="library-app"><main>Catálogo</main><div data-assistant-host><button>Bibliotecaria</button></div></div><dialog id="library-modal" class="library-native-modal library-book-page"><div class="library-modal-heading"><h2>Agregar libro</h2><button>Cerrar</button></div><form>${bookEditorHtml({titulo:'Un libro de prueba',autor:'Autora de prueba'})}<button>Guardar</button></form></dialog>`;
