@@ -59,3 +59,12 @@ test('alta respeta el orden original y permite elegir o crear propietario sin pe
  select.value='__nuevo__';select.onchange();form.elements.codigo_p_nuevo.value='mr';form.elements.codigo_p_nuevo.oninput();assert.equal(bookEditorValues(new dom.window.FormData(form)).codigo_p,'MR');
  assert.ok(form.elements.rating);assert.ok(form.elements.relacionados);assert.ok(form.elements.favorito);editor.dispose();dom.window.close();
 });
+
+test('portadas tienen resultados propios, conservan sinopsis y no cierran al elegir',async()=>{
+ const dom=new JSDOM(`<form>${newBookEditorHtml({titulo:'Libro',descripcion:'Sinopsis propia'})}</form>`);globalThis.document=dom.window.document;
+ try{const form=document.querySelector('form');const win=form.querySelector('[data-cover-window]');win.showModal=()=>win.setAttribute('open','');win.close=()=>win.removeAttribute('open');const editor=bindBookEditor(form,{search:async()=>[{titulo:'Edición',descripcion:'Texto ajeno',portada_url:'https://example.org/cover.jpg'}]});
+ form.querySelector('[data-cover-open]').click();await form.querySelector('[data-editor=covers]').onclick();assert.equal(win.open,true);assert.equal(form.querySelector('[data-editor-results]').children.length,0);assert.equal(form.querySelector('[data-cover-results]').textContent.includes('Usar esta sinopsis'),false);
+ [...form.querySelectorAll('[data-cover-results] button')].find(b=>b.textContent==='Usar esta portada').click();assert.equal(win.open,true);assert.equal(form.elements.descripcion.value,'Sinopsis propia');assert.equal(editor.cover().url,'https://example.org/cover.jpg');
+ form.querySelector('[data-cover-close]').click();assert.equal(win.open,false);form.querySelector('[data-cover-open]').click();assert.equal(editor.cover().url,'https://example.org/cover.jpg');form.querySelector('[data-editor=remove-cover]').click();assert.equal(editor.cover().url,null);assert.equal(win.open,true);editor.dispose();
+ }finally{delete globalThis.document;dom.window.close();}
+});

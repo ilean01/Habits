@@ -65,7 +65,7 @@ function editBook(id,preset={}){
   if(draft)await consumeDraft(draft.id);
  },()=>bookDetail(savedId));
  editor=bindBookEditor(modal.querySelector('form'),{book,cover:s.covers.get(id)});
- if(!id)bindDraftQr(modal.querySelector('form'),editor,row=>{draft=row;});
+ if(!id)bindDraftQr(modal.querySelector('form'),editor,row=>{draft=row;});else bindBookCoverQr(modal.querySelector('form'),id);
  if(!id){modal.querySelector('[type=submit]').textContent='Agregar libro';const cancel=document.createElement('button');cancel.type='button';cancel.className='button outline';cancel.dataset.action='close';cancel.textContent='Cancelar';modal.querySelector('.modal-footer').append(cancel);}
  modal.addEventListener('close',()=>editor.dispose(),{once:true});
 }
@@ -121,7 +121,7 @@ function startReadingDialog(id){dialog('Empezar lectura',field('start','Fecha de
 
 function bindInlineEditor(book){
  const form=modal.querySelector('.library-inline-editor form'),status=modal.querySelector('.lib-autosave-status'),retry=modal.querySelector('[data-retry-autosave]'),owner=libraryOwner;let validationError=false;const discard=modal.querySelector('[data-discard-autosave]');
- const editor=bindBookEditor(form,{book,cover:s.covers.get(book.id)});
+ const editor=bindBookEditor(form,{book,cover:s.covers.get(book.id)});bindBookCoverQr(form,book.id);
  const auto=createAutosave(async(name,value)=>{if(owner!==libraryOwner||!canWrite)throw new Error('La biblioteca o tus permisos cambiaron.');if(name==='cover'){if(value.file)await data.uploadCover(book.id,value.file);else await data.replaceCover(book.id,value.url);}else {const patch={[name]:value};if(name==='dewey')patch.dewey_orden=u.deweyNumber(value);const row=await data.updateBook(book.id,patch,{[name]:book[name]});Object.assign(book,row);}window.dispatchEvent(new CustomEvent('habits:library-data-changed'));},(text,error)=>{status.textContent=text;status.classList.toggle('error',error);retry.hidden=!error;discard.hidden=!error;});
  retry.onclick=()=>auto.retry();discard.onclick=async()=>{if(!confirm('¿Descartar solamente los cambios que no se guardaron y cargar la ficha actual?'))return;await auto.discard();await reload({force:true});bookDetail(book.id);};modal.flushChanges=()=>{if(validationError)throw new Error('Corregí el campo indicado antes de cerrar.');return auto.flush();};
  form.onsubmit=e=>{e.preventDefault();auto.retry();};
@@ -140,3 +140,8 @@ function bindDraftQr(form,editor,onDraft){
  modal.addEventListener('close',()=>{stopped=true;clearTimeout(timer);},{once:true});
 }
 async function openDraftUpload(id){requireWrite();const row=await readDraft(id);dialog('Portada para el libro nuevo','<p>La imagen llegará al formulario abierto en la notebook. No se crea ningún libro hasta que lo guardes allí.</p>'+field('photo','Foto de portada','','file','accept="image/jpeg,image/png,image/webp" required'),async f=>{await uploadDraft(row.id,f.get('photo'));toast('Portada enviada a la notebook.');});}
+
+function bindBookCoverQr(form,id){
+ const box=document.createElement('section');box.className='lib-draft-qr';box.innerHTML='<button type="button" class="lib-button secondary">Subir portada desde otro celular (QR)</button><p role="status"></p><div></div>';form.querySelector('.book-editor-cover').after(box);
+ box.querySelector('button').onclick=async()=>{try{const url=new URL('biblioteca.html',location.href);url.searchParams.set('cover',id);const {default:QR}=await import('qrcode');const img=document.createElement('img');img.alt='Escaneá para subir la portada';img.src=await QR.toDataURL(url.href);const link=document.createElement('a');link.href=url.href;link.textContent='Abrir carga de portada';box.querySelector('div').replaceChildren(img,link);box.querySelector('p').textContent='En el celular, iniciá sesión y seleccioná esta misma biblioteca. La imagen se guarda en este libro.';}catch(error){box.querySelector('p').textContent=error.message;}};
+}
