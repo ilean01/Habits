@@ -20,6 +20,13 @@ function renderDashboard(){
  card.append(wrap);
 }
 
+function polishTodayLayout(){
+ const switcher=document.querySelector('.planner-mode-switch');
+ if(switcher){switcher.classList.add('planner-mode-switch-compact');const label=switcher.querySelector(':scope > span');if(label)label.textContent='Vista';const dashboard=switcher.querySelector('[data-mode="dashboard"]'),planner=switcher.querySelector('[data-mode="planner"]');if(dashboard)dashboard.setAttribute('aria-label','Ver Dashboard');if(planner)planner.setAttribute('aria-label','Ver Agenda del día');}
+ const summary=document.querySelector('.nutrition-day-summary'),plannerView=document.querySelector('.daily-planner'),dashboardGrid=document.querySelector('.dashboard-grid');
+ if(summary){summary.hidden=!!plannerView;if(!plannerView&&dashboardGrid&&summary.previousElementSibling!==dashboardGrid)dashboardGrid.after(summary);}
+}
+
 function renderCalendar(){
  document.querySelectorAll('.calendar-cell[data-date]').forEach(cell=>{
   const date=cell.dataset.date,value=sleepFor(date);cell.querySelector('[data-sleep-calendar]')?.remove();if(!value)return;
@@ -45,17 +52,18 @@ function injectJournalEditor(){
  form.querySelector('label:has(select[name="mood"])')?.after(field);
 }
 
-function refresh(){renderDashboard();renderCalendar();renderDayDetail();renderJournal();injectJournalEditor();}
+function refresh(){polishTodayLayout();renderDashboard();renderCalendar();renderDayDetail();renderJournal();injectJournalEditor();}
 
 function saveSleep(date,rating){
  const existing=diaryFor(date),value=normalizeSleep(rating);if(!value)return;const {id,...rest}=existing||{};db.put('journal',{...rest,date,sleep:value,at:existing?.at||new Date().toISOString()},id||undefined);
 }
 
-document.addEventListener('click',event=>{
- const quick=event.target.closest('[data-sleep-rating]');if(quick){event.preventDefault();saveSleep(quick.dataset.sleepDate||dayKey(),quick.dataset.sleepRating);return;}
- const editor=event.target.closest('[data-sleep-editor-rating]');if(editor){event.preventDefault();const field=editor.closest('[data-sleep-editor]'),value=normalizeSleep(editor.dataset.sleepEditorRating);field?.querySelector('[name="sleep"]')?.setAttribute('value',String(value));field?.querySelectorAll('[data-sleep-editor-rating]').forEach(button=>{const n=Number(button.dataset.sleepEditorRating);button.classList.toggle('filled',n<=value);button.classList.toggle('chosen',n===value);button.setAttribute('aria-checked',String(n===value));});const caption=field?.querySelector('.sleep-rating-caption');if(caption)caption.textContent=`${sleepStars(value)} · ${sleepLabel(value)}`;}
-});
-
-document.addEventListener('habits:rerender',()=>queueMicrotask(refresh));
-const modal=document.querySelector('#modal');if(modal)new MutationObserver(()=>injectJournalEditor()).observe(modal,{childList:true,subtree:true});
-queueMicrotask(refresh);
+if(typeof document!=='undefined'){
+ document.addEventListener('click',event=>{
+  const quick=event.target.closest('[data-sleep-rating]');if(quick){event.preventDefault();saveSleep(quick.dataset.sleepDate||dayKey(),quick.dataset.sleepRating);return;}
+  const editor=event.target.closest('[data-sleep-editor-rating]');if(editor){event.preventDefault();const field=editor.closest('[data-sleep-editor]'),value=normalizeSleep(editor.dataset.sleepEditorRating),hidden=field?.querySelector('[name="sleep"]');if(hidden)hidden.value=String(value);field?.querySelectorAll('[data-sleep-editor-rating]').forEach(button=>{const n=Number(button.dataset.sleepEditorRating);button.classList.toggle('filled',n<=value);button.classList.toggle('chosen',n===value);button.setAttribute('aria-checked',String(n===value));});const caption=field?.querySelector('.sleep-rating-caption');if(caption)caption.textContent=`${sleepStars(value)} · ${sleepLabel(value)}`;}
+ });
+ document.addEventListener('habits:rerender',()=>queueMicrotask(refresh));
+ const modal=document.querySelector('#modal');if(modal)new MutationObserver(()=>injectJournalEditor()).observe(modal,{childList:true,subtree:true});
+ queueMicrotask(refresh);
+}
