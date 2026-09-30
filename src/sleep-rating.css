@@ -28,6 +28,13 @@
 .planner-mode-switch.planner-mode-switch-compact button.active{background:var(--panel);color:var(--green);box-shadow:0 1px 4px #00000010}
 .planner-mode-switch.planner-mode-switch-compact button:not(.active):hover,.planner-mode-switch.planner-mode-switch-compact button:not(.active):focus-visible{color:var(--green);background:color-mix(in srgb,var(--panel) 65%,transparent)}
 
+/* Tipo de día: opciones visibles, no un desplegable del sistema */
+.day-mode-picker{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:flex-end}
+.day-mode-option{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);font-size:12px;font-weight:600;transition:.15s ease}
+.day-mode-option span:first-child{font-size:14px;line-height:1}
+.day-mode-option:hover,.day-mode-option:focus-visible{border-color:color-mix(in srgb,var(--green) 55%,var(--line));background:var(--soft);color:var(--green)}
+.day-mode-option.selected{border-color:var(--green);background:var(--green);color:#fff;box-shadow:0 2px 7px #33402e18}
+
 /* Alimentación pertenece al Dashboard y cierra la página, no a Agenda del día */
 .nutrition-day-summary[hidden]{display:none!important}
 .dashboard-grid+.nutrition-day-summary{margin-top:22px;margin-bottom:8px}
@@ -37,4 +44,5 @@
  .planner-mode-switch.planner-mode-switch-compact{justify-content:space-between;margin-top:-10px}
  .planner-mode-switch.planner-mode-switch-compact .segmented{width:auto}
  .planner-mode-switch.planner-mode-switch-compact button{min-height:44px;padding-inline:12px}
+ .day-mode-picker{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;width:100%;padding:2px 0 4px}.day-mode-picker::-webkit-scrollbar{display:none}.day-mode-option{flex:0 0 auto;min-height:44px;padding-inline:12px}
 }
