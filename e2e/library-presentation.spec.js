@@ -10,9 +10,9 @@ test('formulario original: flujo de página, campos legibles y bibliotecaria flo
   await import('/src/library-native.css');
   await import('/src/accessibility.css');
   await import('/src/safe-area.css');
-  const {bookEditorHtml}=await import('/src/biblioteca/book-editor.js');
+  const {newBookEditorHtml}=await import('/src/biblioteca/book-editor.js');
   const fixture=document.createElement('section');fixture.className='library-native-shell';
-  fixture.innerHTML=`<div id="library-app"><main>Catálogo</main><div data-assistant-host><button>Bibliotecaria</button></div></div><dialog id="library-modal" class="library-native-modal library-book-page"><div class="library-modal-heading"><h2>Agregar libro</h2><button>Cerrar</button></div><form>${bookEditorHtml({titulo:'Un libro de prueba',autor:'Autora de prueba'})}<button>Guardar</button></form></dialog>`;
+  fixture.innerHTML=`<div id="library-app"><main>Catálogo</main><div data-assistant-host><button>Bibliotecaria</button></div></div><dialog id="library-modal" class="library-native-modal library-book-page"><div class="library-modal-heading"><h2>Agregar libro</h2><button>Cerrar</button></div><form>${newBookEditorHtml({titulo:'Un libro de prueba',autor:'Autora de prueba'})}<button>Guardar</button></form></dialog>`;
   document.querySelector('main')?.replaceChildren(fixture);
   fixture.querySelector('dialog').show();
  });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
-import {bookEditorHtml,bookEditorValues,bindBookEditor} from '../src/biblioteca/book-editor.js';
+import {newBookEditorHtml,bookEditorHtml,bookEditorValues,bindBookEditor} from '../src/biblioteca/book-editor.js';
 import {catalogView} from '../src/biblioteca/views.js';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -48,4 +48,14 @@ test('numeración automática conserva ejemplares antiguos, deseos y escala 1–
  assert.equal((await pg.query('select item from biblioteca_libros where id=1')).rows[0].item,618);
  await assert.rejects(pg.query('update biblioteca_libros set rating=11 where id=1'));
  }finally{await pg.close();}
+});
+
+test('alta respeta el orden original y permite elegir o crear propietario sin perder campos adicionales',()=>{
+ const dom=new JSDOM(`<form>${newBookEditorHtml({titulo:'Nuevo'},[{codigo_p:'LR'}])}</form>`);const form=dom.window.document.querySelector('form');
+ const names=[...form.querySelectorAll('input,textarea,select')].map(x=>x.name);
+ const order=['titulo','autor','descripcion','editorial','paginas','autografiado','proxima_lectura','isbn','idioma','genero','dewey','codigo_p','subdivision','dedicatoria','observaciones','lista'];
+ for(let i=1;i<order.length;i++)assert.ok(names.indexOf(order[i])>names.indexOf(order[i-1]),order[i]);
+ const editor=bindBookEditor(form);const select=form.querySelector('[data-owner-select]');select.value='LR';select.onchange();assert.equal(bookEditorValues(new dom.window.FormData(form)).codigo_p,'LR');
+ select.value='__nuevo__';select.onchange();form.elements.codigo_p_nuevo.value='mr';form.elements.codigo_p_nuevo.oninput();assert.equal(bookEditorValues(new dom.window.FormData(form)).codigo_p,'MR');
+ assert.ok(form.elements.rating);assert.ok(form.elements.relacionados);assert.ok(form.elements.favorito);editor.dispose();dom.window.close();
 });
