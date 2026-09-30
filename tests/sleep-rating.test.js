@@ -18,7 +18,8 @@ test('Mi día usa opciones visibles para tipo de día y alimentación solo en Da
  const main=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
  const planner=fs.readFileSync(new URL('../src/daily-planner.js',import.meta.url),'utf8');
  assert.match(main,/class=\\?"day-mode-picker/);
- assert.match(main,/data-mode=\\?"descanso/);
+ assert.match(main,/\['descanso','🌙','Descanso'\]/);
+ assert.match(main,/,'day-mode',/);
  assert.doesNotMatch(main,/<select id=\\?"day-mode/);
  assert.match(planner,/planner-mode-switch planner-mode-switch-compact/);
  assert.doesNotMatch(planner,/Elegí cómo querés ver tu día/);
