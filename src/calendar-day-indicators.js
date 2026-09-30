@@ -1,4 +1,3 @@
-import './sleep-ui.js';
 import {daySnapshot} from './day-service.js';
 import {sleepLabel} from './sleep-rating.js';
 
