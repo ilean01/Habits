@@ -26,17 +26,18 @@ test('Mi día muestra sueño con estrellas y tipo de día con opciones visibles'
  await sleep.getByRole('button',{name:/Bien: 4 de 5 estrellas/}).click();
  await expect(page.locator('.sleep-rating-caption')).toContainText('★★★★☆');
 
- await page.locator('[data-action="nav"][data-view="calendar"]').first().click();
+ await page.locator('[data-action="nav"][data-view="calendar"]:visible').first().click();
  await expect(page.locator('.calendar-cell.current .calendar-signal.sleep')).toContainText('4');
 });
 
 test('alimentación queda al final del Dashboard y no aparece en Agenda del día',async({page})=>{
  await enterDemo(page);
- const dashboard=page.locator('.dashboard-grid');
+ const dashboard=page.locator('.dashboard-widget-grid');
  const nutrition=page.locator('.nutrition-day-summary');
+ await expect(dashboard).toBeVisible();
  await expect(nutrition).toBeVisible();
  const followsDashboard=await page.evaluate(()=>{
-  const dashboard=document.querySelector('.dashboard-grid');
+  const dashboard=document.querySelector('.dashboard-widget-grid');
   return dashboard?.nextElementSibling?.classList.contains('nutrition-day-summary')||false;
  });
  expect(followsDashboard).toBe(true);
