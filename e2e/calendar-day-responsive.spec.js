@@ -19,12 +19,13 @@ test('Ficha del día se comporta como panel en notebook y ficha móvil en teléf
   const glance=page.locator('.day-detail-glance');
   await expect(glance).toBeVisible();
   const cards=glance.locator(':scope > div');
-  await expect(cards).toHaveCount(4);
+  await expect(cards).toHaveCount(5);
   await expect(cards.nth(0).locator('strong')).toBeVisible();
-  await expect(cards.nth(1).locator('strong')).toBeVisible();
-  await expect(cards.nth(1)).toContainText(/L/);
+  await expect(cards.nth(1)).toContainText(/sueño/i);
   await expect(cards.nth(2).locator('strong')).toBeVisible();
+  await expect(cards.nth(2)).toContainText(/L/);
   await expect(cards.nth(3).locator('strong')).toBeVisible();
+  await expect(cards.nth(4).locator('strong')).toBeVisible();
   await back.click();
   await expect(page.locator('#calendar-month')).toBeVisible();
   const box=await page.locator('#calendar-month').boundingBox();
