@@ -17,4 +17,24 @@
 .day-detail-sleep-stars{font-size:1rem;letter-spacing:.05em;color:#c69b43;white-space:nowrap}
 .calendar-signal.sleep{color:#a27a2c}
 .calendar-signal.sleep>span:first-of-type{font-weight:700}
-@media(max-width:650px){.sleep-star{min-width:44px;min-height:44px}.sleep-rating-field label{width:44px;height:44px}}
+
+/* Mi día: selector con affordance clara, sin otra tarjeta/ventana */
+.planner-mode-switch.planner-mode-switch-compact{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-8px 0 14px;padding:0;border:0;background:transparent;border-radius:0}
+.planner-mode-switch.planner-mode-switch-compact>span{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.planner-mode-switch.planner-mode-switch-compact .segmented{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.planner-mode-switch.planner-mode-switch-compact button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 11px;border-radius:7px;font-size:12px;font-weight:600;color:var(--muted);background:transparent}
+.planner-mode-switch.planner-mode-switch-compact button[data-mode="dashboard"]::before{content:'▦';font-size:14px;line-height:1}
+.planner-mode-switch.planner-mode-switch-compact button[data-mode="planner"]::before{content:'☷';font-size:15px;line-height:1}
+.planner-mode-switch.planner-mode-switch-compact button.active{background:var(--panel);color:var(--green);box-shadow:0 1px 4px #00000010}
+.planner-mode-switch.planner-mode-switch-compact button:not(.active):hover,.planner-mode-switch.planner-mode-switch-compact button:not(.active):focus-visible{color:var(--green);background:color-mix(in srgb,var(--panel) 65%,transparent)}
+
+/* Alimentación pertenece al Dashboard y cierra la página, no a Agenda del día */
+.nutrition-day-summary[hidden]{display:none!important}
+.dashboard-grid+.nutrition-day-summary{margin-top:22px;margin-bottom:8px}
+
+@media(max-width:650px){
+ .sleep-star{min-width:44px;min-height:44px}.sleep-rating-field label{width:44px;height:44px}
+ .planner-mode-switch.planner-mode-switch-compact{justify-content:space-between;margin-top:-10px}
+ .planner-mode-switch.planner-mode-switch-compact .segmented{width:auto}
+ .planner-mode-switch.planner-mode-switch-compact button{min-height:44px;padding-inline:12px}
+}
