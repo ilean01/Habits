@@ -10,8 +10,9 @@
 .sleep-rating-field legend{font-weight:600;margin-bottom:7px}
 .sleep-rating-field .sleep-stars{gap:6px}
 .sleep-rating-field input{position:absolute;opacity:0;pointer-events:none}
-.sleep-rating-field label{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.65rem;color:#c8c8bf}
-.sleep-rating-field label:has(input:checked),.sleep-rating-field label:has(input:checked)~label{color:#c8c8bf}
+.sleep-rating-field label{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:1.65rem;color:#c8c8bf;transition:color .15s ease,background .15s ease}
+.sleep-rating-field label:has(input:checked),.sleep-rating-field label:has(~ label input:checked){color:#c69b43}
+.sleep-rating-field label:hover,.sleep-rating-field label:focus-within{background:rgba(198,155,67,.09)}
 .sleep-rating-field label.selected{color:#c69b43}
 .journal-sleep{display:block;margin-top:8px;color:#9a7435;font-size:.9rem;font-weight:600;letter-spacing:.01em}
 .day-detail-sleep-stars{font-size:1rem;letter-spacing:.05em;color:#c69b43;white-space:nowrap}
@@ -37,7 +38,7 @@
 
 /* Alimentación pertenece al Dashboard y cierra la página, no a Agenda del día */
 .nutrition-day-summary[hidden]{display:none!important}
-.dashboard-grid+.nutrition-day-summary{margin-top:22px;margin-bottom:8px}
+.dashboard-grid+.nutrition-day-summary,.dashboard-widget-grid+.nutrition-day-summary{margin-top:22px;margin-bottom:8px}
 
 @media(max-width:650px){
  .sleep-star{min-width:44px;min-height:44px}.sleep-rating-field label{width:44px;height:44px}
