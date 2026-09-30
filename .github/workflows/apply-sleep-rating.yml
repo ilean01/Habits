@@ -1,0 +1,30 @@
+name: Apply sleep rating integration
+
+on:
+  push:
+    branches:
+      - feat/daily-sleep-stars
+    paths:
+      - .github/workflows/apply-sleep-rating.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/daily-sleep-stars
+      - name: Integrate daily sleep rating
+        run: python scripts/apply_sleep_rating.py
+      - name: Remove one-shot helpers
+        run: rm scripts/apply_sleep_rating.py .github/workflows/apply-sleep-rating.yml
+      - name: Commit integrated feature
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate daily sleep star rating"
+          git push origin HEAD:feat/daily-sleep-stars
