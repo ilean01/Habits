@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {parseRoute,routeHash} from '../src/router.js';
 
 test('rutas principales tienen hash estable y compatible con GitHub Pages',()=>{
- const cases=[['today','#/today'],['calendar','#/calendar'],['progress','#/progress'],['diary','#/diary'],['library','#/library'],['space','#/tasks']];
+ const cases=[['today','#/today'],['calendar','#/calendar'],['meals','#/meals'],['progress','#/progress'],['diary','#/diary'],['library','#/library'],['space','#/tasks']];
  for(const [view,hash] of cases){assert.equal(routeHash({view}),hash);assert.equal(parseRoute(hash).view,view);}
 });
 test('una ruta antigua de áreas vuelve de forma segura a Mi día',()=>{
