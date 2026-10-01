@@ -7,7 +7,7 @@ test('mobile primary and more navigation cover every app destination once', () =
   const primary=mobileNavigation().map(([id])=>id);
   const more=mobileMoreNavigation().map(([id])=>id);
   assert.deepEqual(primary,['today','calendar','library','space']);
-  assert.deepEqual(more,['progress','diary']);
+  assert.deepEqual(more,['meals','progress','diary']);
   assert.equal(new Set([...primary,...more]).size,APP_NAV.length);
 });
 

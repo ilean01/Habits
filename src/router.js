@@ -1,5 +1,5 @@
-const SEGMENT_TO_VIEW={today:'today',calendar:'calendar',progress:'progress',diary:'diary',library:'library',tasks:'space'};
-const VIEW_TO_SEGMENT={today:'today',calendar:'calendar',progress:'progress',diary:'diary',library:'library',space:'tasks'};
+const SEGMENT_TO_VIEW={today:'today',calendar:'calendar',meals:'meals',progress:'progress',diary:'diary',library:'library',tasks:'space'};
+const VIEW_TO_SEGMENT={today:'today',calendar:'calendar',meals:'meals',progress:'progress',diary:'diary',library:'library',space:'tasks'};
 const clean=value=>decodeURIComponent(String(value||'')).trim().replace(/^\/+|\/+$/g,'');
 const validDate=value=>/^\d{4}-\d{2}-\d{2}$/.test(value||'')?value:'';
 
