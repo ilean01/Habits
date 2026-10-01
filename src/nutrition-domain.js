@@ -1,5 +1,6 @@
 export const MEAL_TYPES={
  breakfast:'Desayuno',
+ morning:'Media mañana',
  lunch:'Almuerzo',
  snack:'Merienda',
  dinner:'Cena',
@@ -17,6 +18,7 @@ export function mealTypeLabel(type){return MEAL_TYPES[type]||MEAL_TYPES.other;}
 export function defaultMealType(date=new Date()){
  const hour=date.getHours();
  if(hour<10)return 'breakfast';
+ if(hour<12)return 'morning';
  if(hour<15)return 'lunch';
  if(hour<19)return 'snack';
  return 'dinner';
@@ -26,6 +28,7 @@ export function inferMealType(meal={}){
  if(Object.hasOwn(MEAL_TYPES,meal.mealType))return meal.mealType;
  const label=clean(meal.label).toLocaleLowerCase('es');
  if(label.includes('desay'))return 'breakfast';
+ if(label.includes('media mañana')||label.includes('media manana'))return 'morning';
  if(label.includes('almuer'))return 'lunch';
  if(label.includes('meriend'))return 'snack';
  if(label.includes('cena'))return 'dinner';
