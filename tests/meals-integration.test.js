@@ -9,7 +9,7 @@ test('Comidas está conectado a la navegación, ruta y entrada principal',()=>{
 });
 
 test('Comidas mantiene separado lo planificado de lo realmente consumido',()=>{
- const ui=read('src/meals.js');assert.match(ui,/rec\('mealPlan'\)/);assert.match(ui,/rec\('meal'\)/);assert.match(ui,/source:'meal-plan'/);assert.match(ui,/data-meals=\\?"eat/);
+ const ui=read('src/meals.js');assert.match(ui,/rec\('mealPlan'\)/);assert.match(ui,/rec\('meal'\)/);assert.match(ui,/source:'meal-plan'/);assert.match(ui,/data-meals="eat"/);
 });
 
 test('Comidas reutiliza entries para offline, Realtime y conflictos',()=>{
