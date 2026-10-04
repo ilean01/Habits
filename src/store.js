@@ -7,7 +7,7 @@ import {loadOwner,migrateLegacyLocalStorage,saveRecord,removeRecord,savePending,
 const url=import.meta.env.VITE_SUPABASE_URL||SUPABASE_URL;
 const key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY;
 export const configured=!!(url&&key);
-export const supabase=configured?createClient(url,key):null;
+export const supabase=configured?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 let owner=null,cache={records:{},pending:{},conflicts:{}},meta={lastSync:null},listener=()=>{},syncing=false,channel;
 let status='local';
 const tabId=crypto.randomUUID();
