@@ -8,7 +8,10 @@ test('Ficha del día tiene diseño dedicado para notebook e iPhone',async()=>{
  assert.match(css,/position:static;max-height:none;overflow:visible/);
  assert.match(css,/@media\(max-width:650px\)/);
  assert.match(css,/\.day-detail-back\{grid-column:1\/-1;display:inline-flex/);
+ assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/day-detail-sleep-stars\{[^}]*font-size:15px!important/);
+ assert.match(css,/last-child:nth-child\(odd\)\{grid-column:1\/-1/);
  assert.match(css,/min-height:54px/);
 });
 
