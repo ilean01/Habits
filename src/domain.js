@@ -8,7 +8,7 @@ export const AREAS = [
  {id:'ingles',name:'Inglés',icon:'Languages',color:'#c28f8c'},
  {id:'hogar',name:'Hogar',icon:'House',color:'#b7a368'}
 ];
-export const ICONS=['Sun','Dumbbell','Coffee','ShowerHead','BookOpen','LibraryBig','Droplets','Footprints','Heart','Moon','Flower2','BriefcaseBusiness','GraduationCap','Languages','House','Music','NotebookPen','Leaf'];
+export const ICONS=['Sun','Dumbbell','Coffee','ShowerHead','BookOpen','LibraryBig','Droplets','Footprints','Heart','PrayingHands','Moon','Flower2','BriefcaseBusiness','GraduationCap','Languages','House','Music','NotebookPen','Leaf'];
 export const PALETTE=['#738d70','#a98b70','#7791a3','#a08aa9','#c28f8c','#b7a368'];
 export const uid=()=>crypto.randomUUID();
 export function dayKey(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
