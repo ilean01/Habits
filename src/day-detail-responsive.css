@@ -6,9 +6,16 @@
 .day-detail-kicker,.day-detail-label{font-size:10px;letter-spacing:1.15px}
 .day-detail-section-head h3{font-size:19px}
 .day-detail-count,.day-detail-mode-pill,.day-detail-today{font-size:11px}
-.day-detail-glance{gap:8px;padding:14px 0}
-.day-detail-glance>div{padding:12px;border-radius:11px;background:color-mix(in srgb,var(--soft) 58%,transparent)}
-.day-detail-glance strong{font-size:24px}
+.day-detail-glance{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:14px 0}
+.day-detail-glance>div{min-width:0;min-height:104px;padding:12px 13px;border-radius:13px;background:color-mix(in srgb,var(--soft) 52%,transparent);overflow:hidden}
+.day-detail-glance strong{display:block;margin-top:9px;font-size:25px;line-height:1;color:var(--text);white-space:nowrap}
+.day-detail-glance strong small{font-size:11px;line-height:1;color:var(--muted);font-family:'DM Sans',sans-serif}
+.day-detail-glance-label{display:flex!important;align-items:center;gap:6px;margin:0!important;color:var(--muted);font-size:10px!important;font-weight:700;letter-spacing:.035em;text-transform:uppercase;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+.day-detail-glance-label svg{width:13px;height:13px;flex:0 0 auto}
+.day-detail-glance-meta{display:block;margin-top:7px;color:var(--muted);font-size:10px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-detail-sleep-stars{font-family:'DM Sans',sans-serif!important;font-size:15px!important;letter-spacing:.02em!important;color:#c69b43!important}
+.day-detail-sleep-stars.is-empty{font-family:var(--serif)!important;font-size:25px!important;letter-spacing:0!important;color:var(--text)!important}
+.day-detail-glance .day-detail-mood{font-size:25px}
 .day-detail-glance span{font-size:11px;white-space:normal;line-height:1.3}
 .day-detail-priorities li,.day-detail-reflections p,.day-detail-note-row{font-size:12px}
 .day-detail-item,.day-detail-habit{min-height:50px;padding:10px}
@@ -48,11 +55,15 @@
  .day-detail-today,.day-detail-mode-pill{min-height:30px;padding:6px 9px;font-size:10px}
  .day-detail-holiday{margin:14px 18px 0;font-size:12px;line-height:1.5}
  .day-detail-glance{position:relative;z-index:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:14px 18px 18px;border-bottom:1px solid var(--line)}
- .day-detail-glance>div{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:88px;padding:13px 12px;overflow:visible}
- .day-detail-glance strong{display:block;min-height:32px;font-size:29px;line-height:1;color:var(--text)}
+ .day-detail-glance>div{display:block;min-height:100px;padding:12px 13px;overflow:hidden}
+ .day-detail-glance>div:last-child:nth-child(odd){grid-column:1/-1;min-height:90px}
+ .day-detail-glance strong{display:block;min-height:0;margin-top:10px;font-size:28px;line-height:1;color:var(--text)}
  .day-detail-glance strong small{font-size:12px;line-height:1}
- .day-detail-glance .day-detail-mood{font-size:30px}
- .day-detail-glance span{display:block;margin-top:7px;font-size:12px;line-height:1.25}
+ .day-detail-glance .day-detail-mood{font-size:28px}
+ .day-detail-glance .day-detail-sleep-stars{font-size:15px!important}
+ .day-detail-glance .day-detail-sleep-stars.is-empty{font-size:28px!important}
+ .day-detail-glance-label{margin:0!important;font-size:10px!important}
+ .day-detail-glance-meta{margin-top:7px!important;font-size:11px!important;line-height:1.25!important}
  .day-detail-section{padding:18px 18px}
  .day-detail-section-head{align-items:flex-start;margin-bottom:13px}
  .day-detail-section-head h3{font-size:18px;line-height:1.3}
