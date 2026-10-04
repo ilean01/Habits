@@ -35,6 +35,13 @@ test('Ficha del día se comporta como panel en notebook y ficha móvil en teléf
   await expect(back).toBeHidden();
   const position=await page.locator('[data-day-detail]').evaluate(el=>getComputedStyle(el).position);
   if(width>=1201)expect(position).toBe('static');
+  const glance=page.locator('.day-detail-glance');
+  const cards=glance.locator(':scope > div');
+  await expect(cards).toHaveCount(5);
+  const boxes=await cards.evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,right:r.right,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};}));
+  expect(new Set(boxes.map(b=>Math.round(b.y))).size).toBe(1);
+  for(const box of boxes)expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth+1);
+  for(let i=1;i<boxes.length;i++)expect(boxes[i].x).toBeGreaterThanOrEqual(boxes[i-1].right-1);
   await expect(page.locator('[data-day-detail]')).toHaveCSS('overflow-y','visible');
   await expect(page.locator('.sidebar')).toHaveCSS('overflow-y','visible');
  }
