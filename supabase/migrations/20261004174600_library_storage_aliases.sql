@@ -8,6 +8,9 @@ create table if not exists public.biblioteca_storage_aliases (
   constraint biblioteca_storage_aliases_not_self check (owner_id <> folder_owner_id)
 );
 
+create index if not exists biblioteca_storage_aliases_folder_owner_idx
+  on public.biblioteca_storage_aliases(folder_owner_id);
+
 alter table public.biblioteca_storage_aliases enable row level security;
 revoke all on public.biblioteca_storage_aliases from public, anon;
 grant select on public.biblioteca_storage_aliases to authenticated;
