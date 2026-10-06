@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El mar de los recuerdos — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<a href="/" class="volver">← Volver al catálogo</a>
+
+<div class="ficha-acciones-superiores">
+    
+    <a class="boton secundario" href="/libro/1">👁 Ver ficha</a>
+    
+
+    <form method="post" action="/favorito/1" class="form-inline">
+        <button type="submit" class="boton secundario">☆ Agregar favorito</button>
+    </form>
+
+    
+    <a class="boton secundario" href="/lecturas?libro_id=1">📖 Estoy leyendo</a>
+    <a class="boton secundario" href="/prestamos?libro_id=1">📚 Prestar este libro</a>
+    
+    <form method="post" action="/proximas" class="form-inline"><input type="hidden" name="libro_id" value="1"><button type="submit" class="boton secundario">📌 Quiero leer después</button></form>
+    
+    
+    
+</div>
+
+<div class="ficha modo-edicion" data-id="1" data-editar="1">
+    <div class="ficha-portada">
+        
+        <div class="sin-portada grande"><span>El mar de los recuerdos</span></div>
+        
+
+        
+        <button type="button" class="mini secundario" onclick="abrirModalPortadaFicha()">🖼 Manejar portada e imágenes</button>
+
+        <div id="modal-portada-ficha" class="modal-portada" style="display:none">
+            <div class="modal-portada-contenido">
+                <div class="modal-portada-header">
+                    <h3>🖼 Manejo de portada</h3>
+                    <button type="button" class="mini secundario" onclick="cerrarModalPortadaFicha()">Cerrar</button>
+                </div>
+                <p class="nota mini-nota">Buscar portada, usar QR o quitar la portada. Esta ventana no se cierra sola.</p>
+
+                <div class="herramientas-edicion">
+                    <button type="button" class="mini secundario" onclick="buscarPortadasFicha()">Buscar portadas automáticas</button>
+                    <button type="button" class="mini peligro-suave" onclick="quitarPortadaFicha()">Quitar portada</button>
+                    <div class="url-portada-box">
+                        <input type="text" id="consulta-imagen-ficha" placeholder="Buscar otra imagen desde la app">
+                        <button type="button" class="mini" onclick="buscarImagenesFicha()">Buscar imagen</button>
+                    </div>
+                    <p class="nota mini-nota">Portada y sinopsis están separadas. La sinopsis se busca desde el área de edición general.</p>
+                    <p id="estado-busqueda"></p>
+                    <div class="opciones-cabecera" id="opciones-cabecera" style="display:none"><strong>Resultados</strong><button type="button" class="mini secundario" onclick="cerrarOpcionesInternet()">Limpiar resultados</button></div>
+                    <div id="opciones-internet" class="opciones-portadas" style="display:none"></div>
+                </div>
+
+                <div class="qr-foto">
+                    <p class="nota"><strong>Subir portada desde el celular</strong></p>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&amp;data=http%3A//localhost%3A5001/libro/1/subir_foto" alt="QR para subir portada">
+                    <small>Escaneá el QR y subí una foto. Esta ficha se refresca sola.</small>
+                    <small><a href="http://localhost:5001/libro/1/subir_foto">Abrir enlace</a></small>
+                </div>
+            </div>
+        </div>
+        
+
+        
+        <div class="dato-interno">
+            <strong>Propietario:</strong> TEST
+             · Nº 1
+        </div>
+        
+    </div>
+
+    <div class="ficha-datos">
+        
+        <h2 contenteditable="true" class="editable" data-campo="titulo">El mar de los recuerdos</h2>
+        <p class="autor editable" contenteditable="true" data-campo="autor">Autora de prueba 1</p>
+
+        <div class="estrellas" title="Tu puntaje (1 a 10)">
+            
+            <span class="estrella " onclick="ponerRating(1)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(2)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(3)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(4)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(5)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(6)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(7)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(8)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(9)">★</span>
+            
+            <span class="estrella " onclick="ponerRating(10)">★</span>
+            
+            <small id="texto-rating">sin puntuar</small>
+        </div>
+
+        <div class="checks-linea">
+            <label class="check check-inline">
+                <input type="checkbox" data-autoguardar="autografiado" >
+                ✍️ Libro autografiado
+            </label>
+        </div>
+
+        <div class="fila-campos">
+            <label>Estado de lectura
+                <select data-autoguardar="estado_lectura">
+                    
+                    <option value="no_leido" >No leído</option>
+                    
+                    <option value="leyendo" selected>Leyendo</option>
+                    
+                    <option value="leido" >Leído</option>
+                    
+                    <option value="abandonado" >Abandonado</option>
+                    
+                    <option value="releyendo" >Releyendo</option>
+                    
+                </select>
+            </label>
+            <label>Página actual
+                <input type="number" min="0" data-autoguardar="pagina_actual" value="32" placeholder="0">
+            </label>
+            <label>Total páginas
+                <input type="number" min="1" data-autoguardar="paginas" value="130">
+            </label>
+        </div>
+
+        
+        <div class="progreso">
+            <div class="progreso-barra" style="width: 25%"></div>
+            <span>25%</span>
+        </div>
+        
+
+        <div class="fila-campos">
+            <label>Dewey
+                <input type="text" data-autoguardar="dewey" value="101" placeholder="Ej: 248, 530, 989.2">
+                <small class="nota-inline">No se completa automáticamente.</small>
+            </label>
+            <label>Género <input type="text" data-autoguardar="genero" value="Novela" list="lista-generos-ficha"></label>
+            <datalist id="lista-generos-ficha"><option value="Novela"></datalist>
+            <label>Subdivisión <input type="text" data-autoguardar="subdivision" value="Literatura"></label>
+        </div>
+        <div class="fila-campos">
+            <label>Editorial <input type="text" data-autoguardar="editorial" value="Editorial de prueba"></label>
+            <label>ISBN
+                    <span class="campo-con-boton">
+                        <input type="text" data-autoguardar="isbn" value="9780000000001">
+                        <button type="button" class="mini boton-varita" onclick="buscarIsbnFicha()" title="Completar datos usando el número de ISBN">Completar</button>
+                    </span>
+                    <small id="estado-isbn-ficha" class="nota-inline">Solo por número de ISBN.</small>
+                </label>
+            <label>Idioma <input type="text" data-autoguardar="idioma" value="Español"></label>
+        </div>
+
+        <details>
+            <summary>Editar propietario</summary>
+            <p class="nota">El código identifica al propietario. El número se calcula solo y no se edita a mano.</p>
+            <div class="fila-campos">
+                <label>Código propietario
+                    <select id="selector-codigo-propietario" data-autoguardar="codigo_p" onchange="manejarCodigoPropietario(this)">
+                        <option value="">— Sin código —</option>
+                        
+                        <option value="TEST" selected>TEST</option>
+                        
+                        <option value="__nuevo__">+ Agregar nuevo código</option>
+                    </select>
+                </label>
+                <label id="grupo-nuevo-codigo" style="display:none">Nuevo código
+                    <input type="text" id="nuevo-codigo-propietario" maxlength="12" placeholder="Ej: MR">
+                    <button type="button" class="mini" onclick="guardarNuevoCodigoPropietario()">Guardar código</button>
+                </label>
+                <label>Número asignado automáticamente
+                    <input type="text" value="Nº 1" readonly>
+                </label>
+            </div>
+        </details>
+
+        <label class="bloque">Descripción / sinopsis
+            <textarea id="campo-descripcion-ficha" rows="6" data-autoguardar="descripcion" placeholder="De qué trata el libro...">Sinopsis de prueba para comparar ambas aplicaciones con los mismos datos.</textarea>
+        </label>
+        <button type="button" class="mini secundario" onclick="buscarSinopsisFicha()">🔎 Buscar sinopsis en Google</button>
+        <p class="nota mini-nota">La búsqueda usa título + autor + sinopsis y pega el texto acá para que lo puedas editar.</p>
+        <p id="estado-sinopsis-ficha" class="nota"></p>
+        <div class="opciones-cabecera" id="cabecera-sinopsis-ficha" style="display:none"><strong>Sinopsis encontradas</strong><button type="button" class="mini secundario" onclick="cerrarSinopsisFicha()">Limpiar resultados</button></div>
+        <div id="opciones-sinopsis-ficha" class="opciones-portadas" style="display:none"></div>
+
+        <label class="bloque">💝 Dedicatoria / historia especial
+            <textarea rows="2" data-autoguardar="dedicatoria" placeholder="Ej: Me lo regaló mi abuela en 1998..."></textarea>
+        </label>
+
+        <label class="bloque">📖 Libros relacionados
+            <textarea rows="2" data-autoguardar="relacionados" placeholder="Ej: Segunda parte de..., se complementa con..."></textarea>
+        </label>
+
+        <label class="bloque">Observaciones
+            <textarea rows="2" data-autoguardar="observaciones"></textarea>
+        </label>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+            
+            <form method="post" action="/borrar/1" onsubmit="return confirm('¿Enviar «El mar de los recuerdos» a la papelera?');" class="zona-borrar herramientas-edicion">
+                <button type="submit" class="peligro">🗑 Enviar a papelera</button>
+            </form>
+            
+        
+    </div>
+</div>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

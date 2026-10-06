@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar libro — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<h2>➕ Agregar libro</h2>
+<p class="nota">Primero cargá título, autor y propietario. El número del propietario se asigna solo cuando el libro entra al catálogo real.</p>
+
+<form method="post" class="formulario" id="form-agregar" enctype="multipart/form-data">
+    <label>Título *
+        <input type="text" name="titulo" id="campo-titulo" value="" required>
+    </label>
+    <label>Autor
+        <input type="text" name="autor" id="campo-autor" value="">
+    </label>
+
+    <button type="button" class="secundario" onclick="abrirModalPortada()">🖼 Manejar portada e imágenes</button>
+    <p class="nota mini-nota">La portada se maneja en una ventana aparte: buscar imágenes, usar QR o quitar la elegida.</p>
+
+    <input type="hidden" name="portada_url" id="campo-portada-url" value="">
+    <input type="hidden" name="portada_temp" id="campo-portada-temp">
+    <input type="hidden" name="temp_token" id="campo-temp-token" value="988daf01825d481b89bc69e64c71d290">
+    <div id="preview-portada" class="preview-portada" style="display:none"></div>
+
+    <div id="modal-portada" class="modal-portada" style="display:none" data-contexto="nuevo">
+        <div class="modal-portada-contenido">
+            <div class="modal-portada-header">
+                <h3>🖼 Manejo de portada</h3>
+                <button type="button" class="mini secundario" onclick="cerrarModalPortada()">Cerrar</button>
+            </div>
+            <p class="nota mini-nota">Elegí una portada sin mezclarla con la sinopsis. Esta ventana no se cierra sola.</p>
+
+            <div class="botones-internet">
+                <button type="button" class="secundario" onclick="buscarPortadasNuevo()">Buscar portadas automáticas</button>
+                <button type="button" class="peligro-suave" onclick="quitarPortadaNueva()">Quitar portada elegida</button>
+            </div>
+
+            <div class="url-portada-box">
+                <input type="text" id="consulta-imagen-nueva" placeholder="Buscar imagen desde la app, ej: título + autor + portada">
+                <button type="button" class="mini" onclick="buscarImagenesNuevo()">Buscar imagen</button>
+            </div>
+            <div class="qr-foto">
+                <p class="nota"><strong>Subir portada desde el celular</strong></p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&amp;data=http%3A//localhost%3A5001/portada_temporal/988daf01825d481b89bc69e64c71d290" alt="QR para subir portada">
+                <small>Escaneá el QR, subí la foto y esperá unos segundos. Se cargará como portada elegida.</small>
+                <small><a href="http://localhost:5001/portada_temporal/988daf01825d481b89bc69e64c71d290">Abrir enlace</a></small>
+            </div>
+
+            <p id="estado-busqueda"></p>
+            <div class="opciones-cabecera" id="opciones-cabecera" style="display:none"><strong>Resultados</strong><button type="button" class="mini secundario" onclick="cerrarOpcionesNuevo()">Limpiar resultados</button></div>
+            <div id="opciones-internet" class="opciones-portadas" style="display:none"></div>
+        </div>
+    </div>
+
+    <label>Descripción / sinopsis
+        <textarea name="descripcion" id="campo-descripcion" rows="5" placeholder="Acá va de qué trata el libro..."></textarea>
+    </label>
+    <button type="button" class="mini secundario" onclick="buscarSinopsisNuevo()">🔎 Buscar sinopsis en Google</button>
+    <p class="nota mini-nota">La búsqueda usa título + autor + sinopsis y pega el texto acá para que lo puedas revisar antes de guardar.</p>
+    <p id="estado-sinopsis-nueva" class="nota"></p>
+    <div class="opciones-cabecera" id="cabecera-sinopsis-nueva" style="display:none"><strong>Sinopsis encontradas</strong><button type="button" class="mini secundario" onclick="cerrarSinopsisNueva()">Limpiar resultados</button></div>
+    <div id="opciones-sinopsis-nueva" class="opciones-portadas" style="display:none"></div>
+
+    <div class="fila">
+        <label>Editorial <input type="text" name="editorial" id="campo-editorial" value=""></label>
+        <label>Páginas <input type="number" name="paginas" id="campo-paginas" min="1" value=""></label>
+    </div>
+
+    <div class="checks-linea">
+        <label class="check">
+            <input type="checkbox" name="autografiado" value="1">
+            ✍️ Libro autografiado
+        </label>
+        <label class="check">
+            <input type="checkbox" name="proxima_lectura" value="1">
+            📌 Quiero leer después
+        </label>
+    </div>
+
+    <div class="fila">
+        <label>ISBN
+                <span class="campo-con-boton">
+                    <input type="text" name="isbn" id="campo-isbn" value="" placeholder="Escribí el número de ISBN">
+                    <button type="button" class="mini boton-varita" onclick="buscarIsbnNuevo()" title="Completar datos usando el número de ISBN">Completar</button>
+                </span>
+                <small id="estado-isbn-nueva" class="nota-inline">Solo por número de ISBN.</small>
+            </label>
+        <label>Idioma <input type="text" name="idioma" id="campo-idioma" list="lista-idiomas" placeholder="Español" value="">
+            <datalist id="lista-idiomas">
+                <option value="Español"><option value="Inglés"><option value="Portugués">
+                <option value="Guaraní"><option value="Latín"><option value="Francés">
+                <option value="Español">
+            </datalist>
+        </label>
+    </div>
+    <div class="fila">
+        <label>Género
+            <input type="text" name="genero" id="campo-genero" list="lista-generos" placeholder="Elegí uno o escribí uno nuevo" value="">
+            <datalist id="lista-generos"><option value="Novela"></datalist>
+            <small class="nota-inline">Si escribís un género nuevo, queda guardado para próximos libros.</small>
+        </label>
+        <label>Dewey
+            <input type="text" name="dewey" id="campo-dewey" placeholder="Ej: 248, 530, 989.2" value="">
+            <small class="nota-inline">No se completa solo: se carga desde el Excel o manualmente.</small>
+        </label>
+    </div>
+
+    <details open>
+        <summary>Datos del propietario</summary>
+        <p class="nota">Ejemplo: LR Nº 340 significa que es el libro número 340 del propietario LR. Ese número ya no se escribe: la app calcula el siguiente.</p>
+        <div class="fila">
+            <label>Código propietario
+                <select name="codigo_p" id="codigo-p-select" onchange="manejarCodigoNuevoFormulario(this)">
+                    <option value="">— Sin código —</option>
+                    <option value="TEST">TEST</option>
+                    <option value="__nuevo__">+ Agregar nuevo código</option>
+                </select>
+            </label>
+            <label id="grupo-codigo-nuevo-form" style="display:none">Nuevo código
+                <input type="text" name="codigo_p_nuevo" maxlength="12" placeholder="Ej: MR">
+            </label>
+        </div>
+    </details>
+
+    <label>Subdivisión
+        <input type="text" name="subdivision">
+    </label>
+    <label>💝 Dedicatoria / historia especial
+        <textarea name="dedicatoria" rows="2" placeholder="Ej: Me lo regaló mi abuela..."></textarea>
+    </label>
+    <label>Observaciones
+        <textarea name="observaciones" rows="2"></textarea>
+    </label>
+
+    <label class="destino">¿A dónde va?
+        <select name="lista">
+            <option value="catalogo" selected>📚 A la biblioteca (ya lo tengo)</option>
+            <option value="deseos" >🛒 A la lista de deseos (lo quiero comprar)</option>
+        </select>
+    </label>
+
+    <div class="botones">
+        <button type="submit" class="principal">Agregar libro</button>
+        <a href="/" class="cancelar">Cancelar</a>
+    </div>
+</form>
+
+<script>
+function manejarCodigoNuevoFormulario(select) {
+    const grupo = document.getElementById("grupo-codigo-nuevo-form");
+    grupo.style.display = select.value === "__nuevo__" ? "block" : "none";
+}
+
+function estadoBusqueda(texto) {
+    document.getElementById("estado-busqueda").textContent = texto;
+}
+
+function textoCorto(texto, maximo) {
+    if (!texto) return "";
+    return texto.length > maximo ? texto.slice(0, maximo) + "..." : texto;
+}
+
+function aplicarPortadaNueva(datos) {
+    if (!datos.portada_url) { estadoBusqueda("⚠ esa opción no tiene portada"); return; }
+    document.getElementById("campo-portada-url").value = datos.portada_url;
+    const preview = document.getElementById("preview-portada");
+    preview.innerHTML = `<p class="nota">Portada elegida:</p><img src="${datos.portada_url}" alt="Portada elegida">`;
+    preview.style.display = "block";
+    estadoBusqueda("✔ Portada elegida. Los demás datos no se tocaron.");
+}
+
+function aplicarInfoNueva(datos) {
+    const mapa = {autor:"autor", editorial:"editorial", paginas:"paginas", isbn:"isbn", idioma:"idioma", descripcion:"descripcion"};
+    let cambios = 0;
+    for (const [clave, campo] of Object.entries(mapa)) {
+        const el = document.getElementById("campo-" + campo);
+        if (el && datos[clave] && !el.value.trim()) { el.value = datos[clave]; cambios++; }
+    }
+    estadoBusqueda(cambios ? "✔ Información aplicada en campos vacíos. La portada no se tocó." : "⚠ no había campos vacíos o esta opción no trajo información útil");
+}
+
+function cerrarOpcionesNuevo() {
+    const cont = document.getElementById("opciones-internet");
+    const cab = document.getElementById("opciones-cabecera");
+    if (cont) { cont.innerHTML = ""; cont.style.display = "none"; }
+    if (cab) cab.style.display = "none";
+    estadoBusqueda("");
+}
+
+function renderPortadas(opciones) {
+    const cont = document.getElementById("opciones-internet");
+    document.getElementById("opciones-cabecera").style.display = "flex";
+    cont.innerHTML = "";
+    opciones.filter(op => op.portada_url).forEach(op => {
+        const card = document.createElement("div");
+        card.className = "opcion-portada opcion-solo-portada";
+        card.innerHTML = `<img src="${op.portada_url}" alt=""><div><strong>${op.titulo || "Sin título"}</strong><small>${op.autor || ""}</small><small>${op.editorial || ""}</small><small>${op.fuente || ""}</small><div class="opcion-botones"><button type="button" class="mini usar-portada">Usar esta portada</button></div></div>`;
+        card.querySelector(".usar-portada").addEventListener("click", () => aplicarPortadaNueva(op));
+        cont.appendChild(card);
+    });
+    cont.style.display = "grid";
+}
+
+function renderInfo(opciones) {
+    const cont = document.getElementById("opciones-internet");
+    document.getElementById("opciones-cabecera").style.display = "flex";
+    cont.innerHTML = "";
+    opciones.forEach(op => {
+        const card = document.createElement("div");
+        card.className = "opcion-portada";
+        const img = op.portada_url ? `<img src="${op.portada_url}" alt="">` : `<div class="sin-portada mini-cover">Sin portada</div>`;
+        const sinopsis = op.descripcion ? textoCorto(op.descripcion, 300) : "Sin sinopsis disponible en esta fuente";
+        card.innerHTML = `${img}<div><strong>${op.titulo || "Sin título"}</strong><small>${op.autor || ""}</small><small>${op.editorial || ""}${op.paginas ? " · " + op.paginas + " pág." : ""}</small><small>${op.fuente || ""}</small><p>${sinopsis}</p><div class="opcion-botones"><button type="button" class="mini usar-info">Usar esta información</button></div></div>`;
+        card.querySelector(".usar-info").addEventListener("click", () => aplicarInfoNueva(op));
+        cont.appendChild(card);
+    });
+    cont.style.display = "grid";
+}
+
+function buscarOpciones(callback, tipo) {
+    const titulo = document.getElementById("campo-titulo").value.trim();
+    if (!titulo) { estadoBusqueda("⚠ primero escribí el título"); return; }
+    estadoBusqueda(tipo === "portadas" ? "🔎 Buscando portadas..." : "🔎 Buscando información y sinopsis...");
+    const endpoint = tipo === "portadas" ? "/api/buscar_imagenes" : "/api/opciones_internet";
+    fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: titulo, autor: document.getElementById("campo-autor").value.trim() }),
+    })
+    .then(r => r.json())
+    .then(datos => {
+        if (datos.error) { estadoBusqueda("⚠ " + datos.error); return; }
+        callback(datos.opciones || []);
+        estadoBusqueda(`✔ Encontré ${datos.opciones.length} opción(es).`);
+    })
+    .catch(() => estadoBusqueda("⚠ no pude conectarme a internet"));
+}
+
+function buscarImagenesNuevo() {
+    const consulta = document.getElementById("consulta-imagen-nueva").value.trim();
+    const titulo = document.getElementById("campo-titulo").value.trim();
+    if (!consulta && !titulo) { estadoBusqueda("⚠ escribí un título o una búsqueda"); return; }
+    estadoBusqueda("🔎 Buscando imágenes...");
+    fetch("/api/buscar_imagenes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: titulo, autor: document.getElementById("campo-autor").value.trim(), consulta: consulta }),
+    })
+    .then(r => r.json())
+    .then(datos => {
+        if (datos.error) { estadoBusqueda("⚠ " + datos.error); return; }
+        renderPortadas(datos.opciones || []);
+        estadoBusqueda(`✔ Encontré ${datos.opciones.length} imagen(es).`);
+    })
+    .catch(() => estadoBusqueda("⚠ no pude conectarme a internet"));
+}
+
+function buscarPortadasNuevo() { buscarOpciones(renderPortadas, "portadas"); }
+function buscarInformacionNuevo() { buscarOpciones(renderInfo, "info"); }
+
+
+function abrirModalPortada() {
+    const modal = document.getElementById("modal-portada");
+    if (modal) modal.style.display = "flex";
+}
+function cerrarModalPortada() {
+    const modal = document.getElementById("modal-portada");
+    if (modal) modal.style.display = "none";
+}
+function quitarPortadaNueva() {
+    document.getElementById("campo-portada-url").value = "";
+    document.getElementById("campo-portada-temp").value = "";
+    document.querySelectorAll('input[type="file"][name="portada"]').forEach(i => i.value = "");
+    const preview = document.getElementById("preview-portada");
+    if (preview) { preview.innerHTML = ""; preview.style.display = "none"; }
+    estadoBusqueda("✔ Portada quitada de este libro nuevo.");
+}
+function previsualizarArchivoNuevo(input) {
+    const archivo = input.files && input.files[0];
+    if (!archivo) return;
+    document.getElementById("campo-portada-url").value = "";
+    document.getElementById("campo-portada-temp").value = "";
+    const reader = new FileReader();
+    reader.onload = e => {
+        const preview = document.getElementById("preview-portada");
+        preview.innerHTML = `<p class="nota">Portada elegida desde esta computadora:</p><img src="${e.target.result}" alt="Portada elegida">`;
+        preview.style.display = "block";
+    };
+    reader.readAsDataURL(archivo);
+    estadoBusqueda("✔ Foto manual elegida. Se guardará al agregar el libro.");
+}
+function revisarPortadaTemporal() {
+    const tokenEl = document.getElementById("campo-temp-token");
+    if (!tokenEl) return;
+    fetch(`/api/portada_temporal/${tokenEl.value}`)
+    .then(r => r.json())
+    .then(datos => {
+        if (!datos.ok) return;
+        const actual = document.getElementById("campo-portada-temp").value;
+        if (actual === datos.portada) return;
+        document.getElementById("campo-portada-url").value = "";
+        document.getElementById("campo-portada-temp").value = datos.portada;
+        const preview = document.getElementById("preview-portada");
+        preview.innerHTML = `<p class="nota">Portada subida desde el celular:</p><img src="${datos.src}?t=${Date.now()}" alt="Portada elegida">`;
+        preview.style.display = "block";
+        estadoBusqueda("✔ Portada recibida desde el celular. Se guardará con el libro.");
+    })
+    .catch(() => {});
+}
+setInterval(revisarPortadaTemporal, 4000);
+revisarPortadaTemporal();
+
+// Ajustes v7: seleccionar portada no cierra la ventana y se puede limpiar manualmente.
+function aplicarPortadaNueva(datos) {
+    if (!datos.portada_url) { estadoBusqueda("⚠ esa opción no tiene portada"); return; }
+    document.getElementById("campo-portada-temp").value = "";
+    document.getElementById("campo-portada-url").value = datos.portada_url;
+    const preview = document.getElementById("preview-portada");
+    preview.innerHTML = `<p class="nota">Portada elegida:</p><img src="${datos.portada_url}" alt="Portada elegida">`;
+    preview.style.display = "block";
+    estadoBusqueda("✔ Portada elegida. La ventana queda abierta por si querés comparar o cambiar.");
+}
+function estadoSinopsisNueva(texto) {
+    const el = document.getElementById("estado-sinopsis-nueva");
+    if (el) el.textContent = texto;
+}
+function urlGoogleSinopsis(titulo, autor) {
+    const consulta = [titulo || "", autor || "", "sinopsis"].map(x => x.trim()).filter(Boolean).join(" ");
+    return "https://www.google.com/search?q=" + encodeURIComponent(consulta);
+}
+function abrirBusquedaGoogleSinopsis(titulo, autor) {
+    const url = urlGoogleSinopsis(titulo, autor);
+    const ventana = window.open(url, "_blank", "noopener");
+    return { url: url, abierta: !!ventana };
+}
+function fallbackSinopsisNueva(titulo, autor, mensaje) {
+    const google = abrirBusquedaGoogleSinopsis(titulo, autor);
+    estadoSinopsisNueva("⚠ " + mensaje + " Abrí Google con título + autor + sinopsis y también una ventana para pegarla manualmente.");
+    abrirVentanaSinopsisManual("nueva", titulo, autor);
+}
+function buscarOtrasSinopsisNueva() {
+    const titulo = (document.getElementById("campo-titulo")?.value || "").trim();
+    const autor = (document.getElementById("campo-autor")?.value || "").trim();
+    if (!titulo) { estadoSinopsisNueva("⚠ primero escribí el título"); return; }
+    abrirBusquedaGoogleSinopsis(titulo, autor);
+    abrirVentanaSinopsisManual("nueva", titulo, autor);
+    estadoSinopsisNueva("🔎 Abrí Google con título + autor + sinopsis. También podés pegar acá otra sinopsis manualmente.");
+}
+function cerrarSinopsisNueva() {
+    const cont = document.getElementById("opciones-sinopsis-nueva");
+    const cab = document.getElementById("cabecera-sinopsis-nueva");
+    if (cont) { cont.innerHTML = ""; cont.style.display = "none"; }
+    if (cab) cab.style.display = "none";
+    estadoSinopsisNueva("");
+}
+function renderSinopsisNueva(opciones) {
+    const cont = document.getElementById("opciones-sinopsis-nueva");
+    const cab = document.getElementById("cabecera-sinopsis-nueva");
+    if (!cont) return;
+    if (cab) {
+        cab.innerHTML = `<strong>Sinopsis encontradas</strong><div class="acciones-cabecera"><button type="button" class="mini secundario" onclick="buscarOtrasSinopsisNueva()">🔎 Buscar otras opciones en Google</button><button type="button" class="mini secundario" onclick="cerrarSinopsisNueva()">Limpiar resultados</button></div>`;
+        cab.style.display = "flex";
+    }
+    cont.innerHTML = "";
+    opciones.forEach(op => {
+        const card = document.createElement("div");
+        card.className = "opcion-portada opcion-sinopsis";
+        const sinopsis = op.descripcion ? textoCorto(op.descripcion, 700) : "Sin texto disponible";
+        card.innerHTML = `<div><strong>${op.titulo || "Sinopsis encontrada"}</strong><small>${op.fuente || "Google / Internet"}</small><p>${sinopsis}</p><div class="opcion-botones"><button type="button" class="mini usar-sinopsis">Pegar en sinopsis</button></div></div>`;
+        card.querySelector(".usar-sinopsis").addEventListener("click", () => {
+            const el = document.getElementById("campo-descripcion");
+            if (el) el.value = op.descripcion || "";
+            estadoSinopsisNueva("✔ Sinopsis pegada. La podés editar antes de guardar.");
+        });
+        cont.appendChild(card);
+    });
+    cont.style.display = "grid";
+}
+function buscarSinopsisNuevo() {
+    const titulo = document.getElementById("campo-titulo").value.trim();
+    const autor = document.getElementById("campo-autor").value.trim();
+    if (!titulo) { estadoSinopsisNueva("⚠ primero escribí el título"); return; }
+    estadoSinopsisNueva("🔎 Buscando en Google con título + autor + sinopsis...");
+    fetch("/api/buscar_sinopsis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titulo: titulo, autor: autor }),
+    })
+    .then(r => r.json())
+    .then(datos => {
+        if (datos.error) {
+            fallbackSinopsisNueva(titulo, autor, datos.error);
+            return;
+        }
+        if (!datos.opciones || !datos.opciones.length) {
+            fallbackSinopsisNueva(titulo, autor, "No apareció ninguna sinopsis.");
+            return;
+        }
+        renderSinopsisNueva(datos.opciones || []);
+        estadoSinopsisNueva(`✔ Encontré ${datos.opciones.length} texto(s) posibles.`);
+    })
+    .catch(() => {
+        fallbackSinopsisNueva(titulo, autor, "no pude conectarme a internet.");
+    });
+}
+
+function abrirVentanaSinopsisManual(contexto, titulo, autor) {
+    let modal = document.getElementById("modal-sinopsis-manual");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "modal-sinopsis-manual";
+        modal.className = "modal-portada";
+        modal.innerHTML = `
+            <div class="modal-portada-contenido modal-sinopsis-contenido">
+                <div class="modal-portada-header">
+                    <h3>✍️ Pegar sinopsis manual</h3>
+                    <button type="button" class="mini secundario" onclick="cerrarVentanaSinopsisManual()">Cerrar</button>
+                </div>
+                <p class="nota mini-nota">Pegá acá la sinopsis que encontraste y después tocá “Usar esta sinopsis”.</p>
+                <p id="sinopsis-manual-google" class="nota enlace-google-sinopsis"></p>
+                <textarea id="sinopsis-manual-texto" rows="9" placeholder="Pegá acá la sinopsis..."></textarea>
+                <div class="botones">
+                    <button type="button" class="principal" onclick="guardarSinopsisManual()">Usar esta sinopsis</button>
+                    <button type="button" class="secundario" onclick="cerrarVentanaSinopsisManual()">Cancelar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+    }
+    modal.dataset.contexto = contexto || "nueva";
+    const urlGoogle = urlGoogleSinopsis(titulo || document.getElementById("campo-titulo")?.value || "", autor || document.getElementById("campo-autor")?.value || "");
+    modal.dataset.googleUrl = urlGoogle;
+    const enlaceGoogle = document.getElementById("sinopsis-manual-google");
+    if (enlaceGoogle) enlaceGoogle.innerHTML = `<a href="${urlGoogle}" target="_blank" rel="noopener">🔎 Abrir búsqueda en Google: título + autor + sinopsis</a>`;
+    const destino = contexto === "ficha" ? document.getElementById("campo-descripcion-ficha") : document.getElementById("campo-descripcion");
+    const textarea = document.getElementById("sinopsis-manual-texto");
+    textarea.value = destino ? destino.value : "";
+    modal.style.display = "flex";
+    setTimeout(() => textarea.focus(), 50);
+}
+function cerrarVentanaSinopsisManual() {
+    const modal = document.getElementById("modal-sinopsis-manual");
+    if (modal) modal.style.display = "none";
+}
+function guardarSinopsisManual() {
+    const modal = document.getElementById("modal-sinopsis-manual");
+    const texto = (document.getElementById("sinopsis-manual-texto")?.value || "").trim();
+    if (!texto) { alert("Pegá una sinopsis antes de guardar."); return; }
+    const contexto = modal ? modal.dataset.contexto : "nueva";
+    if (contexto === "ficha") {
+        const el = document.getElementById("campo-descripcion-ficha") || document.querySelector('[data-autoguardar="descripcion"]');
+        if (el) { el.value = texto; guardar("descripcion", texto); }
+        estadoSinopsisFicha("✔ Sinopsis manual pegada y guardada.");
+    } else {
+        const el = document.getElementById("campo-descripcion");
+        if (el) el.value = texto;
+        estadoSinopsisNueva("✔ Sinopsis manual pegada. La podés editar antes de guardar.");
+    }
+    cerrarVentanaSinopsisManual();
+}
+
+function estadoIsbnNueva(texto) {
+    const el = document.getElementById("estado-isbn-nueva");
+    if (el) el.textContent = texto;
+}
+function aplicarDatosIsbnNueva(datos) {
+    const mapa = {titulo:"titulo", autor:"autor", editorial:"editorial", paginas:"paginas", isbn:"isbn", idioma:"idioma", descripcion:"descripcion"};
+    let cambios = 0;
+    for (const [clave, campo] of Object.entries(mapa)) {
+        const el = document.getElementById("campo-" + campo);
+        if (el && datos[clave] && !el.value.trim()) { el.value = datos[clave]; cambios++; }
+    }
+    if (datos.portada_url && !document.getElementById("campo-portada-url").value) {
+        aplicarPortadaNueva(datos);
+        cambios++;
+    }
+    if (datos.dewey_sugerido && !document.getElementById("campo-dewey").value.trim()) {
+        document.getElementById("campo-dewey").value = datos.dewey_sugerido;
+        cambios++;
+    }
+    estadoIsbnNueva(cambios ? "✔ Datos completados por ISBN" : "⚠ no había campos vacíos para completar");
+}
+function completarPorIsbnNueva(isbn) {
+    isbn = (isbn || document.getElementById("campo-isbn").value || "").trim();
+    if (!isbn) return false;
+    estadoIsbnNueva("🔎 Buscando datos por ISBN...");
+    fetch("/api/isbn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isbn: isbn }),
+    })
+    .then(r => r.json())
+    .then(datos => {
+        if (datos.error) { estadoIsbnNueva("⚠ " + datos.error); return; }
+        aplicarDatosIsbnNueva(datos);
+    })
+    .catch(() => estadoIsbnNueva("⚠ no pude conectarme a internet"));
+    return true;
+}
+function buscarIsbnNuevo() {
+    const isbn = document.getElementById("campo-isbn").value.trim();
+    if (!isbn) { estadoIsbnNueva("⚠ escribí el número de ISBN para completar los datos"); return; }
+    completarPorIsbnNueva(isbn);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    const isbnInicial = "";
+    if (isbnInicial) completarPorIsbnNueva(isbnInicial);
+});
+
+</script>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

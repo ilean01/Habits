@@ -1,0 +1,142 @@
+/* Original library presentation, isolated from the Habits shell. */
+:is(#library-app,#library-modal):is(#library-app,#library-modal).library-original.library-original.library-original {
+ --color-principal:var(--lib-main,#5d4037);--color-fondo:var(--lib-bg,#faf6ef);--color-texto:var(--lib-text,#3a3226);--color-tarjeta:var(--lib-card,#fff);--fuente-app:Georgia,'Times New Roman',serif;--fuente-titulos:var(--lib-font-titulos,Georgia,serif);--fuente-botones:var(--lib-font-botones,Georgia,serif);
+ color:var(--color-texto);background:var(--color-fondo);font-family:var(--fuente-app);line-height:normal;
+}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(h1,h2,h3,h4,p){letter-spacing:normal;line-height:normal}
+:is(#library-app,#library-modal).library-original.library-original.library-original h1,:is(#library-app,#library-modal).library-original.library-original.library-original h2{font-size:1.5rem;font-weight:bold;margin:.83em 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original h3{font-size:1.17rem;font-weight:bold;margin:1em 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original p{margin:1em 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(button,.lib-button,.button){font-family:var(--fuente-botones);font-size:1rem;font-weight:normal;min-height:0;line-height:normal;border-radius:6px;padding:.5rem .7rem;border:0;background:var(--color-principal);color:white;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(button,.lib-button,.button):disabled{opacity:.5;cursor:not-allowed}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(.small,.mini){font-size:.85rem;padding:.35rem .6rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(.lib-input,.lib-select,input,select,textarea){font:inherit;font-size:1rem;color:var(--color-texto);padding:.5rem .7rem;border:1px solid #c5b8a5;border-radius:6px;background:#fff;min-width:0;max-width:100%;height:auto;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original input[type=checkbox]{width:auto;display:inline;margin:0 .4rem 0 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(.lib-field,.bloque){display:block;font-weight:bold;gap:0;margin:0 0 1rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-field :is(input,textarea,select){display:block;width:100%;margin-top:.3rem;font-weight:normal}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(.lib-muted,.nota,.lib-small){color:#8a7a63;font-style:italic}
+:is(#library-app,#library-modal).library-original.library-original.library-original .mini-nota{font-size:.85rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-check{display:inline-flex;align-items:center;gap:.3rem;font-weight:normal;margin:.6rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-header{background:var(--color-principal);color:white;border:0;border-radius:0;padding:1rem 1.5rem;display:block}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-header h1{font-size:1.5rem;color:white;margin:0 0 .5rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-header-top{display:flex;gap:1rem;align-items:center;margin:0 0 .5rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-header-top a{color:#f5e6d3;font-size:.85rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-nav{display:flex;flex-wrap:wrap;gap:.5rem;padding:0;margin:0;border:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-nav button{background:rgba(255,255,255,.14);color:#f5e6d3;font-size:.95rem;padding:.35rem .8rem;border-radius:6px;white-space:nowrap}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-nav button:hover,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-nav button.active{background:rgba(255,255,255,.25)}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-main{padding:1.5rem;max-width:1200px;margin:0 auto;width:100%}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-page-head{margin:0 0 1rem;align-items:center}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-page-head h1{margin:.83em 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original :is(.lib-panel,.panel){border:0;border-radius:8px;background:var(--color-tarjeta);box-shadow:0 1px 4px #00000014;padding:1rem;margin:1rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-pagination{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1rem;margin:1.5rem 0;font-size:.85rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-pagination label{display:flex;align-items:center;gap:.5rem;margin:0;font-weight:normal}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-pagination select{width:auto}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;grid-template-columns:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-toolbar input{flex:2;min-width:200px}:is(#library-app,#library-modal).library-original.library-original.library-original .lib-toolbar select{flex:1;min-width:150px}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-column-picker{border:0;background:transparent;padding:0;margin:.6rem 0 1rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-column-picker summary{display:inline-block;color:white;background:var(--color-principal);padding:.4rem .75rem;border-radius:999px;font-weight:bold;cursor:pointer}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-column-picker[open]{padding-bottom:.6rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-column-picker .lib-check{margin:.4rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-count-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-count-row p{font-style:italic;color:#7a6a55}
+:is(#library-app,#library-modal).library-original.library-original.library-original .celda{cursor:pointer}
+:is(#library-app,#library-modal).library-original.library-original.library-original .celda-info>*{margin:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .celda-info .chip{align-self:flex-start}
+:is(#library-app,#library-modal).library-original.library-original.library-original .celda-info button{font-size:.8rem;margin-top:.4rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list{overflow:visible}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list table{table-layout:auto}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list th button{color:var(--color-principal);background:none;padding:0;font-weight:bold}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list :is(td,th){white-space:normal;overflow-wrap:anywhere}
+#library-modal.library-original.library-book-page{position:static;width:100%;max-width:1200px;margin:0 auto;padding:1.5rem;border:0;max-height:none;overflow:visible;background:var(--color-fondo);box-shadow:none}
+body:has(#library-modal.library-book-page[open]) #library-app > .lib-main{display:none}
+body:has(#library-modal.library-book-page[open]) #library-app > .lib-header{display:block}
+#library-modal:is(#library-app,#library-modal).library-original.library-original.library-original .library-modal-heading{border:0;padding:0;margin:0 0 1rem}
+#library-modal:is(#library-app,#library-modal).library-original.library-original.library-original .library-modal-heading[hidden]{display:none}
+#library-modal:is(#library-app,#library-modal).library-original.library-original.library-original .original-add-form{max-width:650px;padding:1.5rem;margin:0;background:var(--color-tarjeta);border:0;box-shadow:0 1px 4px #00000014}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-add-form>.modal-footer{justify-content:flex-start;margin-top:1rem;border:0;padding:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-add-form>.modal-footer [data-action=close]{background:none;color:#8d6e63;text-decoration:underline}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor{display:block;max-width:none;width:auto;padding:0;border:0;background:none;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor details{margin:1rem 0;background:transparent;padding:0;border:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor details summary{font-weight:bold;cursor:pointer}
+:is(#library-app,#library-modal).library-original.library-original.library-original .campo-con-boton{display:flex;align-items:stretch;gap:.35rem;margin-top:.3rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .campo-con-boton input{min-width:0;flex:1;margin:0!important;width:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .campo-con-boton button{flex:none;font-size:.85rem;white-space:nowrap}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-detail-page{display:block;grid-template-columns:none;gap:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-inline-editor{padding:0;margin:0;border:0;background:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-inline-editor form{max-width:none;padding:0;margin:0;background:none;border:0;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .ficha-portada .cover-selected-preview{display:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .ficha-portada .mini-nota{display:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-title{display:block;width:100%;font-family:var(--fuente-titulos);font-weight:bold;font-size:1.5rem;border:0;border-bottom:1px dashed transparent;border-radius:0;padding:0;margin:0 0 .8rem;background:transparent}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-author{display:block;width:100%;border:0;border-bottom:1px dashed transparent;padding:0;margin:1rem 0;background:transparent}
+:is(#library-app,#library-modal).library-original.library-original.library-original .estrellas{display:flex;flex-wrap:wrap;align-items:center;gap:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .estrella{display:inline-block;font-size:1.6rem;padding:0;background:none;border:0;color:#ddd0bb;min-height:0;line-height:1.2}
+:is(#library-app,#library-modal).library-original.library-original.library-original .estrella.llena{color:#f9a825}
+:is(#library-app,#library-modal).library-original.library-original.library-original .estrella:hover{background:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .fila-campos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:.7rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .fila-campos label{min-width:0;font-size:.9rem;margin:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-delete{text-align:right;margin-top:1rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-delete button,:is(#library-app,#library-modal).library-original.library-original.library-original [data-editor=remove-cover]{background:#a33c32}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-history{margin:1.5rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .volver{background:none!important;color:#8d6e63!important;padding:0!important}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-autosave-status{font-size:.85rem;color:#537b41}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-autosave-status.error{color:#a33c32}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-cover-window{position:fixed;inset:0;margin:auto;width:min(1050px,96vw);max-width:96vw;max-height:92dvh;overflow:auto;overscroll-behavior:contain;border:0;border-radius:14px;background:var(--color-tarjeta);color:var(--color-texto);padding:1.1rem;box-shadow:0 18px 50px #0004;font:inherit}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-cover-window::backdrop{background:#0007}
+html:has(.library-cover-window[open]),body:has(.library-cover-window[open]){overflow:hidden!important}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-cover-window .modal-portada-header{background:none;color:inherit;padding:0 0 .6rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .library-cover-window .modal-portada-header h3{font-size:1.17rem;margin:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .url-portada-box{display:flex;gap:.5rem;margin:1rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .url-portada-box input{flex:1;min-width:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .url-portada-box button{flex:none;white-space:nowrap}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-draft-qr{display:block;background:#fffaf2;border:1px dashed #c5b8a5;padding:.8rem;margin-top:1rem;text-align:center}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-draft-qr img{display:block;width:110px;height:110px;margin:.4rem auto;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-draft-qr p{font-size:.85rem;color:#7a6a55;font-style:italic}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-draft-qr a{color:var(--color-principal);font-size:.85rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor-cover{display:flex;gap:1rem;max-height:none;overflow:visible}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor-cover img{width:90px;max-height:140px;object-fit:contain}
+:is(#library-app,#library-modal).library-original.library-original.library-original .book-editor-results{max-height:none;overflow:visible}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opciones-portadas{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.8rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opcion-portada{display:grid;grid-template-columns:72px minmax(0,1fr);gap:.3rem .7rem;border:1px solid #dfd4c5;border-radius:8px;padding:.7rem;background:white}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opcion-portada img{grid-column:1;grid-row:1/5;width:72px;height:110px;object-fit:contain;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opcion-portada :is(h3,p,a,button){grid-column:2;margin:0;font-size:.85rem;overflow-wrap:anywhere}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opcion-portada h3{font-weight:bold}
+:is(#library-app,#library-modal).library-original.library-original.library-original .opcion-portada button{font-size:.78rem;padding:.35rem;margin-top:.4rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original [hidden]{display:none!important}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-draft-qr button{display:block;margin:.5rem auto}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-wide-form{max-width:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-linea{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-linea label:first-child{flex:2;min-width:200px}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-linea label{flex:1;margin:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-linea input{width:100%;display:block;margin-top:.3rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lectura-card form{background:none;box-shadow:none;padding:0;max-width:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-concluir label{display:block;margin:.5rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-concluir input:not([type=hidden]){display:block;width:100%}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-concluir>button{width:100%;margin:.8rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lectura-portada{background:none;padding:0;align-self:flex-start}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-pagina-lectura{background:#fffaf2!important;padding:.65rem!important}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-pagina-lectura label{display:block}
+:is(#library-app,#library-modal).library-original.library-original.library-original .form-pagina-lectura input{display:block;width:130px}
+:is(#library-app,#library-modal).library-original.library-original.library-original .lib-empty{background:none;border:0;color:#999;text-align:center;padding:2rem}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-statistics section{margin:1.5rem 0}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-statistics .dos-columnas>section{flex:1;min-width:280px}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-statistics button.link{color:var(--color-principal);background:none;padding:0;text-align:left;font:inherit}
+@media(max-width:700px){
+ :is(#library-app,#library-modal).library-original.library-original.library-original .lib-main,#library-modal.library-original.library-book-page{padding:1rem}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .fila-campos,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-form-grid{grid-template-columns:1fr}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .ficha-datos{min-width:0;width:100%;padding:1rem}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .ficha-portada{width:100%;max-width:230px;margin:auto}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .ficha{gap:1rem}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .lib-toolbar input,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-toolbar select{min-width:0;width:100%;flex-basis:45%}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .opciones-portadas{grid-template-columns:1fr}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .barra-etiqueta{width:110px;overflow-wrap:anywhere}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list table,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list tbody,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list tr,:is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list td{display:block}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list thead{display:none}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .lib-original-list td:before{content:attr(data-label) ': ';font-weight:bold}
+ :is(#library-app,#library-modal).library-original.library-original.library-original .original-count-row{flex-wrap:wrap}
+}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-card-cover{border:0;padding:0;margin:0;display:block;width:100%;background:none;color:inherit;text-align:inherit;border-radius:0}
+:is(#library-app,#library-modal).library-original.library-original.library-original button.link{background:none;color:var(--color-principal);font:inherit;padding:0;text-align:left}
+:is(#library-app,#library-modal).library-original.library-original.library-original .original-wide-form{padding:0;box-shadow:none}
+:is(#library-app,#library-modal).library-original.library-original.library-original .prestamo-card>.sin-portada{width:100px;height:145px;flex-shrink:0}

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
-import {newBookEditorHtml,bookEditorHtml,bookEditorValues,bindBookEditor} from '../src/biblioteca/book-editor.js';
+import {newBookEditorHtml,bookEditorHtml,bookEditorValues,bindBookEditor,coverEditorHtml} from '../src/biblioteca/book-editor.js';
 import {catalogView} from '../src/biblioteca/views.js';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -15,7 +15,7 @@ test('el editor conserva metadatos, casillas y puntuación original sin enviar c
 });
 
 test('ISBN completa vacíos sin pisar título ni mezclar portada y sinopsis',async()=>{
- const dom=new JSDOM(`<form>${bookEditorHtml({titulo:'Mi título',isbn:'123',descripcion:'Mi sinopsis'})}</form>`);globalThis.document=dom.window.document;
+ const dom=new JSDOM(`<form>${coverEditorHtml({})}${bookEditorHtml({titulo:'Mi título',isbn:'123',descripcion:'Mi sinopsis'})}</form>`);globalThis.document=dom.window.document;
  try{const form=document.querySelector('form');const editor=bindBookEditor(form,{lookup:async()=>({titulo:'Otro título',autor:'Autora',descripcion:'Nueva sinopsis',portada_url:'https://example.org/a.jpg'})});
  await form.querySelector('[data-editor=isbn]').onclick();
  const buttons=[...form.querySelectorAll('[data-editor-results] button')];buttons.find(x=>x.textContent==='Completar campos vacíos').click();
@@ -29,7 +29,7 @@ test('catálogo limita tarjetas y deja cantidad y navegación arriba y abajo',()
  const books=Array.from({length:75},(_,i)=>({id:i+1,titulo:`Libro ${i}`,lista:'catalogo'}));
  const state={data:{books,loans:[]},covers:new Map(),filteredBooks:()=>books,perPage:12,pageSize:'12',page:2,filters:{},filterOptions:{generos:[],codigos:[],idiomas:[]},viewMode:'cuadricula',config:{},canWrite:true};
  const dom=new JSDOM(catalogView(state));const doc=dom.window.document;
- assert.equal(doc.querySelectorAll('.lib-book-card').length||doc.querySelectorAll('.lib-book').length,12);
+ assert.equal(doc.querySelectorAll('.celda').length,12);
  assert.equal(doc.querySelectorAll('[data-page-size]').length,2);assert.equal(doc.querySelector('[data-page-size]').value,'12');assert.match(doc.body.textContent,/13–24 de 75/);dom.window.close();
 });
 

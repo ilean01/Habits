@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etiquetas de lomo — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+<h2>🏷 Etiquetas de lomo</h2>
+<p class="nota">Primero elegí exactamente qué libros querés imprimir. Se abre un cuadro con buscador y filtros por propietario, Dewey, género, editorial, estado y datos faltantes.</p>
+
+<div class="botones no-imprimir">
+    <button type="button" class="principal" onclick="abrirModalEtiquetas()">Elegir libros para imprimir</button>
+    
+</div>
+
+<div id="modal-etiquetas" class="modal-portada" style="display:none">
+    <div class="modal-portada-contenido modal-etiquetas-contenido">
+        <div class="modal-portada-header">
+            <h3>Seleccionar etiquetas</h3>
+            <button type="button" class="mini secundario" onclick="cerrarModalEtiquetas()">Cerrar</button>
+        </div>
+
+        <form method="get" id="form-etiquetas-selector">
+            <div class="buscador buscador-etiquetas">
+                <input type="text" id="buscador-etiquetas" placeholder="Buscar por título, autor, ISBN, Dewey, propietario..." oninput="filtrarEtiquetas()">
+            </div>
+
+            <div class="filtros-etiquetas">
+                <label>
+                    Propietario
+                    <select id="filtro-etiqueta-propietario" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="TEST">TEST</option>
+                    </select>
+                </label>
+                <label>
+                    Dewey empieza con
+                    <input type="text" id="filtro-etiqueta-dewey" placeholder="Ej: 8, 860, 200" oninput="filtrarEtiquetas()">
+                </label>
+                <label>
+                    Género
+                    <select id="filtro-etiqueta-genero" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="Novela">Novela</option>
+                    </select>
+                </label>
+                <label>
+                    Subdivisión
+                    <select id="filtro-etiqueta-subdivision" onchange="filtrarEtiquetas()">
+                        <option value="">Todas</option>
+                        <option value="Literatura">Literatura</option>
+                    </select>
+                </label>
+                <label>
+                    Editorial
+                    <select id="filtro-etiqueta-editorial" onchange="filtrarEtiquetas()">
+                        <option value="">Todas</option>
+                        <option value="Editorial de prueba">Editorial de prueba</option>
+                    </select>
+                </label>
+                <label>
+                    Estado de lectura
+                    <select id="filtro-etiqueta-estado" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="leido">leido</option><option value="leyendo">leyendo</option><option value="no_leido">no leido</option>
+                    </select>
+                </label>
+                <label>
+                    Favorito
+                    <select id="filtro-etiqueta-favorito" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Solo favoritos</option>
+                        <option value="0">No favoritos</option>
+                    </select>
+                </label>
+                <label>
+                    Leer después
+                    <select id="filtro-etiqueta-leer-despues" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Solo leer después</option>
+                        <option value="0">No marcados</option>
+                    </select>
+                </label>
+                <label>
+                    Portada
+                    <select id="filtro-etiqueta-portada" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Con portada</option>
+                        <option value="0">Sin portada</option>
+                    </select>
+                </label>
+                <label>
+                    ISBN
+                    <select id="filtro-etiqueta-isbn" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Con ISBN</option>
+                        <option value="0">Sin ISBN</option>
+                    </select>
+                </label>
+                <label>
+                    Páginas
+                    <select id="filtro-etiqueta-paginas" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Con páginas</option>
+                        <option value="0">Sin páginas</option>
+                    </select>
+                </label>
+                <label>
+                    Descripción
+                    <select id="filtro-etiqueta-descripcion" onchange="filtrarEtiquetas()">
+                        <option value="">Todos</option>
+                        <option value="1">Con descripción</option>
+                        <option value="0">Sin descripción</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="acciones-etiquetas">
+                <button type="button" class="secundario" onclick="seleccionarEtiquetasVisibles(true)">Seleccionar visibles</button>
+                <button type="button" class="secundario" onclick="seleccionarEtiquetasVisibles(false)">Quitar visibles</button>
+                <button type="button" class="secundario" onclick="marcarEtiquetas(true)">Seleccionar todos</button>
+                <button type="button" class="secundario" onclick="marcarEtiquetas(false)">Limpiar</button>
+                <button type="button" class="secundario" onclick="limpiarFiltrosEtiquetas()">Borrar filtros</button>
+                <button type="submit" class="principal">Aplicar selección</button>
+            </div>
+
+            <p class="nota mini-nota"><span id="contador-etiquetas">0</span> libro(s) visibles. Marcá solo los que querés imprimir; con los filtros podés seleccionar solo los resultados visibles.</p>
+
+            <div class="lista-checks-etiquetas">
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="el mar de los recuerdos autora de prueba 1 9780000000001 101 test 1 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="101"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="leyendo"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="1" >
+                    <span>
+                        <strong>101</strong> · El mar de los recuerdos — Autora de prueba 1 · TEST-1
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000001</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="una biblioteca abierta autora de prueba 2 9780000000002 102 test 2 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="102"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="2" >
+                    <span>
+                        <strong>102</strong> · Una biblioteca abierta — Autora de prueba 2 · TEST-2
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000002</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="historias del jardín autora de prueba 3 9780000000003 103 test 3 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="103"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="1"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="3" >
+                    <span>
+                        <strong>103</strong> · Historias del jardín — Autora de prueba 3 · TEST-3
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000003</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="el horizonte autora de prueba 1 9780000000004 104 test 4 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="104"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="1"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="4" >
+                    <span>
+                        <strong>104</strong> · El horizonte — Autora de prueba 1 · TEST-4
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000004</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="un viaje de otoño autora de prueba 2 9780000000005 105 test 5 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="105"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="5" >
+                    <span>
+                        <strong>105</strong> · Un viaje de otoño — Autora de prueba 2 · TEST-5
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000005</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="páginas de luz autora de prueba 3 9780000000006 106 test 6 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="106"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="6" >
+                    <span>
+                        <strong>106</strong> · Páginas de luz — Autora de prueba 3 · TEST-6
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000006</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="aprender a mirar autora de prueba 1 9780000000007 107 test 7 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="107"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="7" >
+                    <span>
+                        <strong>107</strong> · Aprender a mirar — Autora de prueba 1 · TEST-7
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000007</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="la casa de papel autora de prueba 2 9780000000008 108 test 8 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="108"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="8" >
+                    <span>
+                        <strong>108</strong> · La casa de papel — Autora de prueba 2 · TEST-8
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000008</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="lecturas compartidas autora de prueba 3 9780000000009 109 test 9 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="109"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="9" >
+                    <span>
+                        <strong>109</strong> · Lecturas compartidas — Autora de prueba 3 · TEST-9
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000009</small>
+                    </span>
+                </label>
+                
+                
+                <label class="check etiqueta-item"
+                       data-etiqueta-text="el tiempo de leer autora de prueba 1 9780000000000 110 test 10 editorial de prueba novela literatura"
+                       data-propietario="TEST"
+                       data-dewey="110"
+                       data-genero="Novela"
+                       data-subdivision="Literatura"
+                       data-editorial="Editorial de prueba"
+                       data-estado="no_leido"
+                       data-favorito="0"
+                       data-leer-despues="0"
+                       data-portada="0"
+                       data-isbn="1"
+                       data-paginas="1"
+                       data-descripcion="1">
+                    <input type="checkbox" name="ids" value="10" >
+                    <span>
+                        <strong>110</strong> · El tiempo de leer — Autora de prueba 1 · TEST-10
+                        <small class="detalle-etiqueta">Novela · Editorial de prueba · ISBN 9780000000000</small>
+                    </span>
+                </label>
+                
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<p class="vacio">Todavía no elegiste libros para imprimir. Tocá <strong>Elegir libros para imprimir</strong> y seleccioná los que quieras.</p>
+
+
+<script>
+function abrirModalEtiquetas(){
+    const modal = document.getElementById('modal-etiquetas');
+    if (modal) modal.style.display = 'flex';
+    filtrarEtiquetas();
+    setTimeout(() => document.getElementById('buscador-etiquetas')?.focus(), 50);
+}
+function cerrarModalEtiquetas(){
+    const modal = document.getElementById('modal-etiquetas');
+    if (modal) modal.style.display = 'none';
+}
+function normalizarEtiqueta(txt){
+    return (txt || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+function valorFiltro(id){
+    const el = document.getElementById(id);
+    return normalizarEtiqueta(el ? el.value : '');
+}
+function coincideIgual(valorItem, valorFiltro){
+    if (!valorFiltro) return true;
+    return normalizarEtiqueta(valorItem) === valorFiltro;
+}
+function coincideBinario(valorItem, valorFiltro){
+    if (!valorFiltro) return true;
+    return String(valorItem || '0') === String(valorFiltro);
+}
+function filtrarEtiquetas(){
+    const q = valorFiltro('buscador-etiquetas');
+    const propietario = valorFiltro('filtro-etiqueta-propietario');
+    const dewey = valorFiltro('filtro-etiqueta-dewey');
+    const genero = valorFiltro('filtro-etiqueta-genero');
+    const subdivision = valorFiltro('filtro-etiqueta-subdivision');
+    const editorial = valorFiltro('filtro-etiqueta-editorial');
+    const estado = valorFiltro('filtro-etiqueta-estado');
+    const favorito = document.getElementById('filtro-etiqueta-favorito')?.value || '';
+    const leerDespues = document.getElementById('filtro-etiqueta-leer-despues')?.value || '';
+    const portada = document.getElementById('filtro-etiqueta-portada')?.value || '';
+    const isbn = document.getElementById('filtro-etiqueta-isbn')?.value || '';
+    const paginas = document.getElementById('filtro-etiqueta-paginas')?.value || '';
+    const descripcion = document.getElementById('filtro-etiqueta-descripcion')?.value || '';
+    let visibles = 0;
+
+    document.querySelectorAll('.etiqueta-item').forEach(item => {
+        const texto = normalizarEtiqueta(item.dataset.etiquetaText);
+        const ok = (!q || texto.includes(q)) &&
+            coincideIgual(item.dataset.propietario, propietario) &&
+            (!dewey || normalizarEtiqueta(item.dataset.dewey).startsWith(dewey)) &&
+            coincideIgual(item.dataset.genero, genero) &&
+            coincideIgual(item.dataset.subdivision, subdivision) &&
+            coincideIgual(item.dataset.editorial, editorial) &&
+            coincideIgual(item.dataset.estado, estado) &&
+            coincideBinario(item.dataset.favorito, favorito) &&
+            coincideBinario(item.dataset.leerDespues, leerDespues) &&
+            coincideBinario(item.dataset.portada, portada) &&
+            coincideBinario(item.dataset.isbn, isbn) &&
+            coincideBinario(item.dataset.paginas, paginas) &&
+            coincideBinario(item.dataset.descripcion, descripcion);
+        item.style.display = ok ? 'flex' : 'none';
+        if (ok) visibles += 1;
+    });
+    const contador = document.getElementById('contador-etiquetas');
+    if (contador) contador.textContent = visibles;
+}
+function marcarEtiquetas(valor){
+    document.querySelectorAll('.lista-checks-etiquetas input[type="checkbox"]').forEach(c => c.checked = valor);
+}
+function seleccionarEtiquetasVisibles(valor){
+    document.querySelectorAll('.etiqueta-item').forEach(item => {
+        if (item.style.display !== 'none') {
+            const check = item.querySelector('input[type="checkbox"]');
+            if (check) check.checked = valor;
+        }
+    });
+}
+function limpiarFiltrosEtiquetas(){
+    ['buscador-etiquetas','filtro-etiqueta-dewey'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    ['filtro-etiqueta-propietario','filtro-etiqueta-genero','filtro-etiqueta-subdivision','filtro-etiqueta-editorial','filtro-etiqueta-estado','filtro-etiqueta-favorito','filtro-etiqueta-leer-despues','filtro-etiqueta-portada','filtro-etiqueta-isbn','filtro-etiqueta-paginas','filtro-etiqueta-descripcion'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    filtrarEtiquetas();
+}
+window.addEventListener('DOMContentLoaded', () => {
+    filtrarEtiquetas();
+    const form = document.getElementById('form-etiquetas-selector');
+    if (!form) return;
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const ids = Array.from(form.querySelectorAll('input[name="ids"]:checked')).map(x => x.value);
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.searchParams.set('ids', ids.length ? ids.join(',') : '__none__');
+        window.location.href = url.toString();
+    });
+});
+</script>
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

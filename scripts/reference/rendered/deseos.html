@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de deseos — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+
+
+
+<h2>🛒 Lista de deseos</h2>
+<p class="nota">Libros que querés comprar. Cuando consigas uno, tocá «¡Lo compré!» y pasa al catálogo.</p>
+
+
+<form method="get" class="buscador">
+    <input type="hidden" name="lista" value="deseos">
+    <input type="hidden" name="vista" value="cuadricula">
+    <input type="text" name="q" value="" placeholder="Buscar por partes: petalos, frankl sentido, LR 618...">
+    <select name="genero">
+        <option value="">— Género —</option>
+        <option value="Novela" >Novela</option>
+    </select>
+    <select name="estado_lectura">
+        <option value="">— Estado —</option>
+        <option value="no_leido" >No leído</option><option value="leyendo" >Leyendo</option><option value="leido" >Leído</option><option value="abandonado" >Abandonado</option><option value="releyendo" >Releyendo</option>
+    </select>
+    <select name="idioma">
+        <option value="">— Idioma —</option>
+        <option value="Español" >Español</option>
+    </select>
+    <select name="codigo_p">
+        <option value="">— Propietario —</option>
+        <option value="TEST" >TEST</option>
+    </select>
+    
+    <button type="submit">Buscar</button>
+    <a class="limpiar" href="/?lista=deseos">Limpiar</a>
+</form>
+
+<div class="barra-vista">
+    <span class="resumen">1 libro · mostrando hasta 200 por página</span>
+    <span>
+        <a href="/?lista=deseos&amp;vista=lista&amp;q=&amp;genero=&amp;codigo_p=&amp;idioma=&amp;estado_lectura=&amp;favorito=" class="">☰ Lista</a>
+        <a href="/?lista=deseos&amp;vista=cuadricula&amp;q=&amp;genero=&amp;codigo_p=&amp;idioma=&amp;estado_lectura=&amp;favorito=" class="activo">▦ Cuadrícula</a>
+    </span>
+</div>
+
+<details class="menu-columnas menu-columnas-compacto">
+    <summary>👁 Datos visibles</summary>
+    <div class="checks-columnas">
+        <label><input type="checkbox" data-col-toggle="dewey" checked> Dewey</label>
+        <label><input type="checkbox" data-col-toggle="propietario" checked> Propietario</label>
+        <label><input type="checkbox" id="toggle-numeros-propietario"> Mostrar números del propietario</label>
+        <label><input type="checkbox" data-col-toggle="titulo" checked> Título</label>
+        <label><input type="checkbox" data-col-toggle="autor" checked> Autor</label>
+        <label><input type="checkbox" data-col-toggle="genero" checked> Género</label>
+        <label><input type="checkbox" data-col-toggle="subdivision" checked> Subdivisión</label>
+        <label><input type="checkbox" data-col-toggle="editorial" checked> Editorial</label>
+        <label><input type="checkbox" data-col-toggle="estado" checked> Estado</label>
+        <label><input type="checkbox" data-col-toggle="paginas" checked> Páginas</label>
+        <label><input type="checkbox" data-col-toggle="rating" checked> Nota</label>
+        <label><input type="checkbox" data-col-toggle="autografiado" checked> Autografiado</label>
+        <label><input type="checkbox" data-col-toggle="prestamo" checked> Préstamo</label>
+    </div>
+</details>
+
+
+<div class="cuadricula">
+    
+    <a href="/libro/11" class="celda">
+        
+        <div class="sin-portada"><span>Un deseo pendiente</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">111</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 11</span></small>
+            <strong class="col-titulo">Un deseo pendiente</strong>
+            <small class="col-autor">Autora de prueba 2</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">230 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+        <div class="acciones-deseos" onclick="event.stopPropagation()">
+            <form method="post" action="/comprar/11">
+                <button type="submit" class="mini">¡Lo compré! 🎉</button>
+            </form>
+            <form method="post" action="/deseos/eliminar/11" onsubmit="return confirm('¿Eliminar este libro de deseos?');">
+                <button type="submit" class="mini peligro-suave">Quitar de deseos</button>
+            </form>
+        </div>
+        
+    </a>
+    
+</div>
+
+
+
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

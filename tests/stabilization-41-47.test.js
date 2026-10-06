@@ -22,14 +22,12 @@ test('Biblioteca avanzada es la única fuente de libros dentro del shell',async(
  assert.match(tools,/library-book/);
 });
 
-test('ficha del libro usa paneles y encabezado de modal de Habits',async()=>{
- const [library,css]=await Promise.all([read('src/biblioteca-main.js'),read('src/library-native.css')]);
- assert.match(library,/modal-heading library-modal-heading/);
- assert.match(library,/panel library-book-detail/);
- assert.match(library,/panel library-book-detail-actions/);
- assert.match(library,/panel library-book-detail-history/);
- assert.match(css,/\.library-book-detail-hero/);
- assert.match(css,/\.library-native-modal:has\(\.library-book-detail\)/);
+test('ficha restaura composición original y edición única con autoguardado',async()=>{
+ const [library,css]=await Promise.all([read('src/biblioteca-main.js'),read('src/biblioteca/reference-adapter.css')]);
+ assert.match(library,/function bookDetail\(id,editing=false\)/);
+ for(const cls of ['ficha-portada','ficha-datos','ficha-resumen-grid','ficha-acciones-superiores'])assert.ok(library.includes(cls));
+ assert.match(library,/if\(editing\)bindInlineEditor\(b\)/);
+ assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
 
 test('búsqueda global mezcla espacio local y catálogo y abre ficha de libro',async()=>{

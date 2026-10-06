@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+
+
+
+<div class="encabezado-pagina">
+    <div>
+        <h2>Catálogo</h2>
+        <p class="nota">Orden inicial por Dewey. El propietario puede verse en la lista; el número interno se muestra solo si tocás «Mostrar números».</p>
+    </div>
+    <a class="boton" href="/lecturas">📖 Estoy leyendo (1)</a>
+</div>
+
+
+<form method="get" class="buscador">
+    <input type="hidden" name="lista" value="catalogo">
+    <input type="hidden" name="vista" value="cuadricula">
+    <input type="text" name="q" value="" placeholder="Buscar por partes: petalos, frankl sentido, LR 618...">
+    <select name="genero">
+        <option value="">— Género —</option>
+        <option value="Novela" >Novela</option>
+    </select>
+    <select name="estado_lectura">
+        <option value="">— Estado —</option>
+        <option value="no_leido" >No leído</option><option value="leyendo" >Leyendo</option><option value="leido" >Leído</option><option value="abandonado" >Abandonado</option><option value="releyendo" >Releyendo</option>
+    </select>
+    <select name="idioma">
+        <option value="">— Idioma —</option>
+        <option value="Español" >Español</option>
+    </select>
+    <select name="codigo_p">
+        <option value="">— Propietario —</option>
+        <option value="TEST" >TEST</option>
+    </select>
+    
+    <select name="favorito">
+        <option value="">— Favoritos —</option>
+        <option value="1" >⭐ Solo favoritos</option>
+    </select>
+    
+    <button type="submit">Buscar</button>
+    <a class="limpiar" href="/?lista=catalogo">Limpiar</a>
+</form>
+
+<div class="barra-vista">
+    <span class="resumen">10 libros · mostrando hasta 200 por página</span>
+    <span>
+        <a href="/?lista=catalogo&amp;vista=lista&amp;q=&amp;genero=&amp;codigo_p=&amp;idioma=&amp;estado_lectura=&amp;favorito=" class="">☰ Lista</a>
+        <a href="/?lista=catalogo&amp;vista=cuadricula&amp;q=&amp;genero=&amp;codigo_p=&amp;idioma=&amp;estado_lectura=&amp;favorito=" class="activo">▦ Cuadrícula</a>
+    </span>
+</div>
+
+<details class="menu-columnas menu-columnas-compacto">
+    <summary>👁 Datos visibles</summary>
+    <div class="checks-columnas">
+        <label><input type="checkbox" data-col-toggle="dewey" checked> Dewey</label>
+        <label><input type="checkbox" data-col-toggle="propietario" checked> Propietario</label>
+        <label><input type="checkbox" id="toggle-numeros-propietario"> Mostrar números del propietario</label>
+        <label><input type="checkbox" data-col-toggle="titulo" checked> Título</label>
+        <label><input type="checkbox" data-col-toggle="autor" checked> Autor</label>
+        <label><input type="checkbox" data-col-toggle="genero" checked> Género</label>
+        <label><input type="checkbox" data-col-toggle="subdivision" checked> Subdivisión</label>
+        <label><input type="checkbox" data-col-toggle="editorial" checked> Editorial</label>
+        <label><input type="checkbox" data-col-toggle="estado" checked> Estado</label>
+        <label><input type="checkbox" data-col-toggle="paginas" checked> Páginas</label>
+        <label><input type="checkbox" data-col-toggle="rating" checked> Nota</label>
+        <label><input type="checkbox" data-col-toggle="autografiado" checked> Autografiado</label>
+        <label><input type="checkbox" data-col-toggle="prestamo" checked> Préstamo</label>
+    </div>
+</details>
+
+
+<div class="cuadricula">
+    
+    <a href="/libro/1" class="celda">
+        
+        <div class="sin-portada"><span>El mar de los recuerdos</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">101</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 1</span></small>
+            <strong class="col-titulo">El mar de los recuerdos</strong>
+            <small class="col-autor">Autora de prueba 1</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">130 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-leyendo col-estado">Leyendo</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/2" class="celda">
+        
+        <div class="sin-portada"><span>Una biblioteca abierta</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">102</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 2</span></small>
+            <strong class="col-titulo">Una biblioteca abierta</strong>
+            <small class="col-autor">Autora de prueba 2</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">140 pág.</small>
+            <small class="col-rating">⭐ 8/10</small>
+            
+            
+            
+            <small class="chip chip-leido col-estado">Leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/3" class="celda">
+        
+        <div class="sin-portada"><span>Historias del jardín</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">103</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 3</span></small>
+            <strong class="col-titulo">⭐ Historias del jardín</strong>
+            <small class="col-autor">Autora de prueba 3</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">150 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/4" class="celda">
+        
+        <div class="sin-portada"><span>El horizonte</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">104</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 4</span></small>
+            <strong class="col-titulo">El horizonte</strong>
+            <small class="col-autor">Autora de prueba 1</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">160 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/5" class="celda">
+        
+        <div class="sin-portada"><span>Un viaje de otoño</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">105</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 5</span></small>
+            <strong class="col-titulo">Un viaje de otoño</strong>
+            <small class="col-autor">Autora de prueba 2</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">170 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/6" class="celda">
+        
+        <div class="sin-portada"><span>Páginas de luz</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">106</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 6</span></small>
+            <strong class="col-titulo">Páginas de luz</strong>
+            <small class="col-autor">Autora de prueba 3</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">180 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/7" class="celda">
+        
+        <div class="sin-portada"><span>Aprender a mirar</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">107</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 7</span></small>
+            <strong class="col-titulo">Aprender a mirar</strong>
+            <small class="col-autor">Autora de prueba 1</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">190 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/8" class="celda">
+        
+        <div class="sin-portada"><span>La casa de papel</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">108</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 8</span></small>
+            <strong class="col-titulo">La casa de papel</strong>
+            <small class="col-autor">Autora de prueba 2</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">200 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/9" class="celda">
+        
+        <div class="sin-portada"><span>Lecturas compartidas</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">109</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 9</span></small>
+            <strong class="col-titulo">Lecturas compartidas</strong>
+            <small class="col-autor">Autora de prueba 3</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">210 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+    <a href="/libro/10" class="celda">
+        
+        <div class="sin-portada"><span>El tiempo de leer</span></div>
+        
+        <div class="celda-info">
+            <small class="dewey-card col-dewey">110</small>
+            <small class="propietario-card col-propietario">TEST <span class="numero-prop">Nº 10</span></small>
+            <strong class="col-titulo">El tiempo de leer</strong>
+            <small class="col-autor">Autora de prueba 1</small>
+            <small class="col-genero">Novela</small>
+            <small class="col-subdivision">Literatura</small>
+            <small class="col-editorial">Editorial de prueba</small>
+            <small class="col-paginas">220 pág.</small>
+            
+            
+            
+            
+            <small class="chip chip-no_leido col-estado">No leído</small>
+        </div>
+        
+    </a>
+    
+</div>
+
+
+
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

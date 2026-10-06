@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<h2>⚙ Configuración</h2>
+
+<form method="post" class="formulario configuracion-form">
+    <section>
+        <h3>🏷 Nombre de la biblioteca</h3>
+        <label>Nombre de la biblioteca
+            <input type="text" name="nombre_biblioteca" value="Mi Biblioteca">
+        </label>
+        <p class="nota">El pie de página queda fijo: <strong>Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</strong></p>
+    </section>
+
+    <section>
+        <h3>🎨 Colores</h3>
+        <div class="fila">
+            <label>Color principal
+                <input type="color" name="color_principal" value="#5d4037">
+            </label>
+            <label>Fondo
+                <input type="color" name="color_fondo" value="#faf6ef">
+            </label>
+        </div>
+        <div class="fila">
+            <label>Texto
+                <input type="color" name="color_texto" value="#3a3226">
+            </label>
+            <label>Tarjetas
+                <input type="color" name="color_tarjeta" value="#ffffff">
+            </label>
+        </div>
+    </section>
+
+    <section>
+        <h3>🔤 Tipografía</h3>
+        <div class="fila">
+            <label>Letra general
+                <select name="fuente">
+                    
+                    <option value="georgia" selected>Georgia</option>
+                    
+                    <option value="times" >Times</option>
+                    
+                    <option value="garamond" >Garamond</option>
+                    
+                    <option value="palatino" >Palatino</option>
+                    
+                    <option value="baskerville" >Baskerville</option>
+                    
+                    <option value="didot" >Didot</option>
+                    
+                    <option value="cambria" >Cambria</option>
+                    
+                    <option value="arial" >Arial</option>
+                    
+                    <option value="verdana" >Verdana</option>
+                    
+                    <option value="trebuchet" >Trebuchet</option>
+                    
+                    <option value="courier" >Courier</option>
+                    
+                    <option value="sistema" >Sistema</option>
+                    
+                </select>
+            </label>
+            <label>Letra de títulos
+                <select name="fuente_titulos">
+                    
+                    <option value="georgia" selected>Georgia</option>
+                    
+                    <option value="times" >Times</option>
+                    
+                    <option value="garamond" >Garamond</option>
+                    
+                    <option value="palatino" >Palatino</option>
+                    
+                    <option value="baskerville" >Baskerville</option>
+                    
+                    <option value="didot" >Didot</option>
+                    
+                    <option value="cambria" >Cambria</option>
+                    
+                    <option value="arial" >Arial</option>
+                    
+                    <option value="verdana" >Verdana</option>
+                    
+                    <option value="trebuchet" >Trebuchet</option>
+                    
+                    <option value="courier" >Courier</option>
+                    
+                    <option value="sistema" >Sistema</option>
+                    
+                </select>
+            </label>
+            <label>Letra de botones
+                <select name="fuente_botones">
+                    
+                    <option value="georgia" selected>Georgia</option>
+                    
+                    <option value="times" >Times</option>
+                    
+                    <option value="garamond" >Garamond</option>
+                    
+                    <option value="palatino" >Palatino</option>
+                    
+                    <option value="baskerville" >Baskerville</option>
+                    
+                    <option value="didot" >Didot</option>
+                    
+                    <option value="cambria" >Cambria</option>
+                    
+                    <option value="arial" >Arial</option>
+                    
+                    <option value="verdana" >Verdana</option>
+                    
+                    <option value="trebuchet" >Trebuchet</option>
+                    
+                    <option value="courier" >Courier</option>
+                    
+                    <option value="sistema" >Sistema</option>
+                    
+                </select>
+            </label>
+        </div>
+        <div class="fila">
+            <label>Tamaño de texto
+                <input type="number" name="tamano_texto" min="12" max="22" value="16">
+            </label>
+            <label>Tamaño de títulos
+                <input type="number" name="tamano_titulos" min="20" max="46" value="30">
+            </label>
+            <label>Tamaño de botones
+                <input type="number" name="tamano_botones" min="12" max="22" value="16">
+            </label>
+        </div>
+    </section>
+
+    <section>
+        <h3>📚 Catálogo</h3>
+        <label>Vista con la que abre el catálogo
+            <select name="vista_default">
+                <option value="cuadricula" selected>▦ Cuadrícula</option>
+                <option value="lista" >☰ Lista</option>
+            </select>
+        </label>
+        <p class="nota">Es la vista que aparece al entrar al Catálogo. Igual podés cambiarla en el momento con los botones ☰ Lista / ▦ Cuadrícula.</p>
+        <label>Libros por página
+            <select name="por_pagina">
+                <option value="100" >100</option>
+                <option value="200" selected>200</option>
+                <option value="500" >500</option>
+                <option value="todos" >Todos</option>
+            </select>
+        </label>
+        <div class="fila">
+            <label class="check">
+                <input type="checkbox" name="mostrar_favoritos_catalogo" checked>
+                Mostrar estrella de favoritos dentro del catálogo
+            </label>
+        </div>
+    </section>
+
+    <button type="submit" class="principal">Guardar configuración</button>
+</form>
+
+<div class="formulario">
+    <h3>💾 Copia de seguridad</h3>
+    <p class="nota">La app crea un respaldo automático diario en la carpeta <strong>respaldos</strong> y conserva los últimos 10. También podés descargar una copia ahora.</p>
+    <p class="nota">Último respaldo: <strong>biblioteca_2026-10-01.db</strong></p>
+    <a class="boton principal" href="/backup/descargar">Descargar copia de seguridad</a>
+</div>
+
+<div class="formulario">
+    <h3>⬇ Exportar catálogo</h3>
+    <p class="nota">La descarga CSV ahora quedó dentro de Configuración.</p>
+    <a class="boton secundario" href="/exportar">Descargar CSV</a>
+</div>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El mar de los recuerdos — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<a href="/" class="volver">← Volver al catálogo</a>
+
+<div class="ficha-acciones-superiores">
+    
+    <a class="boton" href="/libro/1?editar=1">✏️ Editar</a>
+    
+
+    <form method="post" action="/favorito/1" class="form-inline">
+        <button type="submit" class="boton secundario">☆ Agregar favorito</button>
+    </form>
+
+    
+    <a class="boton secundario" href="/lecturas?libro_id=1">📖 Estoy leyendo</a>
+    <a class="boton secundario" href="/prestamos?libro_id=1">📚 Prestar este libro</a>
+    
+    <form method="post" action="/proximas" class="form-inline"><input type="hidden" name="libro_id" value="1"><button type="submit" class="boton secundario">📌 Quiero leer después</button></form>
+    
+    
+    
+</div>
+
+<div class="ficha modo-lectura" data-id="1" data-editar="0">
+    <div class="ficha-portada">
+        
+        <div class="sin-portada grande"><span>El mar de los recuerdos</span></div>
+        
+
+        
+
+        
+        <div class="dato-interno">
+            <strong>Propietario:</strong> TEST
+             · Nº 1
+        </div>
+        
+    </div>
+
+    <div class="ficha-datos">
+        
+        <h2>El mar de los recuerdos</h2>
+        <p class="autor">Autora de prueba 1</p>
+
+        <div class="estrellas solo-lectura" title="Tu puntaje">
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <span class="estrella ">★</span>
+            
+            <small>sin puntuar</small>
+        </div>
+
+        <div class="ficha-resumen-grid">
+            <div><strong>Dewey</strong><span>101</span></div>
+            <div><strong>Género</strong><span>Novela</span></div>
+            <div><strong>Subdivisión</strong><span>Literatura</span></div>
+            <div><strong>Editorial</strong><span>Editorial de prueba</span></div>
+            <div><strong>Páginas</strong><span>130</span></div>
+            <div><strong>Idioma</strong><span>Español</span></div>
+            
+            <div><strong>Estado</strong><span class="chip chip-leyendo">Leyendo</span></div>
+            
+            
+        </div>
+
+        
+        <div class="progreso">
+            <div class="progreso-barra" style="width: 25%"></div>
+            <span>25% · pág. 32 de 130</span>
+        </div>
+        
+
+        
+        <section class="bloque-lectura">
+            <h3>Sinopsis</h3>
+            <p>Sinopsis de prueba para comparar ambas aplicaciones con los mismos datos.</p>
+        </section>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+    </div>
+</div>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>
