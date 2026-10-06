@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leer después — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+<h2>📌 Quiero leer después</h2>
+<p class="nota">Esta lista es para libros que ya están en tu catálogo y querés leer más adelante. Cuando tocás <strong>Empezar a leer</strong>, el libro pasa a «Estoy leyendo» y sale solo de esta lista.</p>
+
+<section class="panel">
+    <h3>Agregar a leer después</h3>
+    <form method="post" class="form-linea">
+        <label>Libro
+            <input type="text" name="libro_busqueda" list="libros-proximas" placeholder="Escribí el título o elegí de la lista" required>
+            <datalist id="libros-proximas">
+                <option value="1 · El mar de los recuerdos — Autora de prueba 1 · TEST Nº 1"><option value="2 · Una biblioteca abierta — Autora de prueba 2 · TEST Nº 2"><option value="3 · Historias del jardín — Autora de prueba 3 · TEST Nº 3"><option value="5 · Un viaje de otoño — Autora de prueba 2 · TEST Nº 5"><option value="6 · Páginas de luz — Autora de prueba 3 · TEST Nº 6"><option value="7 · Aprender a mirar — Autora de prueba 1 · TEST Nº 7"><option value="8 · La casa de papel — Autora de prueba 2 · TEST Nº 8"><option value="9 · Lecturas compartidas — Autora de prueba 3 · TEST Nº 9"><option value="10 · El tiempo de leer — Autora de prueba 1 · TEST Nº 10">
+            </datalist>
+        </label>
+        <button type="submit">Agregar</button>
+    </form>
+</section>
+
+
+<div class="lista-cards-simple">
+    
+    <article class="card-horizontal">
+        <div class="mini-cover sin-portada">Sin portada</div>
+        <div>
+            <small>104</small>
+            <h3><a href="/libro/4">El horizonte</a></h3>
+            <p>Autora de prueba 1</p>
+            <div class="acciones-leer-despues">
+                <form method="post" action="/lecturas/iniciar">
+                    <input type="hidden" name="libro_id" value="4">
+                    <input type="hidden" name="origen" value="proximas">
+                    <input type="hidden" name="fecha_inicio" value="2026-10-01">
+                    <button type="submit" class="mini principal">📖 Empezar a leer</button>
+                </form>
+                <form method="post" action="/proximas/quitar/4">
+                    <button type="submit" class="mini secundario">Quitar de la lista</button>
+                </form>
+            </div>
+        </div>
+    </article>
+    
+</div>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

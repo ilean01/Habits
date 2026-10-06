@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<h2>📊 Estadísticas</h2>
+
+<div class="tarjetas">
+    <div class="tarjeta"><span class="numero">11</span><span>total de libros</span></div>
+    <div class="tarjeta"><span class="numero">10</span><span>libros en catálogo</span></div>
+    <div class="tarjeta"><span class="numero">1</span><span>libros en deseos</span></div>
+    <div class="tarjeta"><span class="numero">0</span><span>autografiados</span></div>
+    <div class="tarjeta"><span class="numero">1750</span><span>páginas registradas</span></div>
+    <div class="tarjeta"><span class="numero">3</span><span>autores distintos</span></div>
+    <div class="tarjeta"><span class="numero">1</span><span>libros leídos</span></div>
+    <div class="tarjeta"><span class="numero">0</span><span>páginas leídas en 2026</span></div>
+    <div class="tarjeta"><span class="numero">0</span><span>días de racha</span></div>
+    <div class="tarjeta"><span class="numero">0</span><span>préstamos registrados</span></div>
+    <div class="tarjeta"><span class="numero">0</span><span>prestados ahora</span></div>
+</div>
+
+<section>
+    <h3>📚 Estadísticas de préstamos</h3>
+    <div class="tarjetas tarjetas-compactas">
+        <div class="tarjeta"><span class="numero">0</span><span>devueltos</span></div>
+        <div class="tarjeta"><span class="numero">0</span><span>perdidos</span></div>
+        <div class="tarjeta"><span class="numero">0</span><span>sin personas todavía</span></div>
+    </div>
+    <table class="tabla-mini">
+        <tbody>
+            <tr><td>Persona a quien más se prestó</td><td>sin datos</td></tr>
+            <tr><td>Libro más prestado</td><td>sin datos</td></tr>
+            <tr><td>Libro más tiempo fuera de mi biblioteca</td><td>sin datos</td></tr>
+        </tbody>
+    </table>
+</section>
+
+
+<section>
+    <h3>📖 Leyendo ahora</h3>
+    <div class="lista-leyendo">
+        
+        <a href="/libro/1" class="leyendo-item">
+            
+            <div>
+                <strong>El mar de los recuerdos</strong><br>
+                <small>Autora de prueba 1</small>
+                
+                <div class="progreso chico"><div class="progreso-barra" style="width: 25%"></div></div>
+                <small>pág. 32 de 130</small>
+                
+            </div>
+        </a>
+        
+    </div>
+</section>
+
+
+<div class="dos-columnas">
+<section>
+    <h3>Orden Dewey</h3>
+    <div class="grafico">
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=101">101</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=102">102</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=103">103</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=104">104</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=105">105</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=106">106</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=107">107</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=108">108</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=109">109</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=110">110</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">1</span>
+        </div>
+        
+    </div>
+</section>
+
+<section>
+    <h3>Propietarios / códigos internos</h3>
+    <table class="tabla-mini">
+        <thead><tr><th>Propietario</th><th>Cantidad</th></tr></thead>
+        <tbody>
+        
+        <tr>
+            <td>TEST</td>
+            <td class="derecha">10</td>
+        </tr>
+        
+        </tbody>
+    </table>
+    <p class="nota">El código es el propietario; el número de cada libro queda guardado en su ficha y en la exportación CSV.</p>
+</section>
+</div>
+
+<section>
+    <h3>Libros por género</h3>
+    <div class="grafico">
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?genero=Novela">Novela</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">10</span>
+        </div>
+        
+    </div>
+</section>
+
+
+<section>
+    <h3>Editoriales con más libros</h3>
+    <div class="grafico">
+        
+        <div class="barra-fila">
+            <span class="barra-etiqueta"><a href="/?q=Editorial+de+prueba">Editorial de prueba</a></span>
+            <div class="barra-fondo"><div class="barra" style="width: 100.0%"></div></div>
+            <span class="barra-valor">10</span>
+        </div>
+        
+    </div>
+</section>
+
+
+
+
+<section>
+    <h3>Libros agregados por mes</h3>
+    <div class="grafico-columnas">
+        
+        <div class="columna-mes" title="2026-09: 10">
+            <div class="columna" style="height: 100%"></div>
+            <small>09/26</small>
+        </div>
+        
+    </div>
+</section>
+
+
+<div class="dos-columnas">
+    <section>
+        <h3>Géneros más leídos</h3>
+        <table class="tabla-mini">
+            
+            <tr><td>Novela</td><td class="derecha">2</td></tr>
+            
+        </table>
+    </section>
+
+    <section>
+        <h3>Autores con más ejemplares</h3>
+        <table class="tabla-mini">
+            
+            <tr><td><a href="/?q=Autora+de+prueba+1">Autora de prueba 1</a></td><td class="derecha">4</td></tr>
+            
+            <tr><td><a href="/?q=Autora+de+prueba+3">Autora de prueba 3</a></td><td class="derecha">3</td></tr>
+            
+            <tr><td><a href="/?q=Autora+de+prueba+2">Autora de prueba 2</a></td><td class="derecha">3</td></tr>
+            
+        </table>
+    </section>
+</div>
+
+<div class="dos-columnas">
+    <section>
+        <h3>⭐ Mejor puntuados</h3>
+        <table class="tabla-mini">
+            
+            <tr><td>Una biblioteca abierta <small>(Autora de prueba 2)</small></td><td class="derecha">8/10</td></tr>
+            
+        </table>
+    </section>
+
+    <section>
+        <h3>Curiosidades</h3>
+        <table class="tabla-mini">
+            <tr><td>📏 El más largo</td><td>El tiempo de leer (220 pág.)</td></tr>
+            <tr><td>🤏 El más corto</td><td>El mar de los recuerdos (130 pág.)</td></tr>
+            <tr><td>⏱ Promedio para terminar un libro</td><td>todavía sin datos</td></tr>
+        </table>
+    </section>
+</div>
+
+
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

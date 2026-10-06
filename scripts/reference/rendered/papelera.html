@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papelera — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+<h2>♻ Papelera</h2>
+<p class="nota">Los libros borrados quedan acá primero. Podés restaurarlos o vaciar la papelera definitivamente.</p>
+
+
+<form method="post" action="/papelera/vaciar" onsubmit="return confirm('¿Vaciar la papelera definitivamente? Esto no se puede deshacer.');">
+    <button type="submit" class="peligro">Vaciar papelera definitivamente</button>
+</form>
+<div class="tabla-scroll">
+<table class="tabla-mini">
+    <thead><tr><th>Título</th><th>Autor</th><th>Lista</th><th>Eliminado</th><th></th></tr></thead>
+    <tbody>
+    
+    <tr>
+        <td>Libro para restaurar</td>
+        <td>Autora de prueba 3</td>
+        <td>catalogo</td>
+        <td></td>
+        <td>
+            <form method="post" action="/papelera/restaurar/12">
+                <button type="submit" class="mini">Restaurar</button>
+            </form>
+        </td>
+    </tr>
+    
+    </tbody>
+</table>
+</div>
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

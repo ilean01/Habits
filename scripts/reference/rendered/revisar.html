@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libros para revisar — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+<h2>🔎 Libros para revisar</h2>
+<p class="nota">Acá aparecen los libros del catálogo que tienen datos faltantes. Así no tenés que revisar uno por uno.</p>
+
+<div class="filtros-revision">
+    <a class="chip-filtro activo" href="/revisar">Todos</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=portada">Sin portada · 10</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=dewey">Sin Dewey · 0</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=paginas">Sin páginas · 0</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=autor">Sin autor · 0</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=isbn">Sin ISBN · 0</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=editorial">Sin editorial · 0</a>
+    
+    <a class="chip-filtro " href="/revisar?filtro=descripcion">Sin descripción · 0</a>
+    
+</div>
+
+<p class="resumen">Mostrando 10 libros para revisar.</p>
+
+<div class="tabla-scroll">
+<table class="tabla-mini tabla-revision">
+    <thead><tr><th>Dewey</th><th>Título</th><th>Autor</th><th>Propietario</th><th>Falta</th><th></th></tr></thead>
+    <tbody>
+    
+    <tr>
+        <td>101</td>
+        <td><a href="/libro/1?editar=1">El mar de los recuerdos</a></td>
+        <td>Autora de prueba 1</td>
+        <td>TEST Nº 1</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/1?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>102</td>
+        <td><a href="/libro/2?editar=1">Una biblioteca abierta</a></td>
+        <td>Autora de prueba 2</td>
+        <td>TEST Nº 2</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/2?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>103</td>
+        <td>⭐ <a href="/libro/3?editar=1">Historias del jardín</a></td>
+        <td>Autora de prueba 3</td>
+        <td>TEST Nº 3</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/3?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>104</td>
+        <td><a href="/libro/4?editar=1">El horizonte</a></td>
+        <td>Autora de prueba 1</td>
+        <td>TEST Nº 4</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/4?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>105</td>
+        <td><a href="/libro/5?editar=1">Un viaje de otoño</a></td>
+        <td>Autora de prueba 2</td>
+        <td>TEST Nº 5</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/5?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>106</td>
+        <td><a href="/libro/6?editar=1">Páginas de luz</a></td>
+        <td>Autora de prueba 3</td>
+        <td>TEST Nº 6</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/6?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>107</td>
+        <td><a href="/libro/7?editar=1">Aprender a mirar</a></td>
+        <td>Autora de prueba 1</td>
+        <td>TEST Nº 7</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/7?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>108</td>
+        <td><a href="/libro/8?editar=1">La casa de papel</a></td>
+        <td>Autora de prueba 2</td>
+        <td>TEST Nº 8</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/8?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>109</td>
+        <td><a href="/libro/9?editar=1">Lecturas compartidas</a></td>
+        <td>Autora de prueba 3</td>
+        <td>TEST Nº 9</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/9?editar=1">Completar →</a></td>
+    </tr>
+    
+    <tr>
+        <td>110</td>
+        <td><a href="/libro/10?editar=1">El tiempo de leer</a></td>
+        <td>Autora de prueba 1</td>
+        <td>TEST Nº 10</td>
+        <td>
+            <span class="chip chip-falta">Sin portada</span>
+        </td>
+        <td><a href="/libro/10?editar=1">Completar →</a></td>
+    </tr>
+    
+    </tbody>
+</table>
+</div>
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>

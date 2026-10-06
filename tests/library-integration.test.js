@@ -17,10 +17,10 @@ test('Biblioteca se monta nativamente dentro del shell sin iframe',async()=>{
  assert.match(library,/root\?\.contains\(el\)\|\|modal\?\.contains\(el\)/);
 });
 
-test('Biblioteca nativa elimina segunda marca y conserva contexto y navegación completa',async()=>{
+test('Biblioteca conserva cabecera original, selector de contexto y navegación completa',async()=>{
  const [views,css]=await Promise.all([read('src/biblioteca/views.js'),read('src/library-native.css')]);
- assert.match(views,/if\(s\.embedded\)/);
- assert.match(views,/Biblioteca activa/);
+ assert.match(views,/lib-header-top/);
+ assert.match(views,/active\?\.nombre/);
  assert.match(views,/data-lib-switch/);
  for(const label of ['Catálogo','Estoy leyendo','Préstamos','Deseos','Leer después','Revisar','Estadísticas','Etiquetas','Papelera','Configuración'])assert.match(views,new RegExp(label));
  assert.match(css,/\.library-native-shell \.lib-header/);

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préstamos — Biblioteca</title>
+    <link rel="stylesheet" href="/scripts/reference/rendered/original.css">
+    <style>
+        :root {
+            --color-principal: #5d4037;
+            --color-fondo: #faf6ef;
+            --color-texto: #3a3226;
+            --color-tarjeta: #ffffff;
+            --fuente-app: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-titulos: Georgia, &#39;Times New Roman&#39;, serif;
+            --fuente-botones: Georgia, &#39;Times New Roman&#39;, serif;
+            --tamano-texto: 16px;
+            --tamano-titulos: 30px;
+            --tamano-botones: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Mi Biblioteca</h1>
+        <nav>
+            <a href="/">Catálogo</a>
+            <a href="/lecturas">📖 Estoy leyendo</a>
+            <a href="/prestamos">📚 Préstamos</a>
+            <a href="/?lista=deseos">🛒 Deseos</a>
+            <a href="/proximas">📌 Leer después</a>
+            <a href="/revisar">🔎 Revisar</a>
+            <a href="/agregar">+ Agregar</a>
+            <a href="/estadisticas">Estadísticas</a>
+            <a href="/etiquetas_lomo">🏷 Etiquetas</a>
+            <a href="/papelera">♻ Papelera</a>
+            <a href="/configuracion">⚙</a>
+        </nav>
+    </header>
+
+    
+        
+    
+
+    <div id="aviso-guardado">Guardado ✔</div>
+
+    <main>
+        
+
+<h2>📚 Préstamos de libros</h2>
+<p class="nota">Usá esta pantalla para saber qué libro prestaste, a quién, cuándo volvió, si se perdió y en qué estado se devolvió.</p>
+
+
+<section class="panel prestamos-formulario-grande">
+    <h3>Registrar nuevo préstamo</h3>
+    <form method="post" action="/prestamos/nuevo" class="formulario formulario-ancho prestamos-form-vertical" style="box-shadow:none;padding:0;">
+        <input type="hidden" name="origen" value="prestamos">
+        <label>Libro
+            <input type="text" name="libro_busqueda" list="libros-prestamo" placeholder="Escribí título, autor o elegí de la lista" value="" required>
+            <datalist id="libros-prestamo">
+                
+                <option value="1 · El mar de los recuerdos — Autora de prueba 1 · TEST Nº 1">
+                
+                <option value="2 · Una biblioteca abierta — Autora de prueba 2 · TEST Nº 2">
+                
+                <option value="3 · Historias del jardín — Autora de prueba 3 · TEST Nº 3">
+                
+                <option value="4 · El horizonte — Autora de prueba 1 · TEST Nº 4">
+                
+                <option value="5 · Un viaje de otoño — Autora de prueba 2 · TEST Nº 5">
+                
+                <option value="6 · Páginas de luz — Autora de prueba 3 · TEST Nº 6">
+                
+                <option value="7 · Aprender a mirar — Autora de prueba 1 · TEST Nº 7">
+                
+                <option value="8 · La casa de papel — Autora de prueba 2 · TEST Nº 8">
+                
+                <option value="9 · Lecturas compartidas — Autora de prueba 3 · TEST Nº 9">
+                
+                <option value="10 · El tiempo de leer — Autora de prueba 1 · TEST Nº 10">
+                
+            </datalist>
+            <small class="nota-inline">Podés escribir el título. La app intenta encontrarlo aunque no lo elijas exacto.</small>
+        </label>
+        <label>Prestado a
+            <input type="text" name="persona" list="personas-prestamo" placeholder="Nombre de la persona" required>
+            <datalist id="personas-prestamo">
+                
+            </datalist>
+            <small class="nota-inline">Si escribís una persona nueva, queda guardada como perfil para elegirla después.</small>
+        </label>
+        <div class="fila">
+            <label>Fecha de préstamo
+                <input type="date" name="fecha_prestamo" value="2026-10-01">
+            </label>
+            <label>Devolver aprox.
+                <input type="date" name="fecha_devolucion_prevista">
+            </label>
+        </div>
+        <label>Notas
+            <textarea name="notas" rows="2" placeholder="Ej: lo llevó para las vacaciones, devolver en buen estado..."></textarea>
+        </label>
+        <button type="submit" class="principal">Guardar préstamo</button>
+    </form>
+</section>
+
+<section class="prestamos-activos-seccion">
+    <h3>Prestados ahora</h3>
+    
+        <p class="vacio">No hay préstamos activos.</p>
+    
+</section>
+
+
+
+
+    </main>
+
+    <footer class="pie">Mi Biblioteca · Creada por Ileana Sanabria · versión 18.0</footer>
+
+    <script src="/scripts/reference/rendered/original.js"></script>
+</body>
+</html>
